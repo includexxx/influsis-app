@@ -2,18 +2,17 @@ import { Stack, useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
 import NavigationHeaderLeft from '@/components/layouts/NavigationHeaderLeft';
 import NavigationHeaderTitle from '@/components/layouts/NavigationHeaderTitle';
-import useColorScheme from '@/hooks/useColorScheme';
-import { colors } from '@/theme';
+import { useTheme } from '@/hooks';
 
 export default function HomeStackLayout() {
   const navigation = useNavigation();
-  const { isDark } = useColorScheme();
+  const { colors } = useTheme();
   const toggleDrawer = () => navigation.dispatch(DrawerActions.toggleDrawer());
   return (
     <Stack
       screenOptions={{
-        headerTintColor: colors.white,
-        headerStyle: { backgroundColor: isDark ? colors.blackGray : colors.darkPurple },
+        headerTintColor: colors.text.inverse,
+        headerStyle: { backgroundColor: colors.primary },
         headerTitleStyle: { fontSize: 18 },
       }}>
       <Stack.Screen

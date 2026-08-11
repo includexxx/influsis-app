@@ -1,10 +1,7 @@
-import { Fragment, useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import BottomSheetContents from '@/components/layouts/BottomSheetContents';
-import BottomSheet from '@/components/elements/BottomSheet';
 import { useDataPersist, DataPersistKeys } from '@/hooks';
-import useColorScheme from '@/hooks/useColorScheme';
-import { loadImages, loadFonts, colors } from '@/theme';
+import { loadImages, loadFonts } from '@/theme';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAppSlice } from '@/slices';
@@ -16,10 +13,8 @@ import { User } from '@/types';
 SplashScreen.preventAutoHideAsync();
 
 function Router() {
-  const { isDark } = useColorScheme();
   const { dispatch, setUser, setLoggedIn } = useAppSlice();
   const { setPersistData, getPersistData } = useDataPersist();
-  const [isOpen, setOpen] = useState(false);
 
   /**
    * preload assets and user info
@@ -35,39 +30,23 @@ function Router() {
         dispatch(setUser(user));
         dispatch(setLoggedIn(!!user));
         if (user) setPersistData<User>(DataPersistKeys.USER, user);
-
-        // hide splash screen
-        SplashScreen.hideAsync();
-        setOpen(true);
       } catch {
         // if preload failed, try to get user data from persistent storage
-        getPersistData<User>(DataPersistKeys.USER)
-          .then(user => {
-            if (user) dispatch(setUser(user));
-            dispatch(setLoggedIn(!!user));
-          })
-          .finally(() => {
-            // hide splash screen
-            SplashScreen.hideAsync();
-
-            // show bottom sheet
-            setOpen(true);
-          });
+        const user = await getPersistData<User>(DataPersistKeys.USER);
+        if (user) dispatch(setUser(user));
+        dispatch(setLoggedIn(!!user));
+      } finally {
+        // hide splash screen
+        SplashScreen.hideAsync();
       }
     })();
   }, []);
 
   return (
-    <Fragment>
+    <>
       <Slot />
       <StatusBar style="light" />
-      <BottomSheet
-        isOpen={isOpen}
-        initialOpen
-        backgroundStyle={isDark && { backgroundColor: colors.blackGray }}>
-        <BottomSheetContents onClose={() => setOpen(false)} />
-      </BottomSheet>
-    </Fragment>
+    </>
   );
 }
 

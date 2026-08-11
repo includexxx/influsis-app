@@ -1,18 +1,17 @@
 import { Tabs } from 'expo-router';
-import useColorScheme from '@/hooks/useColorScheme';
 import { AntDesign } from '@expo/vector-icons';
-import { colors } from '@/theme';
+import { useTheme } from '@/hooks';
 
 export default function TabLayout() {
-  const { isDark } = useColorScheme();
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarInactiveTintColor: colors.gray,
-        tabBarInactiveBackgroundColor: isDark ? colors.blackGray : colors.white,
-        tabBarActiveTintColor: colors.lightPurple,
-        tabBarActiveBackgroundColor: isDark ? colors.blackGray : colors.white,
+        tabBarInactiveTintColor: colors.text.secondary,
+        tabBarInactiveBackgroundColor: colors.background,
+        tabBarActiveTintColor: colors.primary,
+        tabBarActiveBackgroundColor: colors.background,
       }}>
       <Tabs.Screen
         name="index"

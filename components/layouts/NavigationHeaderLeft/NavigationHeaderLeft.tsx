@@ -1,15 +1,14 @@
 import { SimpleLineIcons } from '@expo/vector-icons';
-import useColorScheme from '@/hooks/useColorScheme';
-import { colors } from '@/theme';
+import { useTheme } from '@/hooks';
 
 export default function NavigationHeaderLeft({ onPress }: { onPress: () => void }) {
-  const { isDark } = useColorScheme();
+  const { colors } = useTheme();
   return (
     <SimpleLineIcons.Button
       name="menu"
       size={24}
-      color={isDark ? colors.gray : colors.white}
-      backgroundColor={colors.transparent}
+      color={colors.text.inverse}
+      backgroundColor="transparent"
       onPress={onPress}
     />
   );
