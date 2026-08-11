@@ -17,9 +17,11 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ## Design System
 
+- [Design Tokens and systems](./design-system.md)
+
 ## Screen Specs (per screen)
 
--
+- [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification
 
 ## 2. Current State of the App
 

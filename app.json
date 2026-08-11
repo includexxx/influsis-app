@@ -4,9 +4,13 @@
     "slug": "react-native-boilerplate",
     "scheme": "react-native-boilerplate",
     "version": "3.0.0",
-    "owner": "wataru",
+    "owner": "mh-shohans-team",
     "newArchEnabled": true,
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/logo-lg.png",
     "userInterfaceStyle": "automatic",

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDataPersist, DataPersistKeys } from '@/hooks';
 import { loadImages, loadFonts } from '@/theme';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAppSlice } from '@/slices';
 import { getUserAsync } from '@/services';
@@ -44,7 +44,7 @@ function Router() {
 
   return (
     <>
-      <Slot />
+      <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="light" />
     </>
   );
