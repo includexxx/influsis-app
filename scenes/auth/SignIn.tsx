@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
 export default function SignIn() {
   const { colors, palette } = useTheme();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('test@example.com');
+  const [password, setPassword] = useState('pass1234');
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
