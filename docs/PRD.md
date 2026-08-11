@@ -1,11 +1,11 @@
 # Product Requirements Document (PRD) — Influsis App
 
-| | |
-|---|---|
-| **Product** | Influsis (mobile + web app) |
-| **Status** | Foundation stage — built on React Native boilerplate, product features not yet implemented |
-| **Platforms** | iOS, Android, Web (single Expo codebase) |
-| **Last updated** | 2026-08-10 |
+|                  |                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| **Product**      | Influsis (mobile + web app)                                                                |
+| **Status**       | Foundation stage — built on React Native boilerplate, product features not yet implemented |
+| **Platforms**    | iOS, Android, Web (single Expo codebase)                                                   |
+| **Last updated** | 2026-08-10                                                                                 |
 
 ---
 
@@ -14,6 +14,12 @@
 Influsis is a cross-platform application currently at the **scaffolding stage**. The codebase is derived from a production-grade React Native boilerplate (Expo SDK 54) that provides navigation, theming, state management, persistence, environment configuration, and CI/CD-ready build tooling. Product-specific screens, services, and branding are placeholders awaiting implementation.
 
 This document records (a) what the app does today, (b) the technical foundation product features will be built on, and (c) the gaps that must be closed before the app can be considered Influsis rather than the boilerplate.
+
+## Design System
+
+## Screen Specs (per screen)
+
+-
 
 ## 2. Current State of the App
 
@@ -43,18 +49,18 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ## 3. Technical Foundation (inherited, keep)
 
-| Concern | Implementation |
-|---|---|
-| Framework | React Native 0.81.5, React 19.1, Expo SDK 54, New Architecture |
-| Language | TypeScript 5.9, strict mode |
-| Routing | Expo Router v6 (drawer → tabs → stacks) |
-| Global state | Redux Toolkit + react-redux, `useAppSlice` pattern |
-| Local storage | AsyncStorage via `useDataPersist` |
-| Theming | Custom theme system (`@/theme`) with light/dark support |
-| UI elements | Reusable `Button`, `GradientButton`, `Image`, `BottomSheet` components with tests |
-| Environment | dotenvx + `app.config.ts` → typed access via `utils/config.ts` |
-| Build/Deploy | EAS Build (iOS/Android), EAS Hosting (web), OTA via expo-updates |
-| Quality | ESLint 9 (flat config), Prettier, Jest + React Native Testing Library, Husky + lint-staged pre-commit |
+| Concern       | Implementation                                                                                        |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| Framework     | React Native 0.81.5, React 19.1, Expo SDK 54, New Architecture                                        |
+| Language      | TypeScript 5.9, strict mode                                                                           |
+| Routing       | Expo Router v6 (drawer → tabs → stacks)                                                               |
+| Global state  | Redux Toolkit + react-redux, `useAppSlice` pattern                                                    |
+| Local storage | AsyncStorage via `useDataPersist`                                                                     |
+| Theming       | Custom theme system (`@/theme`) with light/dark support                                               |
+| UI elements   | Reusable `Button`, `GradientButton`, `Image`, `BottomSheet` components with tests                     |
+| Environment   | dotenvx + `app.config.ts` → typed access via `utils/config.ts`                                        |
+| Build/Deploy  | EAS Build (iOS/Android), EAS Hosting (web), OTA via expo-updates                                      |
+| Quality       | ESLint 9 (flat config), Prettier, Jest + React Native Testing Library, Husky + lint-staged pre-commit |
 
 ## 4. Product Direction (to be defined)
 
@@ -62,22 +68,22 @@ The product scope of Influsis (target users, core features, monetization) is **n
 
 ### 4.1 Proposed epics (placeholders — confirm before building)
 
-| # | Epic | Depends on |
-|---|---|---|
-| E1 | Rebrand app (name, slug, bundle IDs, icons, splash, colors) | — |
-| E2 | Real authentication (signup, login, logout, session refresh) | Backend API |
-| E3 | API service layer (replace fake `getUserAsync`, add error handling, token storage) | E2 |
-| E4 | Core Influsis feature set (feeds, campaigns, discovery — TBD) | E2, E3 |
-| E5 | Profile management (edit profile, avatar upload, settings) | E2, E3 |
-| E6 | Push notifications & deep linking | E2 |
-| E7 | Analytics and crash reporting | — |
+| #   | Epic                                                                               | Depends on  |
+| --- | ---------------------------------------------------------------------------------- | ----------- |
+| E1  | Rebrand app (name, slug, bundle IDs, icons, splash, colors)                        | —           |
+| E2  | Real authentication (signup, login, logout, session refresh)                       | Backend API |
+| E3  | API service layer (replace fake `getUserAsync`, add error handling, token storage) | E2          |
+| E4  | Core Influsis feature set (feeds, campaigns, discovery — TBD)                      | E2, E3      |
+| E5  | Profile management (edit profile, avatar upload, settings)                         | E2, E3      |
+| E6  | Push notifications & deep linking                                                  | E2          |
+| E7  | Analytics and crash reporting                                                      | —           |
 
 ### 4.2 Functional requirements that already have scaffolding
 
-- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. *(Scaffolded — currently always "logs in".)*
-- **FR-2 Theme**: All screens must render correctly in light and dark mode. *(Working pattern established.)*
-- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. *(Working with fake data.)*
-- **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. *(Working.)*
+- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Scaffolded — currently always "logs in".)_
+- **FR-2 Theme**: All screens must render correctly in light and dark mode. _(Working pattern established.)_
+- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working with fake data.)_
+- **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. _(Working.)_
 
 ## 5. Non-Functional Requirements
 

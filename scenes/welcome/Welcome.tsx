@@ -1,20 +1,19 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '@/hooks';
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
 });
 
-export default function Details() {
-  const { colors, typography } = useTheme();
+export default function Welcome() {
+  const { colors } = useTheme();
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Text style={[typography.displayM, { color: colors.text.primary }]}>Details</Text>
+      <Text>Welcome to Influsis..!</Text>
     </View>
   );
 }

@@ -49,7 +49,18 @@ const styles = StyleSheet.create({
 });
 ```
 
-> **Legacy note:** `theme/colors.ts` still exports the original boilerplate `colors` object (`purple`, `pink`, `blackGray`, etc.) because the current demo screens (`scenes/`, `app/(main)/...`) depend on it. New screens should use `palette` / `lightTheme` / `darkTheme` / `useTheme()` instead. Migrating the demo screens off the legacy colors is a separate follow-up (see PRD "Epic 1: Rebrand").
+> **Legacy note:** `theme/colors.ts` still exports the original boilerplate `colors` object (`purple`, `pink`, `blackGray`, etc.) for backward compatibility, but nothing in the app uses it anymore — the demo screens and drawer/tabs navigation that depended on it were removed (see "App shell reset" below). All current screens (`scenes/welcome`) use `palette` / `lightTheme` / `darkTheme` / `useTheme()`.
+
+## App shell reset
+
+The boilerplate's demo pages (Home/Profile/Details, drawer + tabs navigation, and their header/drawer chrome components) have been removed to start real screen design from a blank slate. What's left:
+
+- `app/index.tsx` → `scenes/welcome` — the only screen shown on launch.
+- `app/+not-found.tsx` — Expo Router's fallback for unmatched routes (kept as a safety net, themed).
+- `app/_layout.tsx` — asset preload, splash screen, and the fake user fetch (unchanged infra).
+- `components/elements/*` — the reusable UI kit (`Button`, `GradientButton`, `Image`, `BottomSheet`) is untouched and ready to build new screens with.
+
+Removed: `app/(main)/**` (drawer/tabs/stacks), `scenes/home`, `scenes/profile`, `scenes/details`, and `components/layouts/{DrawerContents,NavigationHeaderLeft,NavigationHeaderTitle}`. All of this is recoverable from git history (`feat/design-system` branch) if any of it turns out to be useful as reference.
 
 ---
 
