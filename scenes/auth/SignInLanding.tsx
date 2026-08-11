@@ -2,7 +2,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { useTheme } from '@/hooks';
-import { fonts } from '@/theme';
+import { layoutStyle, cardStyle as sharedCard, textStyle as sharedText } from '@/styles';
 import Image from '@/components/elements/Image';
 import SocialAuthButton from '@/components/elements/SocialAuthButton';
 import Divider from '@/components/elements/Divider';
@@ -19,13 +19,6 @@ const collage4 = require('@/assets/images/onboarding/landing-collage4.jpg');
 const landingHero = require('@/assets/images/onboarding/landing-hero.jpg');
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
   collage: {
     height: 260,
     alignItems: 'center',
@@ -41,9 +34,6 @@ const styles = StyleSheet.create({
   heroCard: {
     width: 168,
     height: 220,
-    borderRadius: 20,
-    borderWidth: 6,
-    borderColor: '#FFFFFF',
   },
   brand: {
     alignItems: 'center',
@@ -54,9 +44,6 @@ const styles = StyleSheet.create({
     height: 64,
   },
   title: {
-    fontFamily: fonts.clashDisplay.bold,
-    fontSize: 28,
-    lineHeight: 34,
     marginTop: 12,
   },
   buttonList: {
@@ -69,13 +56,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 24,
-  },
-  footerText: {
-    fontSize: 16,
-  },
-  footerLink: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 
@@ -98,8 +78,10 @@ export default function SignInLanding() {
   }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={layoutStyle.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.collage}>
           <Image
             source={collage1}
@@ -127,12 +109,18 @@ export default function SignInLanding() {
             ]}
             contentFit="cover"
           />
-          <Image source={landingHero} style={styles.heroCard} contentFit="cover" />
+          <Image
+            source={landingHero}
+            style={[sharedCard.heroFrame, styles.heroCard]}
+            contentFit="cover"
+          />
         </View>
 
         <View style={styles.brand}>
           <Image source={logomark} style={styles.logomark} contentFit="contain" />
-          <Text style={[styles.title, { color: colors.text.primary }]}>Welcome to Influsis</Text>
+          <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
+            Welcome to Influsis
+          </Text>
           <Link href="/welcome" style={{ color: palette.primary[400] }}>
             Skip to Welcome Screen
           </Link>
@@ -163,10 +151,12 @@ export default function SignInLanding() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.text.secondary }]}>
+          <Text style={[sharedText.footerText, { color: colors.text.secondary }]}>
             Don&apos;t have an account?{' '}
           </Text>
-          <Text style={[styles.footerLink, { color: palette.primary[400] }]} onPress={goToSignUp}>
+          <Text
+            style={[sharedText.footerLink, { color: palette.primary[400] }]}
+            onPress={goToSignUp}>
             Sign Up
           </Text>
         </View>

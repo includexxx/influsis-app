@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { layoutStyle, buttonStyle as sharedButton, textStyle as sharedText } from '@/styles';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
 import AuthHeader from '@/components/elements/AuthHeader';
@@ -12,28 +13,11 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
   header: {
     marginBottom: 32,
   },
-  form: {
-    gap: 24,
-  },
   submitButton: {
-    height: 54,
-    borderRadius: 12,
     marginTop: 8,
-  },
-  submitButtonTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   divider: {
     marginTop: 32,
@@ -41,13 +25,6 @@ const styles = StyleSheet.create({
   footer: {
     textAlign: 'center',
     marginTop: 16,
-  },
-  footerText: {
-    fontSize: 16,
-  },
-  footerLink: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 
@@ -88,10 +65,12 @@ export default function SignUp() {
   }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={layoutStyle.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <AuthHeader title="Sign Up" onBack={() => router.back()} style={styles.header} />
-        <View style={styles.form}>
+        <View style={layoutStyle.fieldGroup}>
           <TextField
             label="Full Name"
             placeholder="Gazi Delowar"
@@ -149,18 +128,18 @@ export default function SignUp() {
           />
           <Button
             title="Sign Up"
-            titleStyle={styles.submitButtonTitle}
-            style={[styles.submitButton, { backgroundColor: palette.primary[400] }]}
+            titleStyle={sharedButton.primaryTitle}
+            style={[sharedButton.primary, styles.submitButton]}
             onPress={handleSubmit}
           />
         </View>
         <Divider style={styles.divider} />
         <Text style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.text.secondary }]}>
+          <Text style={[sharedText.footerText, { color: colors.text.secondary }]}>
             Have an account?{' '}
           </Text>
           <Text
-            style={[styles.footerLink, { color: palette.primary[400] }]}
+            style={[sharedText.footerLink, { color: palette.primary[400] }]}
             onPress={() => router.push('/auth/sign-in')}>
             Sign In
           </Text>

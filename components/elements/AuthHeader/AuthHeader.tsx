@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
-import { fonts } from '@/theme';
+import { textStyle as sharedText } from '@/styles';
 import Image from '../Image';
 
 const backChevronIcon = require('@/assets/images/icons/back-chevron.png');
@@ -25,9 +25,6 @@ const styles = StyleSheet.create({
     height: 24,
   },
   title: {
-    fontFamily: fonts.clashDisplay.bold,
-    fontSize: 28,
-    lineHeight: 34,
     textAlign: 'center',
   },
 });
@@ -47,7 +44,11 @@ function AuthHeader({ title, onBack, style }: AuthHeaderProps) {
           <Image source={backChevronIcon} style={styles.backIcon} contentFit="contain" />
         </Pressable>
       )}
-      {title ? <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text> : null}
+      {title ? (
+        <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
+          {title}
+        </Text>
+      ) : null}
     </View>
   );
 }

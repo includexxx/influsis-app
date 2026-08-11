@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { windowWidth } from '@/utils/deviceInfo';
+import { layoutStyle, buttonStyle, cardStyle } from '@/styles';
 import Button from '@/components/elements/Button';
 import Image from '@/components/elements/Image';
 import OnboardingSlide from '@/components/elements/OnboardingSlide';
@@ -50,9 +51,6 @@ const SLIDES = [
 ];
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
   scroll: {
     flex: 1,
   },
@@ -110,9 +108,6 @@ const styles = StyleSheet.create({
   heroCard: {
     width: 210,
     height: 285,
-    borderRadius: 20,
-    borderWidth: 6,
-    borderColor: '#FFFFFF',
   },
   footer: {
     paddingHorizontal: 16,
@@ -123,18 +118,11 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    height: 54,
-    borderRadius: 12,
-  },
-  buttonTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
 
 export default function Onboarding() {
-  const { colors, palette } = useTheme();
+  const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
 
@@ -156,7 +144,9 @@ export default function Onboarding() {
   }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <SafeAreaView
+      style={[layoutStyle.screen, { backgroundColor: colors.background }]}
+      edges={['bottom']}>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -213,7 +203,11 @@ export default function Onboarding() {
                 style={[styles.fanCard, { right: 8, top: 12, transform: [{ rotate: '8deg' }] }]}
                 contentFit="cover"
               />
-              <Image source={slide3Hero} style={styles.heroCard} contentFit="cover" />
+              <Image
+                source={slide3Hero}
+                style={[cardStyle.heroFrame, styles.heroCard]}
+                contentFit="cover"
+              />
             </View>
           }
         />
@@ -222,8 +216,8 @@ export default function Onboarding() {
         <PaginationDots count={SLIDES.length} activeIndex={index} />
         <Button
           title={SLIDES[index].buttonLabel}
-          titleStyle={styles.buttonTitle}
-          style={[styles.button, { backgroundColor: palette.primary[400] }]}
+          titleStyle={buttonStyle.primaryTitle}
+          style={[buttonStyle.primary, styles.button]}
           onPress={handlePrimaryPress}
         />
       </View>

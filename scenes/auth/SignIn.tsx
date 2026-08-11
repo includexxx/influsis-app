@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { layoutStyle, buttonStyle } from '@/styles';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
 import AuthHeader from '@/components/elements/AuthHeader';
@@ -14,33 +15,14 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
   header: {
     marginBottom: 32,
-  },
-  form: {
-    gap: 24,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
     fontSize: 14,
     fontWeight: '500',
-    marginTop: -8,
-  },
-  submitButton: {
-    height: 54,
-    borderRadius: 12,
-  },
-  submitButtonTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    marginTop: 8,
   },
 });
 
@@ -65,10 +47,12 @@ export default function SignIn() {
   }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={layoutStyle.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <AuthHeader title="Sign In" onBack={() => router.back()} style={styles.header} />
-        <View style={styles.form}>
+        <View style={layoutStyle.fieldGroup}>
           <TextField
             label="Email"
             placeholder="you@example.com"
@@ -101,8 +85,8 @@ export default function SignIn() {
           </View>
           <Button
             title="Sign in"
-            titleStyle={styles.submitButtonTitle}
-            style={[styles.submitButton, { backgroundColor: palette.primary[400] }]}
+            titleStyle={buttonStyle.primaryTitle}
+            style={buttonStyle.primary}
             onPress={handleSubmit}
           />
         </View>
