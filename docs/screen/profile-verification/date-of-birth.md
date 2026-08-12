@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6449:5583`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6449-5583&m=dev) (closed field), [`6001:38419`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38419&m=dev) (calendar expanded) |
-| **Route** | `/profile-verification/date-of-birth` (`app/profile-verification/date-of-birth.tsx`) |
+| **Route** | `/profile-verification/date-of-birth` (`app/(auth)/profile-verification/date-of-birth.tsx`) |
 | **Scene** | `scenes/profile-verification/DateOfBirth.tsx` |
 | **Components used** | `ProfileStepHeader`, `DateField`, `CalendarPicker`, `Button` |
 

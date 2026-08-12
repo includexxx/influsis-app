@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6606:5904`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6606-5904&m=dev) (empty), [`6606:5937`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6606-5937&m=dev) ("Name is Not available" error) |
-| **Route** | `/profile-verification/username` (`app/profile-verification/username.tsx`) |
+| **Route** | `/profile-verification/username` (`app/(auth)/profile-verification/username.tsx`) |
 | **Scene** | `scenes/profile-verification/Username.tsx` |
 | **Components used** | `ProfileStepHeader`, `TextField`, `Button` |
 

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6001:38047`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38047&m=dev) (slide 1), [`6001:37981`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-37981&m=dev) (slide 2), [`6001:38013`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38013&m=dev) (slide 3) |
-| **Route** | `/onboarding/carousel` (`app/onboarding/carousel.tsx`) |
+| **Route** | `/onboarding/carousel` (`app/(auth)/onboarding/carousel.tsx`) |
 | **Scene** | `scenes/onboarding/Onboarding.tsx` |
 | **Components used** | `OnboardingSlide`, `PaginationDots`, `Button` |
 

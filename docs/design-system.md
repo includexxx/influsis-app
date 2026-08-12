@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 
 The boilerplate's demo pages (Home/Profile/Details, drawer + tabs navigation, and their header/drawer chrome components) were removed to start real screen design from a blank slate — see `docs/screen/auth/README.md`, `docs/screen/profile-verification/README.md`, and `docs/screen/main/README.md` for what's been built since:
 
-- `app/index.tsx` redirects into `/onboarding` → the auth flow → the profile-verification wizard → `app/(main)/**`, a real (if still placeholder-content) Tabs group replacing the original drawer/tabs shell — Home / Order / Create Gig / Message / Profile, matching Figma's tab bar (node `6355:6595`).
+- `app/index.tsx` redirects into `/onboarding` → the auth flow → the profile-verification wizard (all three grouped under `app/(auth)/**`, an organizational-only Expo Router group with no layout of its own) → `app/(main)/**`, a real (if still placeholder-content) Tabs group replacing the original drawer/tabs shell — Home / Order / Create Gig / Message / Profile, matching Figma's tab bar (node `6355:6595`).
 - `app/+not-found.tsx` — Expo Router's fallback for unmatched routes (kept as a safety net, themed).
 - `app/_layout.tsx` — asset preload, splash screen, and the fake user fetch (unchanged infra).
 - `components/elements/*` — the reusable UI kit (`Button`, `GradientButton`, `Image`, `BottomSheet`, and everything built on top of them since) is the foundation all of the above is built with.

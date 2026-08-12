@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6001:38208`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38208&m=dev) — "Sign Up" |
-| **Route** | `/auth/sign-up` (`app/auth/sign-up.tsx`) |
+| **Route** | `/auth/sign-up` (`app/(auth)/auth/sign-up.tsx`) |
 | **Scene** | `scenes/auth/SignUp.tsx` |
 | **Components used** | `AuthHeader`, `TextField`, `Button`, `Divider` |
 

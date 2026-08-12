@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6360:9089`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6360-9089&m=dev) — "Onboardning 4" |
-| **Route** | `/onboarding` (`app/onboarding/index.tsx`) |
+| **Route** | `/onboarding` (`app/(auth)/onboarding/index.tsx`) |
 | **Scene** | `scenes/onboarding/Intro.tsx` |
 
 ## Purpose

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6001:38894`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38894&m=dev) (empty), [`6312:8368`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8368&m=dev) (filled, keyboard open) |
-| **Route** | `/profile-verification/bio` (`app/profile-verification/bio.tsx`) |
+| **Route** | `/profile-verification/bio` (`app/(auth)/profile-verification/bio.tsx`) |
 | **Scene** | `scenes/profile-verification/Bio.tsx` |
 | **Components used** | `ProfileStepHeader`, `TextField`, `Button` |
 

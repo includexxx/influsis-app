@@ -4,6 +4,8 @@ Source: [Influsis Project — Brand & App Version (Figma)](https://www.figma.com
 
 This is the first product flow implemented on top of the foundation described in [`docs/PRD.md`](../PRD.md). It covers app launch through to a signed-in session — brand intro, a 3-slide onboarding carousel, and the sign-in/sign-up/OTP-verification auth screens. Each screen below has its own spec file with the Figma node link, UI elements, states, and navigation.
 
+This flow's routes, along with [`profile-verification`](../profile-verification/README.md), live under the `app/(auth)/` Expo Router group (`app/(auth)/onboarding/`, `app/(auth)/auth/`, `app/(auth)/profile-verification/`) — a purely organizational grouping of every pre-login screen, mirroring how `app/(main)/` groups the post-login tab shell (see [`docs/screen/main/README.md`](../main/README.md)). Group segments are invisible in the URL, so routes are still `/onboarding`, `/auth/sign-in`, `/profile-verification/bio`, etc.
+
 ## Flow
 
 ```

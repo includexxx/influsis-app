@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6010:11684`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11684&m=dev) — "Forget" |
-| **Route** | `/auth/forgot-password` (`app/auth/forgot-password.tsx`) |
+| **Route** | `/auth/forgot-password` (`app/(auth)/auth/forgot-password.tsx`) |
 | **Scene** | `scenes/auth/ForgotPassword.tsx` |
 | **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button` |
 

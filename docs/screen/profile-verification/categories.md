@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6243:5491`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6243-5491&m=dev) (none selected), [`6312:8145`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8145&m=dev) (one selected) |
-| **Route** | `/profile-verification/categories` (`app/profile-verification/categories.tsx`) |
+| **Route** | `/profile-verification/categories` (`app/(auth)/profile-verification/categories.tsx`) |
 | **Scene** | `scenes/profile-verification/ContentCategories.tsx` |
 | **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button` |
 

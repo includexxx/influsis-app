@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6010:15413`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-15413&m=dev) (default, keyboard open), [`6001:38130`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38130&m=dev) (clean/no-keyboard), [`6010:7292`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-7292&m=dev) (invalid email), [`6054:6237`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6054-6237&m=dev) (wrong password) |
-| **Route** | `/auth/sign-in` (`app/auth/sign-in.tsx`) |
+| **Route** | `/auth/sign-in` (`app/(auth)/auth/sign-in.tsx`) |
 | **Scene** | `scenes/auth/SignIn.tsx` |
 | **Components used** | `AuthHeader`, `TextField`, `Button` |
 

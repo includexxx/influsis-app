@@ -5,7 +5,7 @@
 | **Figma nodes (sign-up flow)** | [`6010:11916`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11916&m=dev) (empty), [`6010:11997`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11997&m=dev) (filled, numeric keypad) |
 | **Figma nodes (reset-password flow)** | [`6010:11880`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11880&m=dev) (empty), [`6001:38283`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38283&m=dev) (filled) |
 | **Figma node (account-created popup)** | [`6495:5693`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6495-5693&m=dev) — "Forget OTP Submit" (name is a Figma mislabel; this is the sign-up completion popup, see below) |
-| **Route** | `/auth/verify-otp` (`app/auth/verify-otp.tsx`) |
+| **Route** | `/auth/verify-otp` (`app/(auth)/auth/verify-otp.tsx`) |
 | **Scene** | `scenes/auth/VerifyOtp.tsx` |
 | **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `OtpInput`, `Button`, `SuccessSheet` |
 

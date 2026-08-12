@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma nodes** | [`6010:12193`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-12193&m=dev) ("Create new pass"), [`6010:14455`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-14455&m=dev) ("Create new pass done" — success popup) |
-| **Route** | `/auth/reset-password` (`app/auth/reset-password.tsx`) |
+| **Route** | `/auth/reset-password` (`app/(auth)/auth/reset-password.tsx`) |
 | **Scene** | `scenes/auth/ResetPassword.tsx` |
 | **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button`, `SuccessSheet` |
 

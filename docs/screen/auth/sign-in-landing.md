@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6010:1427`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-1427&m=dev) — "Sign in" |
-| **Route** | `/auth` (`app/auth/index.tsx`) |
+| **Route** | `/auth` (`app/(auth)/auth/index.tsx`) |
 | **Scene** | `scenes/auth/SignInLanding.tsx` |
 | **Components used** | `SocialAuthButton`, `Divider` |
 
