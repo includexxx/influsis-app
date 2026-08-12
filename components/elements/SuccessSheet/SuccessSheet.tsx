@@ -82,7 +82,13 @@ const styles = StyleSheet.create({
 // `keyboardBehavior="interactive"`) stay attached for as long as it's
 // mounted, even while closed, and fight with other TextInputs on the same
 // screen (e.g. the OTP boxes on verify-otp) for keyboard focus.
-function SuccessSheet({ title, description, buttonLabel, onButtonPress, onClose }: SuccessSheetProps) {
+function SuccessSheet({
+  title,
+  description,
+  buttonLabel,
+  onButtonPress,
+  onClose,
+}: SuccessSheetProps) {
   const { colors } = useTheme();
 
   return (

@@ -22,6 +22,7 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
   style?: StyleProp<ViewStyle>;
+  leftAdornment?: React.ReactNode;
   rightAdornment?: React.ReactNode;
 }
 
@@ -76,6 +77,7 @@ function TextField({
   containerStyle,
   inputStyle,
   style,
+  leftAdornment,
   rightAdornment,
   secureTextEntry,
   ...others
@@ -93,6 +95,7 @@ function TextField({
           styles.inputRow,
           { borderColor: error ? colors.error : palette.gray[100], backgroundColor: colors.card },
         ]}>
+        {leftAdornment}
         <TextInput
           style={[styles.input, { color: colors.text.primary }, inputStyle]}
           placeholderTextColor={palette.gray[200]}

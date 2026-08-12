@@ -27,6 +27,33 @@ JOBS = [
     ("onboarding/ellipse-top.svg", "onboarding/ellipse-top.png", 600, 608),
     ("onboarding/ellipse-bottom.svg", "onboarding/ellipse-bottom.png", 600, 608),
     ("icons/success-check.svg", "icons/success-check.png", 204, 204),
+    ("profile-verification/category-health.svg", "profile-verification/category-health.png", 86, 78),
+    ("profile-verification/category-music.svg", "profile-verification/category-music.png", 78, 86),
+    ("profile-verification/category-gym.svg", "profile-verification/category-gym.png", 86, 83),
+    ("profile-verification/category-travel.svg", "profile-verification/category-travel.png", 74, 86),
+    ("profile-verification/category-sports.svg", "profile-verification/category-sports.png", 82, 86),
+    ("profile-verification/category-beauty.svg", "profile-verification/category-beauty.png", 70, 86),
+    (
+        "profile-verification/category-education.svg",
+        "profile-verification/category-education.png",
+        78,
+        86,
+    ),
+    ("profile-verification/social-tiktok.svg", "profile-verification/social-tiktok.png", 84, 96),
+    ("profile-verification/flag-english.svg", "profile-verification/flag-english.png", 96, 64),
+    ("profile-verification/calendar-today.svg", "profile-verification/calendar-today.png", 96, 96),
+    (
+        "profile-verification/calendar-nav-before.svg",
+        "profile-verification/calendar-nav-before.png",
+        96,
+        96,
+    ),
+    (
+        "profile-verification/calendar-nav-next.svg",
+        "profile-verification/calendar-nav-next.png",
+        96,
+        96,
+    ),
 ]
 
 for svg_rel, png_rel, width, height in JOBS:

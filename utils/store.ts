@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import app from '@/slices/app.slice';
+import profileVerification from '@/slices/profileVerification.slice';
 import config from '@/utils/config';
 import { Env } from '@/types/env';
 import logger from 'redux-logger';
@@ -7,6 +8,7 @@ import logger from 'redux-logger';
 const store = configureStore({
   reducer: {
     app,
+    profileVerification,
     // add more store ...
   },
   middleware: getDefaultMiddleware =>

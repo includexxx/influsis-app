@@ -90,7 +90,7 @@ export default function VerifyOtp() {
           title="Account Created Successfully"
           description="Enjoy your Experience"
           buttonLabel="Next"
-          onButtonPress={() => router.replace('/welcome')}
+          onButtonPress={() => router.replace('/profile-verification/date-of-birth')}
           onClose={() => setIsSuccessOpen(false)}
         />
       )}
