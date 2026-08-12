@@ -44,8 +44,10 @@ export default function VerifyOtp() {
     setCode('');
   }
 
+  const isComplete = code.length === OTP_LENGTH;
+
   function handleVerify() {
-    if (code.length < OTP_LENGTH) return;
+    if (!isComplete) return;
 
     if (isResetFlow) {
       router.replace({ pathname: '/auth/reset-password', params: { email } });
@@ -82,6 +84,7 @@ export default function VerifyOtp() {
           titleStyle={sharedButton.primaryTitle}
           style={sharedButton.primary}
           onPress={handleVerify}
+          disabled={!isComplete}
         />
       </View>
 

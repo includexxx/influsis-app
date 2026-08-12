@@ -78,6 +78,7 @@ function OtpInput({ length = 4, value, onChange, error, style }: OtpInputProps) 
           keyboardType="number-pad"
           maxLength={1}
           textContentType="oneTimeCode"
+          autoFocus={index === 0}
           testID={`otp-digit-${index}`}
         />
       ))}
