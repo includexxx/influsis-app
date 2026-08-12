@@ -2,7 +2,7 @@
 
 Source: [Influsis Project — Brand & App Version (Figma)](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6360-9089&m=dev)
 
-This is the first product flow implemented on top of the foundation described in [`docs/PRD.md`](../PRD.md). It covers app launch through to a signed-in placeholder home (`scenes/welcome`) — brand intro, a 3-slide onboarding carousel, and the sign-in/sign-up/OTP-verification auth screens. Each screen below has its own spec file with the Figma node link, UI elements, states, and navigation.
+This is the first product flow implemented on top of the foundation described in [`docs/PRD.md`](../PRD.md). It covers app launch through to a signed-in session — brand intro, a 3-slide onboarding carousel, and the sign-in/sign-up/OTP-verification auth screens. Each screen below has its own spec file with the Figma node link, UI elements, states, and navigation.
 
 ## Flow
 
@@ -28,22 +28,22 @@ app/index.tsx  ─────────────────▶  /onboardi
                     │            │          SuccessSheet "Account Created
                     ▼ (Send)     │           Successfully" → Next
         /auth/verify-otp         │                     │
-          (flow=reset)           │                     │
-                    │            │                     │
-                    ▼ (Verify)   │                     │
+          (flow=reset)           │                     ▼
+                    │            │        /profile-verification/* (7 screens -
+                    ▼ (Verify)   │         see docs/screen/profile-verification)
         /auth/reset-password     │                     │
-                    │            │                     │
+                    │            │                     ▼ (Explore)
                     ▼ (Reset)    │                     │
         SuccessSheet "Reset      │                     │
          Succesfully" → Log in ──┘                     │
                     │                                   │
                     └──────────────┬────────────────────┘
                                    ▼
-                               /welcome
+                            /(main)/home
 ```
 
 - `app/index.tsx` always redirects to `/onboarding` once the app-level splash/hydration check (`checked` in `slices/app.slice.ts`) resolves — there is currently no "already completed onboarding" fast path, so every fresh launch or reload starts at the brand intro. This is intentional for now (easier to test the flow repeatedly); see [`sign-in.md`](./sign-in.md) "Scope notes" for how to reintroduce persistence later.
-- `/welcome` is the existing placeholder screen (`scenes/welcome/Welcome.tsx`); no real product home screen exists yet (out of scope, see `docs/PRD.md` §4). Reaching it only happens via `router.replace('/welcome')` from a successful Sign In or sign-up OTP verify — reloading the page does not remember that you got there.
+- `/home` is the first tab of the `app/(main)` tab group (see [`docs/screen/main/README.md`](../main/README.md)) — the real main-app shell that replaced the old `/welcome` placeholder. Sign In reaches it directly (`router.replace('/home')`); Sign Up reaches it after the profile-verification wizard's completion screen. Reloading the page does not remember that you got there.
 - `/auth/verify-otp` is **one screen shared by both the sign-up and forgot-password flows** — see [`verify-otp.md`](./verify-otp.md) for how the `flow` query param branches its copy and post-verify destination, instead of duplicating a second OTP screen.
 - The "Reset Succesfully" and "Account Created Successfully" popups are the same reusable `SuccessSheet` component (green tick-square badge + title + description + CTA) with different copy — see "Shared style fragments" below.
 

@@ -49,18 +49,18 @@ const styles = StyleSheet.create({
 });
 ```
 
-> **Legacy note:** `theme/colors.ts` still exports the original boilerplate `colors` object (`purple`, `pink`, `blackGray`, etc.) for backward compatibility, but nothing in the app uses it anymore — the demo screens and drawer/tabs navigation that depended on it were removed (see "App shell reset" below). All current screens (`scenes/welcome`) use `palette` / `lightTheme` / `darkTheme` / `useTheme()`.
+> **Legacy note:** `theme/colors.ts` still exports the original boilerplate `colors` object (`purple`, `pink`, `blackGray`, etc.) for backward compatibility, but nothing in the app uses it anymore. All current screens use `palette` / `lightTheme` / `darkTheme` / `useTheme()`.
 
 ## App shell reset
 
-The boilerplate's demo pages (Home/Profile/Details, drawer + tabs navigation, and their header/drawer chrome components) have been removed to start real screen design from a blank slate. What's left:
+The boilerplate's demo pages (Home/Profile/Details, drawer + tabs navigation, and their header/drawer chrome components) were removed to start real screen design from a blank slate — see `docs/screen/auth/README.md`, `docs/screen/profile-verification/README.md`, and `docs/screen/main/README.md` for what's been built since:
 
-- `app/index.tsx` → `scenes/welcome` — the only screen shown on launch.
+- `app/index.tsx` redirects into `/onboarding` → the auth flow → the profile-verification wizard → `app/(main)/**`, a real (if still placeholder-content) Tabs group replacing the original drawer/tabs shell — Home / Order / Create Gig / Message / Profile, matching Figma's tab bar (node `6355:6595`).
 - `app/+not-found.tsx` — Expo Router's fallback for unmatched routes (kept as a safety net, themed).
 - `app/_layout.tsx` — asset preload, splash screen, and the fake user fetch (unchanged infra).
-- `components/elements/*` — the reusable UI kit (`Button`, `GradientButton`, `Image`, `BottomSheet`) is untouched and ready to build new screens with.
+- `components/elements/*` — the reusable UI kit (`Button`, `GradientButton`, `Image`, `BottomSheet`, and everything built on top of them since) is the foundation all of the above is built with.
 
-Removed: `app/(main)/**` (drawer/tabs/stacks), `scenes/home`, `scenes/profile`, `scenes/details`, and `components/layouts/{DrawerContents,NavigationHeaderLeft,NavigationHeaderTitle}`. All of this is recoverable from git history (`feat/design-system` branch) if any of it turns out to be useful as reference.
+`components/layouts/{DrawerContents,NavigationHeaderLeft,NavigationHeaderTitle}` from the original boilerplate are still removed (the new `(main)` shell is tabs-only, no drawer) but recoverable from git history (`feat/design-system` branch) if a drawer turns out to be needed later.
 
 ---
 

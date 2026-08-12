@@ -43,7 +43,7 @@ export default function SignIn() {
 
     if (!isEmailValid || !isPasswordValid) return;
 
-    router.replace('/welcome');
+    router.replace('/home');
   }
 
   return (

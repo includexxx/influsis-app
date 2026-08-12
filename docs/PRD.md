@@ -23,20 +23,20 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 - [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
 - [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
+- [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
 
 ## 2. Current State of the App
 
 ### 2.1 What works today
 
-- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides and a welcome bottom sheet opens (`app/_layout.tsx`).
-- **Navigation** (Expo Router v6, file-based):
+- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides (`app/_layout.tsx`).
+- **Navigation** (Expo Router v6, file-based) — see the Screen Specs above for the full flow; at a glance:
   ```
-  Root (Drawer)
-  └── Tabs
-      ├── Home tab  → Stack: Home → Details
-      └── Profile tab → Stack: Profile → Details
+  /onboarding → /auth/* (sign-in/sign-up/OTP/forgot-reset password)
+    → /profile-verification/* (post-signup wizard, sign-up only)
+    → /(main) Tabs: Home | Order | Create Gig (modal) | Message | Profile
   ```
-  Includes a custom drawer, custom navigation header components, and a hidden index route that redirects into the Home tab.
+  The original boilerplate's Drawer + demo Home/Profile/Details tabs were removed; `(main)` is a fresh Tabs-only shell (no drawer) matching the real Figma tab bar design. See `docs/design-system.md` "App shell reset".
 - **Theming**: Automatic light/dark mode via `useColorScheme`, centralized color palette (`theme/colors.ts`), font and image loaders.
 - **State management**: Redux Toolkit with a single `app` slice (`checked`, `loggedIn`, `user`) exposed through a `useAppSlice` convenience hook.
 - **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys.
@@ -44,9 +44,9 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.2 What is placeholder / not real yet
 
-- **Screens**: Home, Profile, and Details are demo screens containing only a title and a navigation button.
+- **Main app screens**: Home, Order, Message are placeholder screens (title + note); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
 - **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
-- **Auth**: `loggedIn` state exists but there is no login/signup flow; every launch "logs in" the fake user.
+- **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.
 - **Backend**: No API client, no endpoints, no data models beyond a minimal `User { name, email }` type.
 

@@ -54,6 +54,18 @@ JOBS = [
         96,
         96,
     ),
+    ("tab-bar/create-gig.svg", "tab-bar/create-gig.png", 108, 108),
+    ("tab-bar/home-active.svg", "tab-bar/home-active.png", 70, 70),
+    ("tab-bar/home-inactive.svg", "tab-bar/home-inactive.png", 70, 70),
+    ("tab-bar/message-active.svg", "tab-bar/message-active.png", 96, 96),
+    ("tab-bar/message-inactive.svg", "tab-bar/message-inactive.png", 96, 96),
+    ("tab-bar/order-active-accent1.svg", "tab-bar/order-active-accent1.png", 73, 15),
+    ("tab-bar/order-active-accent2.svg", "tab-bar/order-active-accent2.png", 26, 30),
+    ("tab-bar/order-active-base.svg", "tab-bar/order-active-base.png", 88, 88),
+    ("tab-bar/order-inactive.svg", "tab-bar/order-inactive.png", 88, 88),
+    ("tab-bar/profile-active-1.svg", "tab-bar/profile-active-1.png", 96, 96),
+    ("tab-bar/profile-active-2.svg", "tab-bar/profile-active-2.png", 96, 96),
+    ("tab-bar/profile-inactive.svg", "tab-bar/profile-inactive.png", 96, 96),
 ]
 
 for svg_rel, png_rel, width, height in JOBS:

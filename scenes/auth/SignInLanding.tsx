@@ -121,8 +121,8 @@ export default function SignInLanding() {
           <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
             Welcome to Influsis
           </Text>
-          <Link href="/welcome" style={{ color: palette.primary[400] }}>
-            Skip to Welcome Screen
+          <Link href="/home" style={{ color: palette.primary[400] }}>
+            Skip to Home
           </Link>
         </View>
 

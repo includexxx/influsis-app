@@ -24,4 +24,4 @@ Figma composites this screen with a layered SVG mask (`imgMask`) to clip the con
 ## Navigation
 
 - **Entry:** "Next" on `/profile-verification/username`.
-- **Exit:** "Explore" → `router.replace('/welcome')` — same completion path as the auth flow (see `docs/screen/auth/README.md`); nothing is persisted, so a reload starts back at `/onboarding`.
+- **Exit:** "Explore" → `router.replace('/home')`, the first tab of the `app/(main)` shell (see `docs/screen/main/README.md`) — same completion path as the auth flow's Sign In (see `docs/screen/auth/README.md`); nothing is persisted, so a reload starts back at `/onboarding`.

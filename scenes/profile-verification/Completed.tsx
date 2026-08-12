@@ -87,7 +87,7 @@ export default function Completed() {
           title="Explore"
           titleStyle={sharedButton.primaryTitle}
           style={sharedButton.primary}
-          onPress={() => router.replace('/welcome')}
+          onPress={() => router.replace('/home')}
           testID="profile-verification-explore"
         />
       </View>

@@ -37,5 +37,5 @@
 
 - **Entry:** from `/auth/sign-up` (no `flow` param, defaults to `signup`) or `/auth/forgot-password` (`flow=reset`), both passing `email` as a query param.
 - **Exit:** back chevron → `router.back()`.
-  - `signup` flow: Verify → opens `SuccessSheet` → "Next" → `router.replace('/welcome')` (nothing is persisted — see `sign-in.md`'s "Scope note" — a reload starts back at `/onboarding`).
+  - `signup` flow: Verify → opens `SuccessSheet` → "Next" → `router.replace('/profile-verification/date-of-birth')` (see `docs/screen/profile-verification/README.md`; nothing is persisted — see `sign-in.md`'s "Scope note" — a reload starts back at `/onboarding`).
   - `reset` flow: Verify → `router.replace('/auth/reset-password')` with `email` carried forward.

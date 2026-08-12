@@ -31,11 +31,11 @@ This is the second product flow implemented on top of [`docs/screen/auth`](../au
 /profile-verification/completed
   │  Explore
   ▼
-/welcome
+/(main)/home   (see docs/screen/main/README.md)
 ```
 
 - The `5 of 5` step counter covers date-of-birth through languages, then stays at `5 of 5` for **both** the bio and username screens — Figma names both frames `Profile_5` and gives both a fully-filled progress bar, i.e. they're treated as two halves of the same final step rather than steps 6 and 7. See ["Scope notes"](#cross-cutting-scope-notes) below.
-- Every step's answer is written to `slices/profileVerification.slice.ts` (Redux) as the user progresses, so answers survive back/forward navigation between the 7 screens. Like the auth flow, nothing is persisted to storage or sent to a backend (see `docs/PRD.md` §2.2/§4.1) — reloading the app resets the wizard, and `/welcome` at the end doesn't know a profile was ever "submitted" anywhere.
+- Every step's answer is written to `slices/profileVerification.slice.ts` (Redux) as the user progresses, so answers survive back/forward navigation between the 7 screens, and are read back out by the main app's Profile tab (`scenes/main/Profile.tsx`). Like the auth flow, nothing is persisted to storage or sent to a backend (see `docs/PRD.md` §2.2/§4.1) — reloading the app resets the wizard.
 - Back navigation is native-only (hardware back / swipe-back gesture) — Figma's frames for this flow have no in-screen back chevron, unlike the auth flow's `AuthHeader`.
 
 ## Screens
@@ -52,7 +52,7 @@ This is the second product flow implemented on top of [`docs/screen/auth`](../au
 
 ## Cross-cutting scope notes
 
-- **No real backend.** As with the auth flow, there's no API to submit the finished profile to — advancing through all 7 screens just accumulates local Redux state and ends at the existing `/welcome` placeholder. Replace this with a real submission call once `docs/PRD.md` Epic 3 lands.
+- **No real backend.** As with the auth flow, there's no API to submit the finished profile to — advancing through all 7 screens just accumulates local Redux state, which the main app's Profile tab reads directly out of Redux rather than an API response. Replace this with a real submission/fetch call once `docs/PRD.md` Epic 3 lands.
 - **Reused components.** `ProfileStepHeader` (progress bar + "X of 5" + title + description) and `SelectableListItem` (icon + label, toggleable pink border) are new reusable components shared across all 6 wizard screens — see `components/elements/ProfileStepHeader` and `components/elements/SelectableListItem`. `TextField`, `Button`, and the shared `styles/` fragments (`layoutStyle`, `buttonStyle`) are reused as-is from the auth flow; `TextField` gained a small `leftAdornment` prop (mirroring its existing `rightAdornment`) for the username field's "Influsis.com/" prefix.
 - **Date picker.** Figma's date-of-birth screen (node `6001:38419`) shows a desktop-style Material "Docked Input Date Picker" calendar expanded inline. That's a Figma UI-kit desktop component, not a realistic mobile pattern, and no calendar/date-picker dependency existed in the project. Rather than pull in a native date-picker package (which lacks web support, breaking this app's third target platform), `DateField` + `CalendarPicker` were built from scratch: a collapsed field matching the Figma "closed" state exactly, opening a custom month-grid calendar in a `BottomSheet` (reusing the existing, previously-idle `BottomSheet` component — see `docs/screen/auth/README.md`'s note on `SuccessSheet` doing the same). The month/year dropdown carets shown in Figma are decorative here; only the prev/next chevrons are wired up. See [date-of-birth.md](./date-of-birth.md) for detail.
 - **Icons/images.** Extracted from Figma via the Dev Mode MCP server into `assets/images/profile-verification/` (category icons, TikTok/YouTube/Likee logos, language flags, calendar chevrons, the completion confetti image). The Facebook and Instagram icons, and the green success-check badge icon, are reused from the existing `assets/images/icons/` set rather than re-extracted, since Figma reuses the same glyphs.

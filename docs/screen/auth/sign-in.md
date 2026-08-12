@@ -29,9 +29,9 @@ Email/password sign-in form. The four Figma nodes are all the same screen in dif
 
 **Scope note:** there is no real auth API yet (`docs/PRD.md` §2.2/§4.1). `MIN_PASSWORD_LENGTH` is a deliberately simple client-side stand-in so the "wrong password" error state from Figma is reachable and demonstrable, not a real credential check. Replace this validation with a real API call once the backend exists.
 
-On successful validation, the screen just replaces the route with `/welcome` — no `onboarded`/completion flag is persisted (an earlier version of this flow did persist one via `DataPersistKeys`, but that made the flow un-repeatable across reloads during development, so it was removed; every fresh launch or reload starts back at `/onboarding`). Reintroduce persistence here once there's a real signed-in session to gate on.
+On successful validation, the screen just replaces the route with `/home` (the main app's Tabs group, see `docs/screen/main/README.md`) — no `onboarded`/completion flag is persisted (an earlier version of this flow did persist one via `DataPersistKeys`, but that made the flow un-repeatable across reloads during development, so it was removed; every fresh launch or reload starts back at `/onboarding`). Reintroduce persistence here once there's a real signed-in session to gate on.
 
 ## Navigation
 
 - **Entry:** "Continue with Email" (or any provider stub) from `/auth`; "Sign In" link from `/auth/sign-up`; "Log in" button on the reset-password `SuccessSheet` (`/auth/reset-password`).
-- **Exit:** back chevron → `router.back()`. Successful submit → replaces route with `/welcome`. "Forgot password?" → `/auth/forgot-password`.
+- **Exit:** back chevron → `router.back()`. Successful submit → replaces route with `/home`. "Forgot password?" → `/auth/forgot-password`.
