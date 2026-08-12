@@ -79,7 +79,9 @@ export default function SignIn() {
               secureTextEntry
               testID="sign-in-password"
             />
-            <Text style={[styles.forgotPassword, { color: palette.gray[300] }]}>
+            <Text
+              style={[styles.forgotPassword, { color: palette.gray[300] }]}
+              onPress={() => router.push('/auth/forgot-password')}>
               Forgot password?
             </Text>
           </View>

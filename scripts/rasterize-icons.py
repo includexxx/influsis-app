@@ -26,6 +26,7 @@ JOBS = [
     ("icons/logomark.svg", "icons/logomark.png", 256, 256),
     ("onboarding/ellipse-top.svg", "onboarding/ellipse-top.png", 600, 608),
     ("onboarding/ellipse-bottom.svg", "onboarding/ellipse-bottom.png", 600, 608),
+    ("icons/success-check.svg", "icons/success-check.png", 204, 204),
 ]
 
 for svg_rel, png_rel, width, height in JOBS:

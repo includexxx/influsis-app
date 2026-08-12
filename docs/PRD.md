@@ -21,7 +21,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ## Screen Specs (per screen)
 
-- [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification
+- [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
 
 ## 2. Current State of the App
 

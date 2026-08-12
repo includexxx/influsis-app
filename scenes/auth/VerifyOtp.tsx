@@ -6,9 +6,13 @@ import { useTheme } from '@/hooks';
 import { layoutStyle, buttonStyle as sharedButton } from '@/styles';
 import Button from '@/components/elements/Button';
 import AuthHeader from '@/components/elements/AuthHeader';
+import AuthTitleBlock from '@/components/elements/AuthTitleBlock';
 import OtpInput from '@/components/elements/OtpInput';
+import SuccessSheet from '@/components/elements/SuccessSheet';
 
 const OTP_LENGTH = 4;
+
+type VerifyOtpFlow = 'signup' | 'reset';
 
 const styles = StyleSheet.create({
   content: {
@@ -16,12 +20,6 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 21,
-    textAlign: 'center',
-    marginBottom: 32,
   },
   resend: {
     fontSize: 14,
@@ -36,9 +34,11 @@ const styles = StyleSheet.create({
 
 export default function VerifyOtp() {
   const { colors, palette } = useTheme();
-  const { email } = useLocalSearchParams<{ email?: string }>();
+  const { email, flow } = useLocalSearchParams<{ email?: string; flow?: VerifyOtpFlow }>();
+  const isResetFlow = flow === 'reset';
 
   const [code, setCode] = useState('');
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
   function handleResend() {
     setCode('');
@@ -47,21 +47,26 @@ export default function VerifyOtp() {
   function handleVerify() {
     if (code.length < OTP_LENGTH) return;
 
-    router.replace('/welcome');
+    if (isResetFlow) {
+      router.replace({ pathname: '/auth/reset-password', params: { email } });
+      return;
+    }
+
+    setIsSuccessOpen(true);
   }
+
+  const title = isResetFlow ? 'OTP Verification' : 'Verification Code';
+  const description = isResetFlow
+    ? 'Please check your email to reset your password'
+    : email
+      ? `Check your mail (${email}) to get your verification code. If you don't get it, let us know.`
+      : "Check your mail to get your verification code. If you don't get it, let us know.";
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
       <View style={[layoutStyle.scrollContent, styles.content]}>
         <AuthHeader onBack={() => router.back()} style={styles.header} />
-        <Text style={[styles.description, { color: colors.text.secondary }]}>
-          <Text style={{ color: colors.text.primary, fontWeight: '700', fontSize: 20 }}>
-            Verification Code{'\n'}
-          </Text>
-          {email
-            ? `Check your mail (${email}) to get your verification code. If you don't get it, let us know.`
-            : "Check your mail to get your verification code. If you don't get it, let us know."}
-        </Text>
+        <AuthTitleBlock title={title} description={description} />
 
         <OtpInput length={OTP_LENGTH} value={code} onChange={setCode} />
 
@@ -79,6 +84,16 @@ export default function VerifyOtp() {
           onPress={handleVerify}
         />
       </View>
+
+      {isSuccessOpen && (
+        <SuccessSheet
+          title="Account Created Successfully"
+          description="Enjoy your Experience"
+          buttonLabel="Next"
+          onButtonPress={() => router.replace('/welcome')}
+          onClose={() => setIsSuccessOpen(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

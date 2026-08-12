@@ -16,7 +16,7 @@ Email/password sign-in form. The four Figma nodes are all the same screen in dif
 - `AuthHeader` — back chevron + "Sign In" title.
 - Email `TextField`.
 - Password `TextField` (`secureTextEntry`, with the eye toggle built into `TextField`).
-- "Forgot password?" text, right-aligned under the password field (static — no reset flow exists yet, out of scope; see `docs/PRD.md` Epic 2).
+- "Forgot password?" text, right-aligned under the password field → `router.push('/auth/forgot-password')` (see [`forgot-password.md`](./forgot-password.md)).
 - "Sign in" primary button.
 
 ## States
@@ -33,5 +33,5 @@ On successful validation, the screen just replaces the route with `/welcome` —
 
 ## Navigation
 
-- **Entry:** "Continue with Email" (or any provider stub) from `/auth`; "Sign In" link from `/auth/sign-up`.
-- **Exit:** back chevron → `router.back()`. Successful submit → replaces route with `/welcome`.
+- **Entry:** "Continue with Email" (or any provider stub) from `/auth`; "Sign In" link from `/auth/sign-up`; "Log in" button on the reset-password `SuccessSheet` (`/auth/reset-password`).
+- **Exit:** back chevron → `router.back()`. Successful submit → replaces route with `/welcome`. "Forgot password?" → `/auth/forgot-password`.
