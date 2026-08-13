@@ -77,7 +77,11 @@ export default function Home() {
         </Pressable>
 
         <View style={{ marginTop: -16 }}>
-          <SectionHeader title="Active Campaigns" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Active Campaigns"
+            onSeeAllPress={() => router.push('/live-campaign')}
+            style={homeStyle.sectionHeaderGap}
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.horizontalListGap]}>
               {activeCampaigns.map(item => (

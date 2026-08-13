@@ -27,6 +27,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
 - [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
+- [Live Campaigns](./screen/live-campaign/README.md) — a creator's ongoing campaigns, opened from the Home tab's Active Campaigns section
 
 ## 2. Current State of the App
 

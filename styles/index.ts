@@ -6,3 +6,4 @@ export * from './profileStep';
 export * from './home';
 export * from './notifications';
 export * from './search';
+export * from './liveCampaign';
