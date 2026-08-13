@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6346:5575`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6346-5575&m=dev) — "Notification" |
-| **Route** | `/notifications` (`app/notifications.tsx`) |
+| **Route** | `/notifications` (`app/(details)/notifications.tsx`) |
 | **Scene** | `scenes/main/Notifications.tsx` |
 | **Data** | `data/notifications.ts` |
 | **Components used** | `ScreenHeader`, `NotificationCard` (both new, `components/elements/`) |
@@ -23,7 +23,7 @@ A flat list of the user's notifications (payments, transfers, campaign activity)
                                             └─ tap a NotificationCard          → (no notification-detail screen yet - inert)
 ```
 
-`/notifications` is a root-level route (`app/notifications.tsx`, outside the `(main)` Tabs group) rather than a tab — it's pushed full-screen on top of the tab bar, matching Figma (no tab bar visible on this screen), and popped via the back chevron (`router.back()`).
+`/notifications` lives in the `app/(details)/` route group (outside the `(main)` Tabs group) rather than a tab — it's pushed full-screen on top of the tab bar, matching Figma (no tab bar visible on this screen), and popped via the back chevron (`router.back()`). `(details)` groups every screen reached via a Home "See all" link that Figma shows without a tab bar (`/notifications`, `/live-campaign`, `/campaigns`, `/brands`, `/top-gigs`, `/top-influencers`) — a route group is purely organizational in Expo Router and doesn't affect the URL, so each screen's path is unchanged.
 
 ## Sections (top to bottom)
 

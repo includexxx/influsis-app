@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6028:7456`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6028-7456&m=dev) — "Top Influencer" |
-| **Route** | `/top-influencers` (`app/top-influencers.tsx`) |
+| **Route** | `/top-influencers` (`app/(details)/top-influencers.tsx`) |
 | **Scene** | `scenes/main/TopInfluencers.tsx` |
 | **Data** | `data/topInfluencers.ts` |
 | **Components used** | `ScreenHeader` (existing); `InfluencerCard` (new, `components/elements/`) |
@@ -23,7 +23,7 @@ A flat list of top-rated influencers a brand can browse — photo, name, locatio
                                                                  └─ tap an InfluencerCard            → (no influencer-detail screen yet - inert)
 ```
 
-`/top-influencers` is a root-level route (`app/top-influencers.tsx`, outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns`, `/brands` and `/top-gigs`.
+`/top-influencers` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns`, `/brands` and `/top-gigs`.
 
 ## Sections (top to bottom)
 

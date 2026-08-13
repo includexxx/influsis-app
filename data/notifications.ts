@@ -21,13 +21,6 @@ export const recentNotifications: NotificationItem[] = [
     description: 'You received a payment from alex ferdinand of $5000',
     time: '12:55 am',
   },
-  {
-    id: 'receive-payment-3333',
-    icon: 'wallet',
-    title: 'Receive payment',
-    description: 'You received a payment from alex ferdinand of $5000',
-    time: '12:55 am',
-  },
 ];
 
 export const last24HoursNotifications: NotificationItem[] = [

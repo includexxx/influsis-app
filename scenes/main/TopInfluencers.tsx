@@ -9,9 +9,9 @@ import { topInfluencers } from '@/data/topInfluencers';
 
 // The Top Influencers screen (Figma "Top Influencer", node 6028:7456),
 // pushed from the Home tab's "Top Rated Influencer" section "See all" link
-// (scenes/main/Home.tsx). Registered as a root-level route (app/
-// top-influencers.tsx, outside the (main) Tabs group), the same reasoning
-// as /notifications, /live-campaign, /campaigns, /brands and /top-gigs -
+// (scenes/main/Home.tsx). Registered in the app/(details)/ route group
+// (outside the (main) Tabs group), the same reasoning as /notifications,
+// /live-campaign, /campaigns, /brands and /top-gigs -
 // Figma's own bottom bar on this frame is a mismatched "Campaigns/Order/
 // Message/Profile" set that doesn't match this app's real tab bar (Home/
 // Order/Create Gig/Message/Profile) and sits outside the frame's normal

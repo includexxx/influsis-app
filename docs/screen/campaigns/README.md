@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6010:17065`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-17065&m=dev) — "All Campaigns" |
-| **Route** | `/campaigns` (`app/campaigns.tsx`) |
+| **Route** | `/campaigns` (`app/(details)/campaigns.tsx`) |
 | **Scene** | `scenes/main/Campaigns.tsx` |
 | **Data** | `data/campaigns.ts` |
 | **Components used** | `ScreenHeader`, `CampaignCard` — both existing, reused unmodified |
@@ -23,7 +23,7 @@ A flat list of all of a creator's campaigns. Reached from the Home tab's Campaig
                                                       └─ tap a campaign card             → (no campaign-detail screen yet - inert)
 ```
 
-`/campaigns` is a root-level route (`app/campaigns.tsx`, outside the `(main)` Tabs group), the same reasoning as `/notifications` and `/live-campaign` (docs/screen/live-campaign/README.md "Navigation") — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
+`/campaigns` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications` and `/live-campaign` (docs/screen/live-campaign/README.md "Navigation") — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
 
 ## Sections (top to bottom)
 

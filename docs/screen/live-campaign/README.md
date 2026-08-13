@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6111:6871`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6111-6871&m=dev) — "Live campaigns" |
-| **Route** | `/live-campaign` (`app/live-campaign.tsx`) |
+| **Route** | `/live-campaign` (`app/(details)/live-campaign.tsx`) |
 | **Scene** | `scenes/main/LiveCampaign.tsx` |
 | **Data** | `data/liveCampaigns.ts` |
 | **Components used** | `ScreenHeader`, `CampaignCard` (extended with the existing `status` prop) — both existing, reused unmodified |
@@ -23,7 +23,7 @@ A flat list of a creator's live/ongoing campaigns. Reached from the Home tab's A
                                                              └─ tap a campaign card             → (no campaign-detail screen yet - inert)
 ```
 
-`/live-campaign` is a root-level route (`app/live-campaign.tsx`, outside the `(main)` Tabs group), the same reasoning as `/notifications` (docs/screen/notifications/README.md "Navigation") — Figma's frame has no tab bar instance, unlike `/search`'s frames, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
+`/live-campaign` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications` (docs/screen/notifications/README.md "Navigation") — Figma's frame has no tab bar instance, unlike `/search`'s frames, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell. `(details)` is purely organizational (Expo Router route groups don't affect the URL) and groups every no-tab-bar screen reached via a Home "See all" link.
 
 ## Sections (top to bottom)
 

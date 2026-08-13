@@ -9,9 +9,9 @@ import { campaigns } from '@/data/campaigns';
 
 // The Campaigns screen (Figma "All Campaigns", node 6010:17065), pushed
 // from the Home tab's "Campaigns" section "See all" link
-// (scenes/main/Home.tsx). Registered as a root-level route (app/
-// campaigns.tsx, outside the (main) Tabs group) since Figma shows no tab bar
-// on this screen, the same reasoning as /notifications and /live-campaign.
+// (scenes/main/Home.tsx). Registered in the app/(details)/ route group
+// (outside the (main) Tabs group) since Figma shows no tab bar on this
+// screen, the same reasoning as /notifications and /live-campaign.
 // Populated from data/campaigns.ts mock content - no backend exists yet
 // (docs/PRD.md §2.2/§4.1) - see docs/screen/campaigns/README.md.
 export default function Campaigns() {

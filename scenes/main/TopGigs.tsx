@@ -9,9 +9,9 @@ import { topGigs } from '@/data/topGigs';
 
 // The Top Gigs screen (Figma "Top Gigs", node 6028:7350), pushed from the
 // Home tab's "Top Gigs" section "See all" link (scenes/main/Home.tsx).
-// Registered as a root-level route (app/top-gigs.tsx, outside the (main)
-// Tabs group) since Figma shows no tab bar on this screen, the same
-// reasoning as /notifications, /live-campaign, /campaigns and /brands.
+// Registered in the app/(details)/ route group (outside the (main) Tabs
+// group) since Figma shows no tab bar on this screen, the same reasoning
+// as /notifications, /live-campaign, /campaigns and /brands.
 // Populated from data/topGigs.ts mock content - no backend exists yet
 // (docs/PRD.md §2.2/§4.1) - see docs/screen/top-gigs/README.md.
 export default function TopGigs() {

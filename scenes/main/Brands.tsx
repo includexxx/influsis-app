@@ -12,9 +12,9 @@ const COLUMNS = 4;
 
 // The Brands screen (Figma "All Brands", node 6010:16780), pushed from the
 // Home tab's "Brand" section "See all" link (scenes/main/Home.tsx).
-// Registered as a root-level route (app/brands.tsx, outside the (main)
-// Tabs group) since Figma shows no tab bar on this screen, the same
-// reasoning as /notifications, /live-campaign and /campaigns. Populated
+// Registered in the app/(details)/ route group (outside the (main) Tabs
+// group) since Figma shows no tab bar on this screen, the same reasoning
+// as /notifications, /live-campaign and /campaigns. Populated
 // from data/brands.ts mock content - no backend exists yet
 // (docs/PRD.md §2.2/§4.1) - see docs/screen/brands/README.md.
 export default function Brands() {

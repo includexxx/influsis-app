@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6028:7350`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6028-7350&m=dev) — "Top Gigs" |
-| **Route** | `/top-gigs` (`app/top-gigs.tsx`) |
+| **Route** | `/top-gigs` (`app/(details)/top-gigs.tsx`) |
 | **Scene** | `scenes/main/TopGigs.tsx` |
 | **Data** | `data/topGigs.ts` |
 | **Components used** | `ScreenHeader`, `GigCard` — both existing, reused unmodified |
@@ -23,7 +23,7 @@ A flat list of all of a creator's available gigs. Reached from the Home tab's To
                                                     └─ tap a gig card                  → (no gig-detail screen yet - inert)
 ```
 
-`/top-gigs` is a root-level route (`app/top-gigs.tsx`, outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns` and `/brands` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
+`/top-gigs` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns` and `/brands` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
 
 ## Sections (top to bottom)
 

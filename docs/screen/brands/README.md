@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Figma node** | [`6010:16780`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-16780&m=dev) — "All Brands" |
-| **Route** | `/brands` (`app/brands.tsx`) |
+| **Route** | `/brands` (`app/(details)/brands.tsx`) |
 | **Scene** | `scenes/main/Brands.tsx` |
 | **Data** | `data/brands.ts` |
 | **Components used** | `ScreenHeader`, `CircleAvatar` (extended with a new optional `label` prop) — both existing |
@@ -23,7 +23,7 @@ A 4-column grid of every brand a creator has worked with (logo + name). Reached 
                                                  └─ tap a brand logo                → (no brand-detail screen yet - inert)
 ```
 
-`/brands` is a root-level route (`app/brands.tsx`, outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign` and `/campaigns` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
+`/brands` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign` and `/campaigns` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
 
 ## Sections (top to bottom)
 
