@@ -92,7 +92,11 @@ export default function Home() {
         </View>
 
         <View>
-          <SectionHeader title="Brand" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Brand"
+            onSeeAllPress={() => router.push('/brands')}
+            style={homeStyle.sectionHeaderGap}
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
               {brandLogos.map((source, index) => (

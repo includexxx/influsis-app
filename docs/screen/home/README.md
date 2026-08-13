@@ -20,8 +20,10 @@ The Home tab of the main app shell (`app/(main)`, see [`docs/screen/main/README.
   ├─ tap notification bell        → /notifications (docs/screen/notifications/README.md)
   ├─ tap search bar                → /search (docs/screen/search/README.md)
   ├─ tap "See all" on Active Campaigns → /live-campaign (docs/screen/live-campaign/README.md)
+  ├─ tap "See all" on Brand        → /brands (docs/screen/brands/README.md)
+  ├─ tap "See all" on Popular Campaigns → /campaigns (docs/screen/campaigns/README.md)
   ├─ tap "See all" on Campaigns    → /campaigns (docs/screen/campaigns/README.md)
-  ├─ tap "See all" on any other section → (no destination screen yet - inert)
+  ├─ tap "See all" on Top Gigs or Top Rated Influencer → (no destination screen yet - inert)
   ├─ tap a CampaignCard            → (no campaign-detail screen yet - inert)
   ├─ tap a CampaignMiniCard        → (no campaign-detail screen yet - inert)
   ├─ tap a GigCard                 → (no gig-detail screen yet - inert)
@@ -59,7 +61,7 @@ Both variants (Figma nodes `6770:6078` for hero, `6121:6627`/`6659`/`6684`/`6709
 ## Scope notes
 
 - **No real backend.** As with every other flow so far, there's no campaigns/gigs/creators API (`docs/PRD.md` §2.2/§4.1) — all content comes from `data/home.ts`, a set of typed mock arrays (`Campaign[]`, `Gig[]`, plain avatar arrays) using `Campaign`/`Gig` types now added to `types/`. This is the first screen in the app with enough repeated structured content to warrant its own data module rather than inline arrays in the scene file — future screens with similar list content should follow the same `data/<screen>.ts` pattern.
-- **Inert tap targets.** Every card, and the "See all" links on Brand/Popular Campaigns/Top Gigs/Top Rated Influencer, are not wired to `onPress` handlers — there's no campaign/gig detail screen built yet. Rather than invent fake destinations, these are left as visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. The notification bell, search bar, and Active Campaigns'/Campaigns' "See all" links are the exceptions — they navigate to `/notifications`, `/search`, `/live-campaign`, and `/campaigns` respectively (see those screens' specs).
+- **Inert tap targets.** Every card, and the "See all" links on Top Gigs/Top Rated Influencer, are not wired to `onPress` handlers — there's no campaign/gig/influencer detail screen built yet. Rather than invent fake destinations, these are left as visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. The notification bell, search bar, and every other section's "See all" link are the exceptions — they navigate to `/notifications`, `/search`, `/live-campaign`, `/brands`, and `/campaigns` respectively (see those screens' specs). Popular Campaigns' "See all" also points at `/campaigns` — there's no separate "popular campaigns" detail screen, and it's the closest existing match.
 - **Simplified hero card logo.** Figma's hero card layers a small 31×30 logo image directly on top of the 40×40 circular brand avatar. Only the circular avatar is reproduced here — the extra overlaid logo added visual clutter for no clear purpose and the screenshot reads correctly without it.
 - **One verified-badge asset.** Figma exports a slightly different verified-badge icon for the hero card (`8e51b88d...`) vs. the four list cards (`fa063f12...`) — visually the same pink checkmark badge. Standardized on the list version's asset (used 4x vs. hero's 1x) rather than shipping two near-identical assets.
 - **Due-date icon/color normalized.** One of the four "Campaigns" list card instances (Figma) uses a plain calendar icon and black due-date text instead of the "fi-sr-calendar" icon + pink text every other instance (including the hero card) uses. Treated as a one-off Figma inconsistency and normalized to the majority pattern via the shared `CalendarBadge` component.
