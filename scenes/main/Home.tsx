@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle, homeStyle } from '@/styles';
 import Image from '@/components/elements/Image';
@@ -59,20 +60,7 @@ export default function Home() {
         style={layoutStyle.screen}
         contentContainerStyle={[layoutStyle.scrollContent, homeStyle.sectionGap]}
         showsVerticalScrollIndicator={false}>
-        <AppHeader />
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Search your campaign"
-          style={[
-            styles.searchBar,
-            { borderColor: palette.gray[50], backgroundColor: palette.gray[25], marginTop: -16 },
-          ]}>
-          <Image source={searchIcon} style={styles.searchIcon} contentFit="contain" />
-          <Text style={[styles.searchPlaceholder, { color: palette.gray[300] }]}>
-            Search your campaign
-          </Text>
-        </Pressable>
+        <AppHeader onNotificationPress={() => router.push('/notifications')} />
 
         <View style={{ marginTop: -16 }}>
           <SectionHeader title="Active Campaigns" style={homeStyle.sectionHeaderGap} />

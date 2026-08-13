@@ -25,6 +25,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
+- [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
 
 ## 2. Current State of the App
 
