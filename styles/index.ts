@@ -10,3 +10,4 @@ export * from './liveCampaign';
 export * from './campaigns';
 export * from './brands';
 export * from './topGigs';
+export * from './topInfluencers';

@@ -31,6 +31,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Campaigns](./screen/campaigns/README.md) — all of a creator's campaigns, opened from the Home tab's Campaigns section
 - [Brands](./screen/brands/README.md) — brand logo directory, opened from the Home tab's Brand section
 - [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
+- [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
 
 ## 2. Current State of the App
 

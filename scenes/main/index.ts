@@ -9,3 +9,4 @@ export { default as LiveCampaign } from './LiveCampaign';
 export { default as Campaigns } from './Campaigns';
 export { default as Brands } from './Brands';
 export { default as TopGigs } from './TopGigs';
+export { default as TopInfluencers } from './TopInfluencers';

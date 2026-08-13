@@ -150,7 +150,11 @@ export default function Home() {
         </View>
 
         <View>
-          <SectionHeader title="Top Rated Influencer" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Top Rated Influencer"
+            onSeeAllPress={() => router.push('/top-influencers')}
+            style={homeStyle.sectionHeaderGap}
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
               {topRatedInfluencerAvatars.map((source, index) => (
