@@ -1,5 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
-import { Campaign, Gig } from '@/types';
+import { Campaign } from '@/types';
+import { gigs as allGigs } from './gigs';
 
 // Mock content for the Home screen (scenes/main/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
@@ -113,22 +114,10 @@ export const campaigns: Campaign[] = [
   },
 ];
 
-export const gigs: Gig[] = [
-  {
-    id: 'gig-1',
-    image: require('@/assets/images/home/gig-1.jpg'),
-    platforms: 'TikTok, Facebook, Youtube',
-    price: '$350',
-    description: 'I will create facebook promotion, youtube, tiktok promotion',
-  },
-  {
-    id: 'gig-2',
-    image: require('@/assets/images/home/gig-2.jpg'),
-    platforms: 'TikTok, Facebook, Youtube',
-    price: '$350',
-    description: 'I will create facebook promotion, youtube, tiktok promotion',
-  },
-];
+// First two of the canonical gig list (data/gigs.ts) - Home's "Top Gigs"
+// row is a preview of the same gigs the full /top-gigs list and Gig
+// Details screen (`/gig/[id]`) share, not a separate mock set.
+export const gigs = allGigs.slice(0, 2);
 
 export const topRatedInfluencerAvatars: ImageSourcePropType[] = [
   require('@/assets/images/home/influencer-1.jpg'),

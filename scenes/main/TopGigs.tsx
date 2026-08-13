@@ -31,7 +31,12 @@ export default function TopGigs() {
 
         <View style={topGigsStyle.listGap}>
           {topGigs.map(item => (
-            <GigCard key={item.id} {...item} style={topGigsStyle.card} />
+            <GigCard
+              key={item.id}
+              {...item}
+              style={topGigsStyle.card}
+              onPress={() => router.push(`/gig/${item.id}`)}
+            />
           ))}
         </View>
       </ScrollView>

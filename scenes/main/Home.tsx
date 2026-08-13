@@ -143,7 +143,7 @@ export default function Home() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.horizontalListGap]}>
               {gigs.map(item => (
-                <GigCard key={item.id} {...item} />
+                <GigCard key={item.id} {...item} onPress={() => router.push(`/gig/${item.id}`)} />
               ))}
             </View>
           </ScrollView>

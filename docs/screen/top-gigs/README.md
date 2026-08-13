@@ -20,7 +20,7 @@ A flat list of all of a creator's available gigs. Reached from the Home tab's To
   └─ tap "See all" on Top Gigs (SectionHeader) → /top-gigs
                                                     │
                                                     ├─ tap back chevron (ScreenHeader) → back to /home
-                                                    └─ tap a gig card                  → (no gig-detail screen yet - inert)
+                                                    └─ tap a GigCard                    → /gig/[id] (docs/screen/gig-details/README.md)
 ```
 
 `/top-gigs` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns` and `/brands` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
@@ -38,7 +38,8 @@ A flat list of all of a creator's available gigs. Reached from the Home tab's To
 
 ## Scope notes
 
-- **No real backend.** As with every other flow so far, there's no gigs API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/topGigs.ts`'s mock `Gig[]` array, reusing the existing `Gig` type.
+- **No real backend.** As with every other flow so far, there's no gigs API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/topGigs.ts`, which re-exports `data/gigs.ts`'s canonical mock `Gig[]` list (consolidated there once Gig Details needed a real `id → gig` lookup — see `docs/screen/gig-details/README.md` "Data consolidation").
+- **Gig cards navigate to `/gig/[id]`.** `GigCard`'s existing `onPress` prop is wired to `router.push(\`/gig/${item.id}\`)`, the same as Home's "Top Gigs" row — no component changes needed.
 - **Two photos reused from Home, three new.** The first and third cards use the exact same photos already extracted for Home's "Top Gigs" row (`assets/images/home/gig-1.jpg`, `gig-2.jpg`); the other three are new stock images extracted into `assets/images/gigs/`.
 - **Duplicate mock content.** Figma repeats identical copy — "TikTok, Facebook, Youtube" / "$350" / "I will create facebook promotion, youtube, tiktok promotion" — across all five cards, differing only by photo. Mirrored here rather than inventing distinct gig copy Figma doesn't specify, same as every other screen's mock data.
 - **List gap confirmed at 8px**, taken directly from this screen's own Figma pixel positions (210px-tall cards, 8px apart) — matches Home's own 8px `horizontalListGap` used for the same cards' horizontal-scroll row, so no normalization was needed here.
