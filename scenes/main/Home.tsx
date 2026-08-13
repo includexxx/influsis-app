@@ -135,7 +135,11 @@ export default function Home() {
         </View>
 
         <View>
-          <SectionHeader title="Top Gigs" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Top Gigs"
+            onSeeAllPress={() => router.push('/top-gigs')}
+            style={homeStyle.sectionHeaderGap}
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.horizontalListGap]}>
               {gigs.map(item => (

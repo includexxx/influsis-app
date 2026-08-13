@@ -30,6 +30,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Live Campaigns](./screen/live-campaign/README.md) — a creator's ongoing campaigns, opened from the Home tab's Active Campaigns section
 - [Campaigns](./screen/campaigns/README.md) — all of a creator's campaigns, opened from the Home tab's Campaigns section
 - [Brands](./screen/brands/README.md) — brand logo directory, opened from the Home tab's Brand section
+- [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
 
 ## 2. Current State of the App
 

@@ -8,3 +8,4 @@ export { default as Search } from './Search';
 export { default as LiveCampaign } from './LiveCampaign';
 export { default as Campaigns } from './Campaigns';
 export { default as Brands } from './Brands';
+export { default as TopGigs } from './TopGigs';
