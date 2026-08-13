@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, ImageSourcePropType, StyleProp, ImageStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ImageSourcePropType,
+  StyleProp,
+  ImageStyle,
+} from 'react-native';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
 
@@ -6,6 +14,7 @@ export interface CircleAvatarProps {
   source: ImageSourcePropType;
   size?: number;
   label?: string;
+  onPress?: () => void;
   style?: StyleProp<ImageStyle>;
   testID?: string;
 }
@@ -26,10 +35,12 @@ const styles = StyleSheet.create({
 // Rated Influencer" avatar row (Figma nodes 6770:6071 / 6121:6533) - both
 // are the same 80px circle shape, just with different source images. The
 // optional `label` (a name centered below the circle, Figma node
-// 6010:16915) was added for the Brands screen's grid (docs/screen/brands) -
-// omitting it keeps every existing call site's plain-circle rendering
-// (and root element) unchanged.
-function CircleAvatar({ source, size = 80, label, style, testID }: CircleAvatarProps) {
+// 6010:16915) was added for the Brands screen's grid (docs/screen/brands),
+// and `onPress` (Figma's Influencer Profile screen, docs/screen/
+// influencer-profile) for Home's avatar row linking through to a profile -
+// omitting both keeps the original call sites' plain-circle rendering (and
+// root element) unchanged.
+function CircleAvatar({ source, size = 80, label, onPress, style, testID }: CircleAvatarProps) {
   const { colors } = useTheme();
 
   const avatar = (
@@ -37,21 +48,29 @@ function CircleAvatar({ source, size = 80, label, style, testID }: CircleAvatarP
       source={source}
       style={[{ width: size, height: size, borderRadius: size / 2 }, style]}
       contentFit="cover"
-      testID={testID}
+      testID={onPress ? undefined : testID}
     />
   );
 
-  if (!label) {
-    return avatar;
-  }
-
-  return (
+  const content = !label ? (
+    avatar
+  ) : (
     <View style={[styles.withLabel, { width: size }]}>
       {avatar}
       <Text style={[styles.label, { color: colors.text.primary }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
+  );
+
+  if (!onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} testID={testID}>
+      {content}
+    </Pressable>
   );
 }
 

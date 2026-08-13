@@ -1,6 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import { Campaign } from '@/types';
 import { gigs as allGigs } from './gigs';
+import { influencers as allInfluencers } from './influencers';
 
 // Mock content for the Home screen (scenes/main/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
@@ -119,10 +120,10 @@ export const campaigns: Campaign[] = [
 // Details screen (`/gig/[id]`) share, not a separate mock set.
 export const gigs = allGigs.slice(0, 2);
 
-export const topRatedInfluencerAvatars: ImageSourcePropType[] = [
-  require('@/assets/images/home/influencer-1.jpg'),
-  require('@/assets/images/home/influencer-2.jpg'),
-  require('@/assets/images/home/influencer-3.jpg'),
-  require('@/assets/images/home/influencer-4.jpg'),
-  require('@/assets/images/home/influencer-5.jpg'),
-];
+// The canonical influencer list (data/influencers.ts) - Home's "Top Rated
+// Influencer" row is a preview of the same influencers the full
+// /top-influencers list and Influencer Profile screen (`/influencer/[id]`)
+// share, not a separate identity-less mock set. Previously five plain
+// `influencer-1..5.jpg` headshots with no id to link a tap to a profile -
+// see docs/screen/influencer-profile/README.md "Scope notes".
+export const topRatedInfluencers = allInfluencers.map(({ id, image }) => ({ id, image }));

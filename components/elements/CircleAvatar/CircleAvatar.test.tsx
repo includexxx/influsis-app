@@ -1,5 +1,5 @@
-import { test, expect } from '@jest/globals';
-import { render, screen } from '@testing-library/react-native';
+import { test, expect, jest } from '@jest/globals';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import CircleAvatar from './CircleAvatar';
 
 const source = { uri: 'avatar.png' };
@@ -22,5 +22,12 @@ describe('<CircleAvatar />', () => {
   test('renders a label below the circle when given', () => {
     render(<CircleAvatar source={source} label="Bkash" testID="avatar" />);
     expect(screen.getByText('Bkash')).not.toBeNull();
+  });
+
+  test('calls onPress when tapped', () => {
+    const onPress = jest.fn();
+    render(<CircleAvatar source={source} onPress={onPress} testID="avatar" />);
+    fireEvent.press(screen.getByTestId('avatar'));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -28,6 +28,7 @@ The Home tab of the main app shell (`app/(main)`, see [`docs/screen/main/README.
   ├─ tap a CampaignCard            → (no campaign-detail screen yet - inert)
   ├─ tap a CampaignMiniCard        → (no campaign-detail screen yet - inert)
   ├─ tap a GigCard                 → /gig/[id] (docs/screen/gig-details/README.md)
+  ├─ tap a Top Rated Influencer avatar → /influencer/[id] (docs/screen/influencer-profile/README.md)
   └─ tap Home/Order/Create Gig/Message/Profile → switches tab (docs/screen/main/README.md)
 ```
 
@@ -44,7 +45,7 @@ Every tap target above that has no destination screen yet is intentionally inert
 | 5 | Popular Campaigns | Horizontal scroll, 127px compact cards | `CampaignMiniCard` |
 | 6 | Campaigns | Vertical stack, full-width cards | `CampaignCard` (`variant="list"`) |
 | 7 | Top Gigs | Horizontal scroll, 356px cards | `GigCard` |
-| 8 | Top Rated Influencer | Horizontal scroll, 80px circular avatars | `CircleAvatar` |
+| 8 | Top Rated Influencer | Horizontal scroll, 80px circular avatars, tap → `/influencer/[id]` | `CircleAvatar` (`onPress`) |
 
 Sections 3, 5, 7, and 8 all use the same confirmed 8px gap between items (verified against Figma's pixel positions); section 1-2 and 4/8's avatar rows are auto-layout with default project spacing where Figma's own gaps were inconsistent between instances (see below).
 
@@ -62,7 +63,8 @@ Both variants (Figma nodes `6770:6078` for hero, `6121:6627`/`6659`/`6684`/`6709
 ## Scope notes
 
 - **No real backend.** As with every other flow so far, there's no campaigns/gigs/creators API (`docs/PRD.md` §2.2/§4.1) — all content comes from `data/home.ts`, a set of typed mock arrays (`Campaign[]`, `Gig[]`, plain avatar arrays) using `Campaign`/`Gig` types now added to `types/`. This is the first screen in the app with enough repeated structured content to warrant its own data module rather than inline arrays in the scene file — future screens with similar list content should follow the same `data/<screen>.ts` pattern.
-- **Inert tap targets.** `CampaignCard` and `CampaignMiniCard` still aren't wired to an `onPress` handler — there's no campaign detail screen built yet. Rather than invent a fake destination, they're left visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. Every other tap target now goes somewhere: the notification bell, search bar, and every section header's "See all" link (`/notifications`, `/search`, `/live-campaign`, `/brands`, `/campaigns`, `/top-gigs`, `/top-influencers`), plus `GigCard` taps → `/gig/[id]` (docs/screen/gig-details/README.md). Popular Campaigns' "See all" also points at `/campaigns` — there's no separate "popular campaigns" detail screen, and it's the closest existing match.
+- **Inert tap targets.** `CampaignCard` and `CampaignMiniCard` still aren't wired to an `onPress` handler — there's no campaign detail screen built yet. Rather than invent a fake destination, they're left visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. Every other tap target now goes somewhere: the notification bell, search bar, every section header's "See all" link (`/notifications`, `/search`, `/live-campaign`, `/brands`, `/campaigns`, `/top-gigs`, `/top-influencers`), `GigCard` taps → `/gig/[id]`, and Top Rated Influencer avatar taps → `/influencer/[id]` (see those screens' specs). Popular Campaigns' "See all" also points at `/campaigns` — there's no separate "popular campaigns" detail screen, and it's the closest existing match.
+- **Top Rated Influencer avatars now carry real identity.** Previously five plain, id-less `influencer-1..5.jpg` headshots; now four `{id, image}` pairs sourced from the canonical `data/influencers.ts` (down from five to four, matching how many named influencers actually exist) — see `docs/screen/influencer-profile/README.md` "Data consolidation".
 - **Simplified hero card logo.** Figma's hero card layers a small 31×30 logo image directly on top of the 40×40 circular brand avatar. Only the circular avatar is reproduced here — the extra overlaid logo added visual clutter for no clear purpose and the screenshot reads correctly without it.
 - **One verified-badge asset.** Figma exports a slightly different verified-badge icon for the hero card (`8e51b88d...`) vs. the four list cards (`fa063f12...`) — visually the same pink checkmark badge. Standardized on the list version's asset (used 4x vs. hero's 1x) rather than shipping two near-identical assets.
 - **Due-date icon/color normalized.** One of the four "Campaigns" list card instances (Figma) uses a plain calendar icon and black due-date text instead of the "fi-sr-calendar" icon + pink text every other instance (including the hero card) uses. Treated as a one-off Figma inconsistency and normalized to the majority pattern via the shared `CalendarBadge` component.

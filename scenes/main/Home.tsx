@@ -16,7 +16,7 @@ import {
   popularCampaigns,
   campaigns,
   gigs,
-  topRatedInfluencerAvatars,
+  topRatedInfluencers,
 } from '@/data/home';
 
 const searchIcon = require('@/assets/images/home/search.png');
@@ -157,8 +157,12 @@ export default function Home() {
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
-              {topRatedInfluencerAvatars.map((source, index) => (
-                <CircleAvatar key={index} source={source} />
+              {topRatedInfluencers.map(item => (
+                <CircleAvatar
+                  key={item.id}
+                  source={item.image}
+                  onPress={() => router.push(`/influencer/${item.id}`)}
+                />
               ))}
             </View>
           </ScrollView>

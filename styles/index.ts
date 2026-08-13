@@ -12,3 +12,4 @@ export * from './brands';
 export * from './topGigs';
 export * from './topInfluencers';
 export * from './gigDetails';
+export * from './influencerProfile';

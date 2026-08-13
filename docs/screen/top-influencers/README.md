@@ -20,7 +20,7 @@ A flat list of top-rated influencers a brand can browse — photo, name, locatio
   └─ tap "See all" on Top Rated Influencer (SectionHeader) → /top-influencers
                                                                  │
                                                                  ├─ tap back chevron (ScreenHeader) → back to /home
-                                                                 └─ tap an InfluencerCard            → (no influencer-detail screen yet - inert)
+                                                                 └─ tap an InfluencerCard            → /influencer/[id] (docs/screen/influencer-profile/README.md)
 ```
 
 `/top-influencers` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns`, `/brands` and `/top-gigs`.
@@ -38,11 +38,12 @@ Figma node `6028:7512` and three siblings — a photo, name + a small pink verif
 
 ## Scope notes
 
-- **No real backend.** As with every other flow so far, there's no influencers API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/topInfluencers.ts`'s mock `Influencer[]` array, using a new `Influencer` type added to `types/`.
+- **No real backend.** As with every other flow so far, there's no influencers API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/topInfluencers.ts`, which re-exports `data/influencers.ts`'s canonical mock `Influencer[]` list (consolidated there once the Influencer Profile screen needed a real `id → influencer` lookup — see `docs/screen/influencer-profile/README.md` "Data consolidation").
+- **Influencer cards navigate to `/influencer/[id]`.** `InfluencerCard`'s existing `onPress` prop is wired to `router.push(\`/influencer/${item.id}\`)`.
 - **Duplicate/mismatched mock content, mirrored as-is.** Figma repeats "Salman Muqtadir" for three of the four cards, and every card's location row and the two tag pills beneath it all read "Dhaka, Bangladesh" verbatim (the tag pills look like they were meant for category/skill tags but were left as duplicated placeholder text) — mirrored here rather than inventing distinct influencer names, locations, or tags Figma doesn't specify, same as every other screen's mock data (e.g. Brands' "Bkash Ltd" label on the Bata logo).
 - **Figma's floating bottom bar treated as a stray artifact, not built.** The Figma frame includes a "Campaigns / Order / [circle] / Message / Profile" bar positioned at y=1143 — below this frame's normal 932px viewport and with a different item set than this app's actual tab bar (Home/Order/Create Gig/Message/Profile, `app/(main)/_layout.tsx`). Every other screen this session that's genuinely meant to keep the tab bar visible does so via a real Figma "Tab Bar" component instance (see `/search`'s spec); this frame has no such instance, so the loose bar is read as leftover/copied content rather than an intentional part of this screen, and `/top-influencers` is built the same tab-bar-less way as `/notifications`, `/live-campaign`, `/campaigns` and `/brands`.
 - **New icon set.** The verified checkmark here is a distinct scalloped-seal glyph, smaller (12.5×12) and shaped differently from the pink circle-checkmark `CampaignCard` already uses — reused as-is rather than force-fit into a visually different existing asset. The star and location-pin icons are also new. All three rasterized from SVG via `scripts/rasterize-influencers-assets.py`, the same approach every other screen's icon extraction uses.
-- **Four unique photos**, extracted into `assets/images/influencers/` and downscaled/JPEG-compressed via `scripts/resize-influencers-assets.py` (900px cap, matching `campaign-list-*`'s cap in `scripts/resize-home-assets.py`) — none overlap Home's existing `influencer-*.jpg` avatars, which are a separate, smaller circular-crop set used by Home's own "Top Rated Influencer" row.
+- **Four unique photos**, extracted into `assets/images/influencers/` and downscaled/JPEG-compressed via `scripts/resize-influencers-assets.py` (900px cap, matching `campaign-list-*`'s cap in `scripts/resize-home-assets.py`). Home's "Top Rated Influencer" row used to have its own separate, smaller circular-crop set (`influencer-1..5.jpg`) with no shared identity with these four - now consolidated to reuse these same four influencers instead, so an avatar tap and a card tap for "the same" influencer actually lead to the same profile (see `docs/screen/influencer-profile/README.md` "Data consolidation").
 
 ## Navigation
 

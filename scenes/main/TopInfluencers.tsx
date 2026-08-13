@@ -35,7 +35,11 @@ export default function TopInfluencers() {
 
         <View style={topInfluencersStyle.listGap}>
           {topInfluencers.map(item => (
-            <InfluencerCard key={item.id} {...item} />
+            <InfluencerCard
+              key={item.id}
+              {...item}
+              onPress={() => router.push(`/influencer/${item.id}`)}
+            />
           ))}
         </View>
       </ScrollView>
