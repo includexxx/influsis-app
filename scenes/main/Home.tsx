@@ -99,8 +99,12 @@ export default function Home() {
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
-              {brandLogos.map((source, index) => (
-                <CircleAvatar key={index} source={source} />
+              {brandLogos.map(item => (
+                <CircleAvatar
+                  key={item.id}
+                  source={item.source}
+                  onPress={() => router.push(`/brand/${item.id}`)}
+                />
               ))}
             </View>
           </ScrollView>

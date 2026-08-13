@@ -2,6 +2,7 @@ import { ImageSourcePropType } from 'react-native';
 import { Campaign } from '@/types';
 import { gigs as allGigs } from './gigs';
 import { influencers as allInfluencers } from './influencers';
+import { brands as allBrands } from './brands';
 
 // Mock content for the Home screen (scenes/main/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
@@ -33,13 +34,17 @@ export const activeCampaigns: Campaign[] = [
   },
 ];
 
-export const brandLogos: ImageSourcePropType[] = [
-  require('@/assets/images/home/brand-logo-1.jpg'),
-  require('@/assets/images/home/brand-logo-2.jpg'),
-  require('@/assets/images/home/brand-logo-3.jpg'),
-  require('@/assets/images/home/brand-logo-4.jpg'),
-  require('@/assets/images/home/brand-logo-5.jpg'),
-];
+// {id, source} pairs from the canonical brand list (data/brands.ts), picked
+// by id to reproduce the same five brand-logo-1..5.jpg images in the same
+// order this row showed before - previously a plain `ImageSourcePropType[]`
+// with no id to link a tap to a brand profile, the same "identity-less"
+// gap docs/screen/influencer-profile/README.md describes fixing for
+// topRatedInfluencers below.
+const homeBrandIds = ['brand-2', 'brand-1', 'brand-12', 'brand-4', 'brand-3'];
+export const brandLogos = homeBrandIds
+  .map(id => allBrands.find(brand => brand.id === id))
+  .filter((brand): brand is (typeof allBrands)[number] => !!brand)
+  .map(({ id, source }) => ({ id, source }));
 
 export interface PopularCampaign {
   id: string;

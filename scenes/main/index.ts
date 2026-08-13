@@ -12,3 +12,4 @@ export { default as TopGigs } from './TopGigs';
 export { default as TopInfluencers } from './TopInfluencers';
 export { default as GigDetails } from './GigDetails';
 export { default as InfluencerProfile } from './InfluencerProfile';
+export { default as BrandDetails } from './BrandDetails';

@@ -40,7 +40,13 @@ export default function Brands() {
           {rows.map((row, index) => (
             <View key={index} style={brandsStyle.gridRow}>
               {row.map(item => (
-                <CircleAvatar key={item.id} source={item.source} label={item.label} size={94} />
+                <CircleAvatar
+                  key={item.id}
+                  source={item.source}
+                  label={item.label}
+                  size={94}
+                  onPress={() => router.push(`/brand/${item.id}`)}
+                />
               ))}
             </View>
           ))}

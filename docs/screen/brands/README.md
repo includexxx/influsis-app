@@ -7,6 +7,7 @@
 | **Scene** | `scenes/main/Brands.tsx` |
 | **Data** | `data/brands.ts` |
 | **Components used** | `ScreenHeader`, `CircleAvatar` (extended with a new optional `label` prop) — both existing |
+| **Leads to** | [Brand Details](../brand-details/README.md) — tapping any brand logo |
 
 ## Purpose
 
@@ -20,7 +21,7 @@ A 4-column grid of every brand a creator has worked with (logo + name). Reached 
   └─ tap "See all" on Brand (SectionHeader) → /brands
                                                  │
                                                  ├─ tap back chevron (ScreenHeader) → back to /home
-                                                 └─ tap a brand logo                → (no brand-detail screen yet - inert)
+                                                 └─ tap a brand logo                → /brand/[id] (docs/screen/brand-details/README.md)
 ```
 
 `/brands` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign` and `/campaigns` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
@@ -38,7 +39,7 @@ Previously a bare circular `Image` (Home's "Brand" and "Top Rated Influencer" ro
 
 ## Scope notes
 
-- **No real backend.** As with every other flow so far, there's no brands API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/brands.ts`'s mock `BrandLogo[]` array.
+- **No real backend.** As with every other flow so far, there's no brands API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/brands.ts`'s mock `Brand[]` array (type moved to `types/brand.ts` once Brand Details needed additional detail fields — see `docs/screen/brand-details/README.md`).
 - **Heavy reuse of Home's existing logos.** Figma's grid row 1 (KFC/Bkash Ltd/Bkash/Uber) uses the exact same four images already extracted for Home's "Brand" row (`assets/images/home/brand-logo-*.jpg`) — reused directly rather than re-exporting duplicates. Row 3's "Pathao" cell does the same with `brand-logo-3.jpg` despite Figma exporting a slightly different PNG hash for it, the same "one glyph, standardize on the existing asset" normalization `docs/screen/home/README.md` already established for the verified badge.
 - **Duplicate mock content.** Figma repeats two full sets of logos across its 24 grid cells: rows 2 and 5 are identical (Kay/Eastasy/Aarong/Xiomi), and row 4 repeats row 1's four brands (down to reusing the "Bkash Ltd" label on two separate cells, and on what's visibly the Bata logo rather than a Bkash one) — mirrored here rather than inventing distinct brands Figma doesn't specify, same as every other screen's mock data.
 - **Two logos flattened onto white.** Figma's exported PNGs for GP and Robi are transparent (just the colored logo mark, no background fill), unlike every other logo in the grid which already has an opaque backing baked in. Rendered directly, they'd show whatever's behind them — broken in dark mode, where the page background isn't white like Figma's canvas. `scripts/resize-brand-assets.py` composites both onto a white backing (matching Figma's own rendered look) before downscaling, the same way `scripts/resize-home-assets.py` flattens photos to opaque JPEGs.
@@ -49,4 +50,4 @@ Previously a bare circular `Image` (Home's "Brand" and "Top Rated Influencer" ro
 ## Navigation
 
 - **Entry:** Home's Brand section header (`scenes/main/Home.tsx`).
-- **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to `/home`.
+- **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to `/home`; tapping a brand logo → `/brand/[id]` (`docs/screen/brand-details/README.md`).
