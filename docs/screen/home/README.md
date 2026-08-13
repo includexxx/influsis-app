@@ -25,14 +25,15 @@ The Home tab of the main app shell (`app/(main)`, see [`docs/screen/main/README.
   ├─ tap "See all" on Campaigns    → /campaigns (docs/screen/campaigns/README.md)
   ├─ tap "See all" on Top Gigs     → /top-gigs (docs/screen/top-gigs/README.md)
   ├─ tap "See all" on Top Rated Influencer → /top-influencers (docs/screen/top-influencers/README.md)
-  ├─ tap a CampaignCard            → (no campaign-detail screen yet - inert)
+  ├─ tap a CampaignCard            → /campaign/[id] (docs/screen/campaign-details/README.md)
+  ├─ tap a brand logo              → /brand/[id] (docs/screen/brand-details/README.md)
   ├─ tap a CampaignMiniCard        → (no campaign-detail screen yet - inert)
   ├─ tap a GigCard                 → /gig/[id] (docs/screen/gig-details/README.md)
   ├─ tap a Top Rated Influencer avatar → /influencer/[id] (docs/screen/influencer-profile/README.md)
   └─ tap Home/Order/Create Gig/Message/Profile → switches tab (docs/screen/main/README.md)
 ```
 
-Every tap target above that has no destination screen yet is intentionally inert (no `onPress`) rather than routed somewhere fake — see "Scope notes" below.
+Every tap target above that has no destination screen yet is intentionally inert (no `onPress`) rather than routed somewhere fake — see "Scope notes" below. `CampaignMiniCard`'s "Popular Campaigns" row is a separate, differently-shaped component (`id, image, startedLabel, title` only — no price/brand/detail fields), so it stays inert rather than being force-fit into the `Campaign`-typed `/campaign/[id]` route.
 
 ## Sections (top to bottom)
 
@@ -63,7 +64,7 @@ Both variants (Figma nodes `6770:6078` for hero, `6121:6627`/`6659`/`6684`/`6709
 ## Scope notes
 
 - **No real backend.** As with every other flow so far, there's no campaigns/gigs/creators API (`docs/PRD.md` §2.2/§4.1) — all content comes from `data/home.ts`, a set of typed mock arrays (`Campaign[]`, `Gig[]`, plain avatar arrays) using `Campaign`/`Gig` types now added to `types/`. This is the first screen in the app with enough repeated structured content to warrant its own data module rather than inline arrays in the scene file — future screens with similar list content should follow the same `data/<screen>.ts` pattern.
-- **Inert tap targets.** `CampaignCard` and `CampaignMiniCard` still aren't wired to an `onPress` handler — there's no campaign detail screen built yet. Rather than invent a fake destination, they're left visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. Every other tap target now goes somewhere: the notification bell, search bar, every section header's "See all" link (`/notifications`, `/search`, `/live-campaign`, `/brands`, `/campaigns`, `/top-gigs`, `/top-influencers`), `GigCard` taps → `/gig/[id]`, and Top Rated Influencer avatar taps → `/influencer/[id]` (see those screens' specs). Popular Campaigns' "See all" also points at `/campaigns` — there's no separate "popular campaigns" detail screen, and it's the closest existing match.
+- **Inert tap targets.** `CampaignMiniCard` still isn't wired to an `onPress` handler — its "Popular Campaigns" content doesn't fit the `Campaign` shape (`docs/screen/campaign-details/README.md` "Scope notes"), so there's no detail screen for it to route to. Rather than invent a fake destination, it's left visually-complete but non-functional per Figma, matching this project's established pattern of not building ahead of what's been designed. Every other tap target now goes somewhere: the notification bell, search bar, every section header's "See all" link (`/notifications`, `/search`, `/live-campaign`, `/brands`, `/campaigns`, `/top-gigs`, `/top-influencers`), `CampaignCard` taps → `/campaign/[id]`, brand logo taps → `/brand/[id]`, `GigCard` taps → `/gig/[id]`, and Top Rated Influencer avatar taps → `/influencer/[id]` (see those screens' specs). Popular Campaigns' "See all" also points at `/campaigns` — there's no separate "popular campaigns" detail screen, and it's the closest existing match.
 - **Top Rated Influencer avatars now carry real identity.** Previously five plain, id-less `influencer-1..5.jpg` headshots; now four `{id, image}` pairs sourced from the canonical `data/influencers.ts` (down from five to four, matching how many named influencers actually exist) — see `docs/screen/influencer-profile/README.md` "Data consolidation".
 - **Simplified hero card logo.** Figma's hero card layers a small 31×30 logo image directly on top of the 40×40 circular brand avatar. Only the circular avatar is reproduced here — the extra overlaid logo added visual clutter for no clear purpose and the screenshot reads correctly without it.
 - **One verified-badge asset.** Figma exports a slightly different verified-badge icon for the hero card (`8e51b88d...`) vs. the four list cards (`fa063f12...`) — visually the same pink checkmark badge. Standardized on the list version's asset (used 4x vs. hero's 1x) rather than shipping two near-identical assets.

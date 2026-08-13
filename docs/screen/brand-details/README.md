@@ -22,8 +22,7 @@ The full profile view for a single brand — banner photo, circular logo, name, 
             /brand/[id]
                   │
                   ├─ tap back chevron (ScreenHeader) → back to wherever the tap came from
-                  └─ (no further tap targets — CampaignCard has no onPress here, same as
-                     Campaigns.tsx's own list; there's no campaign-detail route yet)
+                  └─ tap an Ongoing Campaign CampaignCard → /campaign/[id] (docs/screen/campaign-details/README.md)
 ```
 
 `/brand/[id]` is a dynamic route inside the `app/(details)/` route group (outside the `(main)` Tabs group), the same "no tab bar" reasoning as every other screen in that group. Both entry points now pass the same `onPress={() => router.push(\`/brand/${item.id}\`)}` — Home's "Brand" row and `/brands`' full grid, both a `Pressable` `CircleAvatar` — closing the gap `docs/screen/brands/README.md` previously flagged as "no brand-detail screen yet - inert".
@@ -51,7 +50,7 @@ Before this screen, `data/brands.ts`'s `BrandLogo[]` (id, source, label) only se
 - **No real backend.** As with every other flow so far, there's no brands API (`docs/PRD.md` §2.2/§4.1) — every brand's detail fields come from `data/brands.ts`.
 - **Figma's one example mirrored across every brand.** Figma shows a single brand profile (banner photo, logo, "Bkash Ltd. Company" name, `https://food.net` website, one description paragraph, two "Bkash Branding Campaign" cards) for its one example — applied identically to all 24 brands in `data/brands.ts` rather than inventing distinct profile content Figma doesn't specify, same as Gig Details' service breakdown and Influencer Profile's bio/reviews.
 - **Figma's own content mismatch preserved as-is.** The example's banner photo and circular avatar are visibly KFC's own ad photo and mascot logo, while the name text reads "Bkash Ltd. Company" — the same kind of designer mismatch `docs/screen/brands/README.md` already documents keeping rather than reconciling (its grid's row-1 "Bkash Ltd" label sitting on what's visibly the Bata logo).
-- **Ongoing campaigns reuse real campaigns, not new mock content.** Figma's two example cards are structurally identical to `CampaignCard`'s `list` variant and match `data/campaigns.ts`'s `campaign-1`/`campaign-2` (same photos, same "Bkash Branding Campaign" / "Bkash Ltd." content, down to the second card's services line) — referenced here by id (`campaignIds`) rather than duplicating that content, so no new `CampaignCard` props or styling were needed.
+- **Ongoing campaigns reuse real campaigns, not new mock content.** Figma's two example cards are structurally identical to `CampaignCard`'s `list` variant and match `data/campaigns.ts`'s `campaign-1`/`campaign-2` (same photos, same "Bkash Branding Campaign" / "Bkash Ltd." content, down to the second card's services line) — referenced here by id (`campaignIds`) rather than duplicating that content, so no new `CampaignCard` props or styling were needed. Each card's `onPress={() => router.push(\`/campaign/${campaign.id}\`)}` now leads to Campaign Details — see `docs/screen/campaign-details/README.md`.
 - **Avatar falls back to the brand's own grid logo.** The scene reads `brand.avatar ?? brand.source` — every brand already has a real, distinct logo (`source`, used by the `/brands` grid), so if a future edit ever gives brands per-item avatars, unset ones still render something real instead of a placeholder.
 - **Invalid `id` falls back to Home.** Same as Gig Details and Influencer Profile — an unmatched `/brand/[id]` renders `<Redirect href="/home" />` rather than a broken page.
 - **New assets.** `assets/images/brand-details/banner.jpg` and `avatar.jpg` (downscaled/JPEG-compressed via `scripts/resize-brand-details-assets.py`, same approach as `scripts/resize-profile-assets.py`) and `globe.png` (rasterized from the Figma SVG export via `scripts/rasterize-brand-details-assets.py`, same approach as `scripts/rasterize-profile-assets.py`). The verified badge next to the brand name reuses the existing `assets/images/home/verified-badge.png` (same 20×20 glyph `CampaignCard` already uses) rather than exporting a duplicate.
@@ -59,4 +58,4 @@ Before this screen, `data/brands.ts`'s `BrandLogo[]` (id, source, label) only se
 ## Navigation
 
 - **Entry:** Home's "Brand" row (`scenes/main/Home.tsx`), `/brands`' full grid (`scenes/main/Brands.tsx`).
-- **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to wherever the tap originated.
+- **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to wherever the tap originated. Ongoing Campaign cards also lead onward to `/campaign/[id]`.

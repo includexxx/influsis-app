@@ -14,3 +14,4 @@ export * from './topInfluencers';
 export * from './gigDetails';
 export * from './influencerProfile';
 export * from './brandDetails';
+export * from './campaignDetails';

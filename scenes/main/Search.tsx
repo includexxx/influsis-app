@@ -68,7 +68,12 @@ export default function Search() {
           {filteredResults.length > 0 ? (
             <View style={searchStyle.resultsListGap}>
               {filteredResults.map(item => (
-                <CampaignCard key={item.id} variant="list" {...item} />
+                <CampaignCard
+                  key={item.id}
+                  variant="list"
+                  {...item}
+                  onPress={() => router.push(`/campaign/${item.id}`)}
+                />
               ))}
             </View>
           ) : (

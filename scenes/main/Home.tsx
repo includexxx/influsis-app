@@ -85,7 +85,13 @@ export default function Home() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.horizontalListGap]}>
               {activeCampaigns.map(item => (
-                <CampaignCard key={item.id} variant="hero" style={styles.heroCard} {...item} />
+                <CampaignCard
+                  key={item.id}
+                  variant="hero"
+                  style={styles.heroCard}
+                  {...item}
+                  onPress={() => router.push(`/campaign/${item.id}`)}
+                />
               ))}
             </View>
           </ScrollView>
@@ -133,7 +139,12 @@ export default function Home() {
           />
           <View style={homeStyle.campaignListGap}>
             {campaigns.map(item => (
-              <CampaignCard key={item.id} variant="list" {...item} />
+              <CampaignCard
+                key={item.id}
+                variant="list"
+                {...item}
+                onPress={() => router.push(`/campaign/${item.id}`)}
+              />
             ))}
           </View>
         </View>

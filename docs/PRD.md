@@ -34,6 +34,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
 - [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
 - [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
+- [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
 - [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
 
 ## 2. Current State of the App

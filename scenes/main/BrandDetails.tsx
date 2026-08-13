@@ -84,7 +84,12 @@ export default function BrandDetails() {
               </Text>
               <View style={brandDetailsStyle.campaignListGap}>
                 {ongoingCampaigns.map(campaign => (
-                  <CampaignCard key={campaign.id} variant="list" {...campaign} />
+                  <CampaignCard
+                    key={campaign.id}
+                    variant="list"
+                    {...campaign}
+                    onPress={() => router.push(`/campaign/${campaign.id}`)}
+                  />
                 ))}
               </View>
             </>

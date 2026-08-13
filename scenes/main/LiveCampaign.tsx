@@ -32,7 +32,12 @@ export default function LiveCampaign() {
 
         <View style={liveCampaignStyle.listGap}>
           {liveCampaigns.map(item => (
-            <CampaignCard key={item.id} variant="list" {...item} />
+            <CampaignCard
+              key={item.id}
+              variant="list"
+              {...item}
+              onPress={() => router.push(`/campaign/${item.id}`)}
+            />
           ))}
         </View>
       </ScrollView>

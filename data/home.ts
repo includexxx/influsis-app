@@ -1,5 +1,4 @@
 import { ImageSourcePropType } from 'react-native';
-import { Campaign } from '@/types';
 import { gigs as allGigs } from './gigs';
 import { influencers as allInfluencers } from './influencers';
 import { brands as allBrands } from './brands';
@@ -11,28 +10,11 @@ import { brands as allBrands } from './brands';
 // content, and so this data has one obvious place to eventually be replaced
 // by a real API response shape.
 
-export const activeCampaigns: Campaign[] = [
-  {
-    id: 'kfc-branding',
-    image: require('@/assets/images/home/hero-campaign.jpg'),
-    brandAvatar: require('@/assets/images/home/hero-brand-avatar.jpg'),
-    title: 'KFC Branding Campaign',
-    verified: true,
-    tags: ['Male', 'Female'],
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
-  },
-  {
-    id: 'bkash-branding-hero',
-    image: require('@/assets/images/home/campaign-list-1.jpg'),
-    brandAvatar: require('@/assets/images/home/hero-brand-avatar.jpg'),
-    title: 'Bkash Branding Campaign',
-    verified: true,
-    tags: ['Male', 'Female'],
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
-  },
-];
+// Both re-exported from the canonical campaign list (data/campaigns.ts) -
+// see docs/screen/campaign-details/README.md "Data consolidation" for why
+// this moved out of a local literal array.
+export { activeCampaigns } from './campaigns';
+export { homeCampaigns as campaigns } from './campaigns';
 
 // {id, source} pairs from the canonical brand list (data/brands.ts), picked
 // by id to reproduce the same five brand-logo-1..5.jpg images in the same
@@ -71,52 +53,6 @@ export const popularCampaigns: PopularCampaign[] = [
     image: require('@/assets/images/home/popular-campaign-3.jpg'),
     startedLabel: 'Started 10 July',
     title: 'Bkash Branding Campaign',
-  },
-];
-
-export const campaigns: Campaign[] = [
-  {
-    id: 'bkash-1',
-    image: require('@/assets/images/home/campaign-list-1.jpg'),
-    title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
-    verified: true,
-    tags: ['Male', 'Female'],
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
-  },
-  {
-    id: 'bkash-2',
-    image: require('@/assets/images/home/campaign-list-2.jpg'),
-    title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
-    verified: true,
-    tags: ['Male', 'Female'],
-    servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
-  },
-  {
-    id: 'bkash-3',
-    image: require('@/assets/images/home/campaign-list-3.jpg'),
-    title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
-    verified: true,
-    tags: ['Male', 'Female'],
-    servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
-  },
-  {
-    id: 'bkash-4',
-    image: require('@/assets/images/home/campaign-list-4.jpg'),
-    title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
-    verified: true,
-    tags: ['Male', 'Female'],
-    servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
-    price: '$2,000',
-    dueDate: '21 Oct 2022',
   },
 ];
 
