@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks';
 import { buttonStyle as sharedButton } from '@/styles';
 import Button from '../Button';
@@ -15,6 +15,21 @@ export interface SuccessSheetProps {
   onClose?: () => void;
 }
 
+// Figma's `0px 24px 17px rgba(46,118,87,0.3)` badge shadow, platform-
+// branched the same way theme/shadows.ts's `getShadowStyle` is - raw
+// `shadow*` style props are deprecated on React Native Web in favor of
+// `boxShadow`.
+const badgeShadow =
+  Platform.OS === 'web'
+    ? { boxShadow: '0px 24px 17px rgba(46, 118, 87, 0.3)' }
+    : {
+        shadowColor: '#2E7657',
+        shadowOffset: { width: 0, height: 24 },
+        shadowOpacity: 0.3,
+        shadowRadius: 17,
+        elevation: 10,
+      };
+
 const styles = StyleSheet.create({
   root: {
     alignItems: 'center',
@@ -28,11 +43,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: -40,
     zIndex: 2,
-    shadowColor: '#2E7657',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.3,
-    shadowRadius: 17,
-    elevation: 10,
+    ...badgeShadow,
   },
   icon: {
     width: 51,
