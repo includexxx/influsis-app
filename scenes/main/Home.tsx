@@ -62,6 +62,20 @@ export default function Home() {
         showsVerticalScrollIndicator={false}>
         <AppHeader onNotificationPress={() => router.push('/notifications')} />
 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Search your campaign"
+          onPress={() => router.push('/search')}
+          style={[
+            styles.searchBar,
+            { borderColor: palette.gray[50], backgroundColor: palette.gray[25], marginTop: -16 },
+          ]}>
+          <Image source={searchIcon} style={styles.searchIcon} contentFit="contain" />
+          <Text style={[styles.searchPlaceholder, { color: palette.gray[300] }]}>
+            Search your campaign
+          </Text>
+        </Pressable>
+
         <View style={{ marginTop: -16 }}>
           <SectionHeader title="Active Campaigns" style={homeStyle.sectionHeaderGap} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>

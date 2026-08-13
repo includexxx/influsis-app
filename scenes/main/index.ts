@@ -4,3 +4,4 @@ export { default as Message } from './Message';
 export { default as Profile } from './Profile';
 export { default as CreateGig } from './CreateGig';
 export { default as Notifications } from './Notifications';
+export { default as Search } from './Search';

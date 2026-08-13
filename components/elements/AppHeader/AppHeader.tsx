@@ -1,7 +1,16 @@
-import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TouchableOpacity,
+} from 'react-native';
 import { useTheme } from '@/hooks';
 import { fonts } from '@/theme';
 import Image from '../Image';
+import { router } from 'expo-router';
 
 const notificationBellIcon = require('@/assets/images/home/notification-bell.png');
 
@@ -33,14 +42,16 @@ function AppHeader({ onNotificationPress, style }: AppHeaderProps) {
 
   return (
     <View style={[styles.root, style]}>
-      <Text style={[styles.wordmark, { color: palette.primary[400] }]}>Influsis.</Text>
-      <Pressable
+      <Pressable onPress={() => router.push('/home')}>
+        <Text style={[styles.wordmark, { color: palette.primary[400] }]}>Influsis.</Text>
+      </Pressable>
+      <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel="Notifications"
         style={styles.bellButton}
         onPress={onNotificationPress}>
         <Image source={notificationBellIcon} style={styles.bellButton} contentFit="contain" />
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }

@@ -11,6 +11,7 @@ import {
 import { useTheme } from '@/hooks';
 import Image from '../Image';
 import CalendarBadge from '../CalendarBadge';
+import StatusBadge from '../StatusBadge';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 
@@ -25,6 +26,7 @@ export interface CampaignCardProps {
   verified?: boolean;
   tags?: string[];
   servicesDescription?: string;
+  status?: string;
   price: string;
   dueDate: string;
   onPress?: () => void;
@@ -59,6 +61,11 @@ const styles = StyleSheet.create({
   },
   imageWrap: {
     position: 'relative',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
   heroImage: {
     width: '100%',
@@ -108,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    // marginTop: -20,
+    marginTop: -20,
   },
   titleRow: {
     flexDirection: 'row',
@@ -154,7 +161,10 @@ const styles = StyleSheet.create({
 // tag pills overlaid on the image's bottom-left corner, title + verified
 // badge, price + due date - but differ in corner radius, shadow, and
 // whether a circular brand avatar (hero, overlapping the image) or a plain
-// brand-name text line (list) is shown. See docs/screen/home for detail.
+// brand-name text line (list) is shown. See docs/screen/home for detail. The
+// optional `status` pill (Figma node 6138:5549, "Ongoing") added for the
+// Search screen's result cards (docs/screen/search) sits top-right of the
+// whole card via the shared `StatusBadge` component.
 function CampaignCard({
   variant = 'list',
   image,
@@ -164,6 +174,7 @@ function CampaignCard({
   verified,
   tags,
   servicesDescription,
+  status,
   price,
   dueDate,
   onPress,
@@ -195,6 +206,8 @@ function CampaignCard({
           </View>
         )}
       </View>
+
+      {status && <StatusBadge label={status} style={styles.statusBadge} />}
 
       <View style={styles.content}>
         {isHero ? (

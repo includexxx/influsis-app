@@ -87,6 +87,13 @@ export default function MainLayout() {
           destination) while still registering "/create" as a real route
           inside this group, so `router.push('/create')` resolves. */}
       <Tabs.Screen name="create" options={{ href: null }} />
+      {/* Reached via the Home tab's search bar (scenes/main/Home.tsx). Not
+          a tab bar destination (Figma's Search screen has no matching tab
+          icon), but the tab bar itself stays visible on this screen per
+          Figma (docs/screen/search) - registering it inside this group
+          rather than at the root (unlike /notifications, which Figma shows
+          without a tab bar) keeps that shell intact. */}
+      <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );
 }

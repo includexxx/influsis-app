@@ -43,6 +43,21 @@ describe('<CampaignCard />', () => {
     expect(screen.getByText('3 Tiktok Video, 1 Youtube Reel, 2 Facebook Post')).not.toBeNull();
   });
 
+  test('renders a status badge when status is given', () => {
+    render(
+      <CampaignCard
+        variant="list"
+        image={image}
+        title="Bkash Branding Campaign"
+        brandName="Bkash Ltd."
+        status="Ongoing"
+        price="$2,000"
+        dueDate="21 Oct 2022"
+      />,
+    );
+    expect(screen.getByText('Ongoing')).not.toBeNull();
+  });
+
   test('calls onPress when tapped', () => {
     const onPress = jest.fn();
     render(

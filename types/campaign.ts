@@ -11,4 +11,5 @@ export interface Campaign {
   brandAvatar?: ImageSourcePropType;
   brandName?: string;
   servicesDescription?: string;
+  status?: string;
 }

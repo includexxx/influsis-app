@@ -26,6 +26,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
 - [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
+- [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
 
 ## 2. Current State of the App
 
