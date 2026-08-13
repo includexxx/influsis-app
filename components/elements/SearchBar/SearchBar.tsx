@@ -63,14 +63,16 @@ function SearchBar({
       ]}>
       <Image source={searchIcon} style={styles.icon} contentFit="contain" />
       <TextInput
-        style={[styles.input, { color: colors.text.primary }]}
+        style={[
+          styles.input,
+          { color: colors.text.primary, pointerEvents: editable ? 'auto' : 'none' },
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={palette.gray[300]}
         editable={editable}
         autoFocus={autoFocus}
-        pointerEvents={editable ? 'auto' : 'none'}
         testID={editable ? testID : undefined}
       />
     </View>

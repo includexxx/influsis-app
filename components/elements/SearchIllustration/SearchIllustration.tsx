@@ -1,4 +1,4 @@
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { Platform, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
 
@@ -8,6 +8,20 @@ export interface SearchIllustrationProps {
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
+
+// Figma's `4px 8px 16px rgba(15,23,42,0.04)` lens shadow, platform-branched
+// the same way StatusBadge's `badgeShadow` is - raw `shadow*` style props
+// are deprecated on React Native Web in favor of `boxShadow`.
+const lensShadow =
+  Platform.OS === 'web'
+    ? { boxShadow: '4px 8px 16px rgba(15, 23, 42, 0.04)' }
+    : {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 4, height: 8 },
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
+        elevation: 1,
+      };
 
 const styles = StyleSheet.create({
   root: {
@@ -25,11 +39,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 4, height: 8 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 1,
+    ...lensShadow,
   },
   icon: {
     width: 42,
