@@ -83,10 +83,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tagPill: {
-    height: 24,
+    height: 26,
     borderRadius: 30,
     paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingVertical: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#B2FFD2',

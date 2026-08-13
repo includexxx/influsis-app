@@ -7,3 +7,4 @@ export * from './home';
 export * from './notifications';
 export * from './search';
 export * from './liveCampaign';
+export * from './campaigns';

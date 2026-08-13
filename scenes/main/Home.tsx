@@ -103,7 +103,11 @@ export default function Home() {
         </View>
 
         <View>
-          <SectionHeader title="Popular Campaigns" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Popular Campaigns"
+            style={homeStyle.sectionHeaderGap}
+            onSeeAllPress={() => router.push('/campaigns')}
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.horizontalListGap]}>
               {popularCampaigns.map(item => (
@@ -114,7 +118,11 @@ export default function Home() {
         </View>
 
         <View>
-          <SectionHeader title="Campaigns" style={homeStyle.sectionHeaderGap} />
+          <SectionHeader
+            title="Campaigns"
+            onSeeAllPress={() => router.push('/campaigns')}
+            style={homeStyle.sectionHeaderGap}
+          />
           <View style={homeStyle.campaignListGap}>
             {campaigns.map(item => (
               <CampaignCard key={item.id} variant="list" {...item} />
