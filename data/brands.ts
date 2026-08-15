@@ -96,7 +96,12 @@ export const brands: Brand[] = [
     label: 'Robi',
     ...detailFields,
   },
-  { id: 'brand-11', source: require('@/assets/images/brands/gp.jpg'), label: 'GP', ...detailFields },
+  {
+    id: 'brand-11',
+    source: require('@/assets/images/brands/gp.jpg'),
+    label: 'GP',
+    ...detailFields,
+  },
   {
     id: 'brand-12',
     source: require('@/assets/images/home/brand-logo-3.jpg'),

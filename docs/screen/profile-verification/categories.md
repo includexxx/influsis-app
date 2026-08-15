@@ -1,11 +1,11 @@
 # Content Categories
 
-| | |
-|---|---|
-| **Figma nodes** | [`6243:5491`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6243-5491&m=dev) (none selected), [`6312:8145`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8145&m=dev) (one selected) |
-| **Route** | `/profile-verification/categories` (`app/(auth)/profile-verification/categories.tsx`) |
-| **Scene** | `scenes/profile-verification/ContentCategories.tsx` |
-| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button` |
+|                     |                                                                                                                                                                                                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes**     | [`6243:5491`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6243-5491&m=dev) (none selected), [`6312:8145`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8145&m=dev) (one selected) |
+| **Route**           | `/profile-verification/categories` (`app/(auth)/profile-verification/categories.tsx`)                                                                                                                                                                                                       |
+| **Scene**           | `scenes/profile-verification/ContentCategories.tsx`                                                                                                                                                                                                                                         |
+| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button`                                                                                                                                                                                                                                         |
 
 ## Purpose
 
@@ -19,11 +19,11 @@ Step 2 of 5. Multi-select list of the kinds of content the creator makes.
 
 ## States
 
-| State | Trigger |
-|---|---|
-| Unselected | initial, or a row tapped again to deselect |
-| Selected | row tapped — pink border (Figma `6312:8145`'s "Education" state) |
-| Next disabled | zero categories selected |
+| State         | Trigger                                                          |
+| ------------- | ---------------------------------------------------------------- |
+| Unselected    | initial, or a row tapped again to deselect                       |
+| Selected      | row tapped — pink border (Figma `6312:8145`'s "Education" state) |
+| Next disabled | zero categories selected                                         |
 
 ## Scope notes
 

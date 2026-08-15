@@ -85,8 +85,12 @@ export default function MainLayout() {
       {/* Reached only via the "create-gig" tabPress listener above -
           `href: null` keeps it out of the tab bar (it's not a 6th
           destination) while still registering "/create" as a real route
-          inside this group, so `router.push('/create')` resolves. */}
+          inside this group, so `router.push('/create')` resolves. Steps 2
+          and 3 of the same wizard (`create-gig-pricing`, `create-gig-preview`)
+          are registered the same way - see docs/screen/create-gig/README.md. */}
       <Tabs.Screen name="create" options={{ href: null }} />
+      <Tabs.Screen name="create-gig-pricing" options={{ href: null }} />
+      <Tabs.Screen name="create-gig-preview" options={{ href: null }} />
       {/* Reached via the Home tab's search bar (scenes/main/Home.tsx). Not
           a tab bar destination (Figma's Search screen has no matching tab
           icon), but the tab bar itself stays visible on this screen per

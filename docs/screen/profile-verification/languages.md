@@ -1,11 +1,11 @@
 # Languages
 
-| | |
-|---|---|
-| **Figma nodes** | [`6001:38834`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38834&m=dev) ("What languages you will use?", none selected), [`6312:8304`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8304&m=dev) ("What languages are you fluent?", one selected) |
-| **Route** | `/profile-verification/languages` (`app/(auth)/profile-verification/languages.tsx`) |
-| **Scene** | `scenes/profile-verification/Languages.tsx` |
-| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button` |
+|                     |                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes**     | [`6001:38834`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38834&m=dev) ("What languages you will use?", none selected), [`6312:8304`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8304&m=dev) ("What languages are you fluent?", one selected) |
+| **Route**           | `/profile-verification/languages` (`app/(auth)/profile-verification/languages.tsx`)                                                                                                                                                                                                                                                                             |
+| **Scene**           | `scenes/profile-verification/Languages.tsx`                                                                                                                                                                                                                                                                                                                     |
+| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button`                                                                                                                                                                                                                                                                                                             |
 
 ## Purpose
 

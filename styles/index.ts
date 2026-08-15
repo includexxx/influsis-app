@@ -17,3 +17,4 @@ export * from './brandDetails';
 export * from './campaignDetails';
 export * from './messages';
 export * from './chat';
+export * from './createGig';

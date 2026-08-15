@@ -1,11 +1,11 @@
 # Sign Up
 
-| | |
-|---|---|
-| **Figma node** | [`6001:38208`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38208&m=dev) — "Sign Up" |
-| **Route** | `/auth/sign-up` (`app/(auth)/auth/sign-up.tsx`) |
-| **Scene** | `scenes/auth/SignUp.tsx` |
-| **Components used** | `AuthHeader`, `TextField`, `Button`, `Divider` |
+|                     |                                                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma node**      | [`6001:38208`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38208&m=dev) — "Sign Up" |
+| **Route**           | `/auth/sign-up` (`app/(auth)/auth/sign-up.tsx`)                                                                                             |
+| **Scene**           | `scenes/auth/SignUp.tsx`                                                                                                                    |
+| **Components used** | `AuthHeader`, `TextField`, `Button`, `Divider`                                                                                              |
 
 ## Purpose
 
@@ -22,13 +22,13 @@ Account creation form, collecting the fields needed to hand off to OTP verificat
 
 Client-side validation on submit (no backend — see `docs/PRD.md` §2.2/§4.1):
 
-| Field | Rule | Error text |
-|---|---|---|
-| Full Name | non-empty | "Full name is required" |
-| Email | matches `EMAIL_REGEX` | "Invalid email" |
-| Phone | non-empty | "Phone number is required" |
-| Password | ≥ 6 characters | "Must be at least 6 characters" |
-| Confirm Password | equals Password | "Passwords do not match" |
+| Field            | Rule                  | Error text                      |
+| ---------------- | --------------------- | ------------------------------- |
+| Full Name        | non-empty             | "Full name is required"         |
+| Email            | matches `EMAIL_REGEX` | "Invalid email"                 |
+| Phone            | non-empty             | "Phone number is required"      |
+| Password         | ≥ 6 characters        | "Must be at least 6 characters" |
+| Confirm Password | equals Password       | "Passwords do not match"        |
 
 Figma does not show an explicit sign-up error-state variant; the error styling reuses the same red-border/red-message pattern from the Sign In screen's error states (`TextField`'s built-in `error` prop) for consistency.
 

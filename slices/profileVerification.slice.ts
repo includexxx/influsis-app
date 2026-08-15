@@ -34,10 +34,7 @@ const slice = createSlice({
     toggleCategory: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.categories = toggleItem(state.categories, payload);
     },
-    toggleSocialPlatform: (
-      state: ProfileVerificationState,
-      { payload }: PayloadAction<string>,
-    ) => {
+    toggleSocialPlatform: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.socialPlatforms = toggleItem(state.socialPlatforms, payload);
     },
     toggleLanguage: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {

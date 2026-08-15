@@ -97,9 +97,13 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={layoutStyle.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={layoutStyle.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.name, { color: colors.text.primary }]}>{user?.name ?? 'Your Profile'}</Text>
+          <Text style={[styles.name, { color: colors.text.primary }]}>
+            {user?.name ?? 'Your Profile'}
+          </Text>
           <Text style={[styles.username, { color: palette.primary[400] }]}>
             Influsis.com/{username || '-'}
           </Text>

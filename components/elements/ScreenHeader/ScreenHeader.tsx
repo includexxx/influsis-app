@@ -7,6 +7,7 @@ const backChevronIcon = require('@/assets/images/icons/back-chevron.png');
 export interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
+  rightElement?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
 // header, node 6346:5666) - distinct from AuthHeader, which stacks the back
 // button above a left-aligned heading instead of placing both in one row.
 // Reusable for any pushed screen that needs this "< Title" top bar shape.
-function ScreenHeader({ title, onBack, style }: ScreenHeaderProps) {
+function ScreenHeader({ title, onBack, rightElement, style }: ScreenHeaderProps) {
   const { colors } = useTheme();
 
   return (
@@ -52,7 +53,7 @@ function ScreenHeader({ title, onBack, style }: ScreenHeaderProps) {
       <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>
         {title}
       </Text>
-      <View style={styles.side} />
+      {rightElement ?? <View style={styles.side} />}
     </View>
   );
 }

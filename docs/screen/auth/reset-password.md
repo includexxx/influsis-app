@@ -1,11 +1,11 @@
 # Create New Password
 
-| | |
-|---|---|
-| **Figma nodes** | [`6010:12193`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-12193&m=dev) ("Create new pass"), [`6010:14455`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-14455&m=dev) ("Create new pass done" — success popup) |
-| **Route** | `/auth/reset-password` (`app/(auth)/auth/reset-password.tsx`) |
-| **Scene** | `scenes/auth/ResetPassword.tsx` |
-| **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button`, `SuccessSheet` |
+|                     |                                                                                                                                                                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes**     | [`6010:12193`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-12193&m=dev) ("Create new pass"), [`6010:14455`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-14455&m=dev) ("Create new pass done" — success popup) |
+| **Route**           | `/auth/reset-password` (`app/(auth)/auth/reset-password.tsx`)                                                                                                                                                                                                                                                                 |
+| **Scene**           | `scenes/auth/ResetPassword.tsx`                                                                                                                                                                                                                                                                                               |
+| **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button`, `SuccessSheet`                                                                                                                                                                                                                                      |
 
 ## Purpose
 
@@ -24,10 +24,10 @@ Final step of the password-reset flow: the user sets and confirms a new password
 
 Client-side validation only (no backend — see `docs/PRD.md` §2.2/§4.1):
 
-| Field | Rule | Error text |
-|---|---|---|
-| New Password | ≥ 6 characters | "Must be at least 6 characters" |
-| Confirm Password | equals New Password | "Passwords do not match" |
+| Field            | Rule                | Error text                      |
+| ---------------- | ------------------- | ------------------------------- |
+| New Password     | ≥ 6 characters      | "Must be at least 6 characters" |
+| Confirm Password | equals New Password | "Passwords do not match"        |
 
 ## Navigation
 

@@ -18,6 +18,7 @@ const alertErrorIcon = require('@/assets/images/icons/alert-error.png');
 
 export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   label?: string;
+  labelStyle?: StyleProp<TextStyle>;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
 
 function TextField({
   label,
+  labelStyle,
   error,
   containerStyle,
   inputStyle,
@@ -89,7 +91,9 @@ function TextField({
 
   return (
     <View style={[styles.root, containerStyle, style]}>
-      {label ? <Text style={[styles.label, { color: colors.text.secondary }]}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, { color: colors.text.secondary }, labelStyle]}>{label}</Text>
+      ) : null}
       <View
         style={[
           styles.inputRow,
