@@ -36,6 +36,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
 - [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
 - [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
+- [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
 
 ## 2. Current State of the App
 
@@ -56,7 +57,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.2 What is placeholder / not real yet
 
-- **Main app screens**: Home, Order, Message are placeholder screens (title + note); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
+- **Main app screens**: Order is still a placeholder screen (title + note); Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
 - **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
 - **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.

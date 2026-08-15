@@ -15,3 +15,5 @@ export * from './gigDetails';
 export * from './influencerProfile';
 export * from './brandDetails';
 export * from './campaignDetails';
+export * from './messages';
+export * from './chat';

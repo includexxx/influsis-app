@@ -29,4 +29,27 @@ describe('<SearchBar />', () => {
     fireEvent.press(screen.getByTestId('search-trigger'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  test('renders the rounded variant shorter and squarer than the pill', () => {
+    // Walk up from the input to the styled root - the only ancestor
+    // carrying the variant's height/borderRadius.
+    const rootStyleOf = (variant: 'pill' | 'rounded') => {
+      const { getByPlaceholderText, unmount } = render(
+        <SearchBar variant={variant} placeholder={variant} />,
+      );
+      let node = getByPlaceholderText(variant).parent;
+      let merged: Record<string, unknown> = {};
+      while (node) {
+        merged = Object.assign({}, ...([] as object[]).concat(node.props.style ?? {}));
+        if (merged.height) break;
+        node = node.parent;
+      }
+      unmount();
+      return merged;
+    };
+    expect(rootStyleOf('pill').height).toBe(54);
+    expect(rootStyleOf('pill').borderRadius).toBe(67);
+    expect(rootStyleOf('rounded').height).toBe(50);
+    expect(rootStyleOf('rounded').borderRadius).toBe(8);
+  });
 });
