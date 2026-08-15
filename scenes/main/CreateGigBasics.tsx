@@ -10,6 +10,7 @@ import ImageUploader from '@/components/elements/ImageUploader';
 import TextField from '@/components/elements/TextField';
 import SelectField from '@/components/elements/SelectField';
 import Button from '@/components/elements/Button';
+import CustomSelectField from '@/components/elements/CustomSelectField';
 
 // Step 1 of the Create Gig wizard - "basic info" (Figma "Create Gig", node
 // 6525:6020 empty state / 6521:5770 filled state): cover photo, service
@@ -62,7 +63,7 @@ export default function CreateGigBasics() {
           testID="service-title-input"
         />
 
-        <SelectField
+        <CustomSelectField
           label="Category"
           placeholder="Select category"
           value={category}
