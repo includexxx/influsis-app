@@ -186,6 +186,7 @@ export default function CampaignDetails() {
               title="Apply Now"
               style={[buttonStyle.primary, campaignDetailsStyle.applyButton]}
               titleStyle={buttonStyle.primaryTitle}
+              onPress={() => router.push(`/campaign/${campaign.id}/apply`)}
             />
           </View>
         </View>

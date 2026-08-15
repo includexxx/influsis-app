@@ -16,4 +16,5 @@ export { default as GigDetails } from './GigDetails';
 export { default as InfluencerProfile } from './InfluencerProfile';
 export { default as BrandDetails } from './BrandDetails';
 export { default as CampaignDetails } from './CampaignDetails';
+export { default as ApplyCampaign } from './ApplyCampaign';
 export { default as ChatDetails } from './ChatDetails';

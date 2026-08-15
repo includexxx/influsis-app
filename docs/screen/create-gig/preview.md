@@ -1,11 +1,11 @@
 # Preview / Pending
 
-|                     |                                                                                                                                                                                                                                                                                                             |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Figma nodes**     | [`6058:6342`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6058-6342&m=dev) ("Gig preview", draft), [`6549:5925`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6549-5925&m=dev) ("Gig preview", Pending), [`6301:7987`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6301-7987&m=dev) ("Congratulation" popup) |
-| **Route**           | `/create-gig-preview` (`app/(details)/create-gig-preview.tsx`)                                                                                                                                                                                                                                            |
-| **Scene**           | `scenes/main/CreateGigPreview.tsx`                                                                                                                                                                                                                                                                        |
-| **Components used** | `ScreenHeader`, `Image`, `InfoCard`, `BulletList`, `Button`, `SuccessSheet` (existing, reused from `scenes/main/GigDetails.tsx`); `StatusBadge` (existing, extended)                                                                                                                                     |
+| **Route**           | `/create-gig-preview` (`app/(details)/create-gig-preview.tsx`)                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Scene**           | `scenes/main/CreateGigPreview.tsx`                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Components used** | `ScreenHeader`, `Image`, `InfoCard`, `BulletList`, `Button`, `SuccessSheet` (existing, reused from `scenes/main/GigDetails.tsx`); `StatusBadge` (existing, extended)                                                                                                                                                                                                                                                                                                 |
 
 ## Purpose
 
@@ -20,9 +20,9 @@ Step 3 of 3, plus the terminal "submitted" view of the same screen. Shows the as
 
 ## States
 
-| State   | Trigger                                                                                       |
-| ------- | ---------------------------------------------------------------------------------------------- |
-| Draft   | initial - edit icon, "Next" button visible (Figma `6058:6342`)                                 |
+| State   | Trigger                                                                                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Draft   | initial - edit icon, "Next" button visible (Figma `6058:6342`)                                                                                                                    |
 | Pending | "Next" tapped → `submit()` dispatched, `SuccessSheet` opens; "View Gig" closes it (no navigation - the screen underneath is already showing the Pending state, Figma `6549:5925`) |
 
 ## Scope notes

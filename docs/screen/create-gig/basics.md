@@ -1,11 +1,11 @@
 # Basics
 
-|                     |                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|                     |                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Figma nodes**     | [`6525:6020`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6020&m=dev) (empty), [`6525:6077`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6077&m=dev) (photo uploaded), [`6521:5770`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6521-5770&m=dev) (title filled) |
-| **Route**           | `/create` (`app/(details)/create.tsx`)                                                                                                                                                                                                                                                                                                                          |
-| **Scene**           | `scenes/main/CreateGigBasics.tsx`                                                                                                                                                                                                                                                                                                                                 |
-| **Components used** | `ScreenHeader`, `TextField`, `Button` (existing); `ImageUploader`, `SelectField` (new)                                                                                                                                                                                                                                                                          |
+| **Route**           | `/create` (`app/(details)/create.tsx`)                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Scene**           | `scenes/main/CreateGigBasics.tsx`                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Components used** | `ScreenHeader`, `TextField`, `Button` (existing); `ImageUploader`, `SelectField` (new)                                                                                                                                                                                                                                                                                                                                              |
 
 ## Purpose
 
@@ -22,11 +22,11 @@ Step 1 of 3. Cover photo/video, service title, category, and a free-text descrip
 
 ## States
 
-| State          | Trigger                                                              |
-| -------------- | --------------------------------------------------------------------- |
-| Cover empty    | initial - dashed drop-zone (Figma `6525:6020`)                        |
-| Cover filled   | photo picked - preview + "Change Image" (Figma `6525:6077`/`6521:5770`) |
-| Next disabled  | any of cover photo / title / category / description is empty          |
+| State         | Trigger                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| Cover empty   | initial - dashed drop-zone (Figma `6525:6020`)                          |
+| Cover filled  | photo picked - preview + "Change Image" (Figma `6525:6077`/`6521:5770`) |
+| Next disabled | any of cover photo / title / category / description is empty            |
 
 ## Scope notes
 

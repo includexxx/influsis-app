@@ -18,3 +18,4 @@ export * from './campaignDetails';
 export * from './messages';
 export * from './chat';
 export * from './createGig';
+export * from './applyCampaign';

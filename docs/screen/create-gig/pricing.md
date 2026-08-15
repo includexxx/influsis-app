@@ -1,11 +1,11 @@
 # Pricing & Details
 
-|                     |                                                                                                                                                                                                                                                                                                            |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Figma nodes**     | [`6301:8033`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6301-8033&m=dev) (empty), [`6525:6237`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6237&m=dev) (filled)                        |
-| **Route**           | `/create-gig-pricing` (`app/(details)/create-gig-pricing.tsx`)                                                                                                                                                                                                                                            |
-| **Scene**           | `scenes/main/CreateGigPricing.tsx`                                                                                                                                                                                                                                                                       |
-| **Components used** | `ScreenHeader`, `TextField`, `Button` (existing); `Checkbox`, `AddItemButton` (new)                                                                                                                                                                                                                      |
+|                     |                                                                                                                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes**     | [`6301:8033`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6301-8033&m=dev) (empty), [`6525:6237`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6237&m=dev) (filled) |
+| **Route**           | `/create-gig-pricing` (`app/(details)/create-gig-pricing.tsx`)                                                                                                                                                                                                                |
+| **Scene**           | `scenes/main/CreateGigPricing.tsx`                                                                                                                                                                                                                                            |
+| **Components used** | `ScreenHeader`, `TextField`, `Button` (existing); `Checkbox`, `AddItemButton` (new)                                                                                                                                                                                           |
 
 ## Purpose
 
@@ -22,11 +22,11 @@ Step 2 of 3. Price, delivery time, a checkbox+text "What's Included" feature lis
 
 ## States
 
-| State         | Trigger                                                                 |
-| ------------- | ------------------------------------------------------------------------ |
-| Feature unchecked | initial, or its `Checkbox` tapped again                              |
-| Feature checked   | `Checkbox` tapped — swaps in the pink `checkbox-checked.png` asset   |
-| Next disabled     | price / delivery time empty, or every feature row is empty           |
+| State             | Trigger                                                            |
+| ----------------- | ------------------------------------------------------------------ |
+| Feature unchecked | initial, or its `Checkbox` tapped again                            |
+| Feature checked   | `Checkbox` tapped — swaps in the pink `checkbox-checked.png` asset |
+| Next disabled     | price / delivery time empty, or every feature row is empty         |
 
 ## Scope notes
 
