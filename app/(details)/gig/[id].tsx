@@ -1,1 +1,1 @@
-export { GigDetails as default } from '@/scenes/main';
+export { GigDetails as default } from '@/features/gigs';

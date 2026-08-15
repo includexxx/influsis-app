@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
+import VerifiedBadge from '../VerifiedBadge';
+import TagPill from '../TagPill';
 
-const verifiedCheckIcon = require('@/assets/images/influencers/verified-check.png');
 const starIcon = require('@/assets/images/influencers/star.png');
 const locationPinIcon = require('@/assets/images/influencers/location-pin.png');
 
@@ -60,10 +61,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '600',
-  },
-  verifiedIcon: {
-    width: 13,
-    height: 12.5,
   },
   topRatedBadge: {
     flexDirection: 'row',
@@ -174,9 +171,7 @@ function InfluencerCard({
             <Text style={[styles.name, { color: colors.text.primary }]} numberOfLines={1}>
               {name}
             </Text>
-            {verified && (
-              <Image source={verifiedCheckIcon} style={styles.verifiedIcon} contentFit="contain" />
-            )}
+            {verified && <VerifiedBadge variant="check" />}
           </View>
           {topRated && (
             <View style={styles.topRatedBadge}>
@@ -195,9 +190,12 @@ function InfluencerCard({
           {!!tags?.length && (
             <View style={styles.tagRow}>
               {tags.map((tag, index) => (
-                <View key={`${tag}-${index}`} style={styles.tagPill}>
-                  <Text style={styles.tagLabel}>{tag}</Text>
-                </View>
+                <TagPill
+                  key={`${tag}-${index}`}
+                  label={tag}
+                  style={styles.tagPill}
+                  labelStyle={styles.tagLabel}
+                />
               ))}
             </View>
           )}

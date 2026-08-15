@@ -1,4 +1,4 @@
-import { NotificationItem } from '@/types';
+import { NotificationItem } from './notifications.types';
 
 // Mock content for the Notifications screen (scenes/main/Notifications.tsx),
 // standing in for a real notifications API - see

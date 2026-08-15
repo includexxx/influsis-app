@@ -1,17 +1,18 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { router } from 'expo-router';
+import { useTheme, useDetailLookup } from '@/hooks';
 import { layoutStyle, influencerProfileStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import GigCard from '@/components/elements/GigCard';
 import StarRating from '@/components/elements/StarRating';
 import ReviewCard from '@/components/elements/ReviewCard';
+import VerifiedBadge from '@/components/elements/VerifiedBadge';
+import TagPill from '@/components/elements/TagPill';
 import { influencers } from '@/data/influencers';
-import { gigs } from '@/data/gigs';
+import { gigs } from '@/features/gigs/gigs.data';
 
-const verifiedCheckIcon = require('@/assets/images/influencers/verified-check.png');
 const starHeaderIcon = require('@/assets/images/profile/star-header.png');
 
 // The Influencer Profile screen (Figma "Influencer Profile Details - Brand
@@ -27,11 +28,10 @@ const starHeaderIcon = require('@/assets/images/profile/star-header.png');
 // docs/screen/influencer-profile/README.md.
 export default function InfluencerProfile() {
   const { colors, palette } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const influencer = influencers.find(item => item.id === id);
+  const { item: influencer, notFoundElement } = useDetailLookup(influencers);
 
   if (!influencer) {
-    return <Redirect href="/home" />;
+    return notFoundElement;
   }
 
   const activeGigs = gigs.filter(gig => influencer.activeGigIds?.includes(gig.id));
@@ -65,13 +65,7 @@ export default function InfluencerProfile() {
             <Text style={[influencerProfileStyle.name, { color: colors.text.primary }]}>
               {influencer.name}
             </Text>
-            {influencer.verified && (
-              <Image
-                source={verifiedCheckIcon}
-                style={influencerProfileStyle.verifiedIcon}
-                contentFit="contain"
-              />
-            )}
+            {influencer.verified && <VerifiedBadge variant="check" />}
           </View>
           {influencer.bio && (
             <Text style={[influencerProfileStyle.bio, { color: palette.gray[300] }]}>
@@ -110,16 +104,15 @@ export default function InfluencerProfile() {
               <View
                 style={[influencerProfileStyle.tagRow, influencerProfileStyle.sectionHeaderGap]}>
                 {influencer.categories.map(category => (
-                  <View
+                  <TagPill
                     key={category}
+                    label={category}
                     style={[
                       influencerProfileStyle.tagPill,
                       { backgroundColor: palette.primary[50] },
-                    ]}>
-                    <Text style={[influencerProfileStyle.tagLabel, { color: palette.gray[500] }]}>
-                      {category}
-                    </Text>
-                  </View>
+                    ]}
+                    labelStyle={[influencerProfileStyle.tagLabel, { color: palette.gray[500] }]}
+                  />
                 ))}
               </View>
             </View>

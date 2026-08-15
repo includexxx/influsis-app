@@ -1,1 +1,1 @@
-export { Notifications as default } from '@/scenes/main';
+export { Notifications as default } from '@/features/notifications';

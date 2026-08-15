@@ -1,1 +1,1 @@
-export { Intro as default } from '@/scenes/onboarding';
+export { Intro as default } from '@/features/onboarding';

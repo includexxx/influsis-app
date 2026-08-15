@@ -1,1 +1,1 @@
-export { TopGigs as default } from '@/scenes/main';
+export { TopGigs as default } from '@/features/gigs';

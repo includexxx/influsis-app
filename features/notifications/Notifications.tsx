@@ -2,10 +2,11 @@ import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
-import { layoutStyle, notificationsStyle } from '@/styles';
+import { layoutStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import NotificationCard from '@/components/elements/NotificationCard';
-import { recentNotifications, last24HoursNotifications } from '@/data/notifications';
+import { notificationsStyle } from './notifications.styles';
+import { recentNotifications, last24HoursNotifications } from './notifications.data';
 
 // The Notifications screen (Figma "Notification", node 6346:5575), pushed
 // from the Home tab's AppHeader bell icon (components/elements/AppHeader).

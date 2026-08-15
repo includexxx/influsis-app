@@ -1,15 +1,16 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { router } from 'expo-router';
+import { useTheme, useDetailLookup } from '@/hooks';
 import { layoutStyle, brandDetailsStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import CampaignCard from '@/components/elements/CampaignCard';
+import VerifiedBadge from '@/components/elements/VerifiedBadge';
+import ProfileBanner from '@/components/elements/ProfileBanner';
 import { brands } from '@/data/brands';
 import { campaigns } from '@/data/campaigns';
 
-const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const globeIcon = require('@/assets/images/brand-details/globe.png');
 
 // The Brand Details screen (Figma "Campaign Details_Sample 2", node
@@ -23,11 +24,10 @@ const globeIcon = require('@/assets/images/brand-details/globe.png');
 // docs/screen/brand-details/README.md.
 export default function BrandDetails() {
   const { colors, palette } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const brand = brands.find(item => item.id === id);
+  const { item: brand, notFoundElement } = useDetailLookup(brands);
 
   if (!brand) {
-    return <Redirect href="/home" />;
+    return notFoundElement;
   }
 
   const ongoingCampaigns = campaigns.filter(campaign => brand.campaignIds?.includes(campaign.id));
@@ -40,16 +40,10 @@ export default function BrandDetails() {
         </View>
 
         {brand.bannerImage && (
-          <View style={brandDetailsStyle.bannerWrap}>
-            <Image source={brand.bannerImage} style={brandDetailsStyle.banner} contentFit="cover" />
-            {(brand.avatar ?? brand.source) && (
-              <Image
-                source={brand.avatar ?? brand.source}
-                style={brandDetailsStyle.avatar}
-                contentFit="cover"
-              />
-            )}
-          </View>
+          <ProfileBanner
+            bannerImage={brand.bannerImage}
+            avatarImage={brand.avatar ?? brand.source}
+          />
         )}
 
         <View style={brandDetailsStyle.content}>
@@ -57,9 +51,7 @@ export default function BrandDetails() {
             <Text style={[brandDetailsStyle.name, { color: colors.text.primary }]}>
               {brand.name ?? brand.label}
             </Text>
-            {brand.verified && (
-              <Image source={verifiedBadge} style={brandDetailsStyle.verifiedIcon} contentFit="contain" />
-            )}
+            {brand.verified && <VerifiedBadge />}
           </View>
 
           {brand.website && (

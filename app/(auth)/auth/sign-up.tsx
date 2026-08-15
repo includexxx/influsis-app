@@ -1,1 +1,1 @@
-export { SignUp as default } from '@/scenes/auth';
+export { SignUp as default } from '@/features/auth';

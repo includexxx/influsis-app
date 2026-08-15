@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.08,
     textAlign: 'center',
+    fontWeight: '700',
   },
 });
 

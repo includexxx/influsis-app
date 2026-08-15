@@ -25,7 +25,7 @@ This React Native Expo project follows specific patterns and uses built-in featu
 
 - **`@/theme/colors`** - For all color values (supports dark/light mode)
 - **`@/theme/fonts`** - For font loading and typography
-- **`@/theme/images`** - For image assets and loading
+- Images are loaded via `require('@/assets/images/...')` directly at point of use, not through a central registry
 - Always use theme system instead of hardcoded styles
 
 ### Custom Hooks (Reuse These)
@@ -170,7 +170,7 @@ import config from '@/utils/config';
 
 ```typescript
 // From @/theme
-import { colors, loadFonts, loadImages } from '@/theme';
+import { colors, loadFonts } from '@/theme';
 ```
 
 ### Hooks

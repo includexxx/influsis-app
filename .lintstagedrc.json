@@ -1,5 +1,9 @@
 {
-  "src/**/*.{js,jsx,ts,tsx}": ["npm run lint --fix"],
-  "src/**/*.{ts,tsx}": ["npm run format"],
+  "{app,components,scenes,hooks,slices,services,utils,theme,types,styles,data}/**/*.{js,jsx,ts,tsx}": [
+    "npm run lint --fix"
+  ],
+  "{app,components,scenes,hooks,slices,services,utils,theme,types,styles,data}/**/*.{ts,tsx}": [
+    "npm run format"
+  ],
   "*": ["npm run test"]
 }

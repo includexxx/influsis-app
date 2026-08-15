@@ -1,1 +1,1 @@
-export { ResetPassword as default } from '@/scenes/auth';
+export { ResetPassword as default } from '@/features/auth';

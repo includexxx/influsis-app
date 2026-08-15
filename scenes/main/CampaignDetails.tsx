@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { router } from 'expo-router';
+import { useTheme, useDetailLookup } from '@/hooks';
 import { layoutStyle, buttonStyle, campaignDetailsStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
@@ -9,9 +9,10 @@ import Button from '@/components/elements/Button';
 import StatTile from '@/components/elements/StatTile';
 import BulletList from '@/components/elements/BulletList';
 import InfoCard from '@/components/elements/InfoCard';
+import VerifiedBadge from '@/components/elements/VerifiedBadge';
+import ProfileBanner from '@/components/elements/ProfileBanner';
 import { allCampaigns } from '@/data/campaigns';
 
-const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const budgetIcon = require('@/assets/images/campaign-details/budget.png');
 const durationIcon = require('@/assets/images/campaign-details/duration.png');
 const followersIcon = require('@/assets/images/campaign-details/followers.png');
@@ -31,11 +32,10 @@ const calendarIcon = require('@/assets/images/campaign-details/calendar.png');
 // docs/screen/campaign-details/README.md.
 export default function CampaignDetails() {
   const { colors, palette } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const campaign = allCampaigns.find(item => item.id === id);
+  const { item: campaign, notFoundElement } = useDetailLookup(allCampaigns);
 
   if (!campaign) {
-    return <Redirect href="/home" />;
+    return notFoundElement;
   }
 
   const avatarSource = campaign.avatar ?? campaign.brandAvatar;
@@ -48,20 +48,7 @@ export default function CampaignDetails() {
         </View>
 
         {campaign.bannerImage && (
-          <View style={campaignDetailsStyle.bannerWrap}>
-            <Image
-              source={campaign.bannerImage}
-              style={campaignDetailsStyle.banner}
-              contentFit="cover"
-            />
-            {avatarSource && (
-              <Image
-                source={avatarSource}
-                style={campaignDetailsStyle.avatar}
-                contentFit="cover"
-              />
-            )}
-          </View>
+          <ProfileBanner bannerImage={campaign.bannerImage} avatarImage={avatarSource} />
         )}
 
         <View style={campaignDetailsStyle.content}>
@@ -70,13 +57,7 @@ export default function CampaignDetails() {
               <Text style={[campaignDetailsStyle.brandName, { color: colors.text.primary }]}>
                 {campaign.brandName}
               </Text>
-              {campaign.verified && (
-                <Image
-                  source={verifiedBadge}
-                  style={campaignDetailsStyle.verifiedIcon}
-                  contentFit="contain"
-                />
-              )}
+              {campaign.verified && <VerifiedBadge />}
             </View>
           )}
 
@@ -131,7 +112,10 @@ export default function CampaignDetails() {
                 What you need to create
               </Text>
               <View
-                style={[campaignDetailsStyle.sectionHeaderGap, campaignDetailsStyle.deliverablesGap]}>
+                style={[
+                  campaignDetailsStyle.sectionHeaderGap,
+                  campaignDetailsStyle.deliverablesGap,
+                ]}>
                 {campaign.deliverables.map(deliverable => (
                   <InfoCard
                     key={deliverable.title}
@@ -177,8 +161,7 @@ export default function CampaignDetails() {
                   style={campaignDetailsStyle.calendarIcon}
                   contentFit="contain"
                 />
-                <Text
-                  style={[campaignDetailsStyle.deadlineLabel, { color: colors.text.primary }]}>
+                <Text style={[campaignDetailsStyle.deadlineLabel, { color: colors.text.primary }]}>
                   {`Application deadline: ${campaign.applicationDeadline}`}
                 </Text>
               </View>

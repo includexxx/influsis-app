@@ -1,7 +1,6 @@
 build
 coverage
 node_modules
-src/config.js
 README.md
 tsconfig.json
 tsconfig.build.json

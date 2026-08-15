@@ -1,1 +1,1 @@
-export { CreateGig as default } from '@/scenes/main';
+export { CreateGig as default } from '@/features/gigs';

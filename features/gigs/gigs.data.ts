@@ -1,4 +1,4 @@
-import { Gig, GigService } from '@/types';
+import { Gig, GigService } from './gigs.types';
 
 // Canonical gig list - the single source of truth for every screen that
 // shows gigs (Home's "Top Gigs" row via data/home.ts, the full list at

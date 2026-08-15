@@ -45,10 +45,6 @@ export const influencerProfileStyle = StyleSheet.create({
     lineHeight: 30,
     fontWeight: '600',
   },
-  verifiedIcon: {
-    width: 13,
-    height: 12.5,
-  },
   bio: {
     fontSize: 14,
     lineHeight: 21,

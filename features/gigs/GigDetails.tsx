@@ -1,13 +1,14 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import { useTheme } from '@/hooks';
-import { layoutStyle, gigDetailsStyle } from '@/styles';
+import { router } from 'expo-router';
+import { useTheme, useDetailLookup } from '@/hooks';
+import { layoutStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import InfoCard from '@/components/elements/InfoCard';
 import BulletList from '@/components/elements/BulletList';
-import { gigs } from '@/data/gigs';
+import { gigDetailsStyle } from './gigDetails.styles';
+import { gigs } from './gigs.data';
 
 // The Gig Details screen (Figma "Gig Details page", node 6401:5719),
 // pushed from any gig card's tap - Home's "Top Gigs" row and the full
@@ -20,11 +21,10 @@ import { gigs } from '@/data/gigs';
 // every gig-showing screen now shares - see docs/screen/gig-details/README.md.
 export default function GigDetails() {
   const { colors } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const gig = gigs.find(item => item.id === id);
+  const { item: gig, notFoundElement } = useDetailLookup(gigs);
 
   if (!gig) {
-    return <Redirect href="/home" />;
+    return notFoundElement;
   }
 
   return (

@@ -1,1 +1,1 @@
-export { VerifyOtp as default } from '@/scenes/auth';
+export { VerifyOtp as default } from '@/features/auth';

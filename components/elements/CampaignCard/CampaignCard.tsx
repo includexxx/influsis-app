@@ -12,8 +12,8 @@ import { useTheme } from '@/hooks';
 import Image from '../Image';
 import CalendarBadge from '../CalendarBadge';
 import StatusBadge from '../StatusBadge';
-
-const verifiedBadge = require('@/assets/images/home/verified-badge.png');
+import VerifiedBadge from '../VerifiedBadge';
+import TagPill from '../TagPill';
 
 export type CampaignCardVariant = 'hero' | 'list';
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    marginTop: -20,
+    // marginTop: -20,
   },
   titleRow: {
     flexDirection: 'row',
@@ -130,8 +130,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   verifiedIcon: {
-    width: 20,
-    height: 20,
     marginTop: 3,
   },
   brandName: {
@@ -199,9 +197,7 @@ function CampaignCard({
         {!!tags?.length && (
           <View style={styles.tagRow}>
             {tags.map(tag => (
-              <View key={tag} style={styles.tagPill}>
-                <Text style={styles.tagLabel}>{tag}</Text>
-              </View>
+              <TagPill key={tag} label={tag} style={styles.tagPill} labelStyle={styles.tagLabel} />
             ))}
           </View>
         )}
@@ -216,18 +212,14 @@ function CampaignCard({
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
               {title}
             </Text>
-            {verified && (
-              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
-            )}
+            {verified && <VerifiedBadge style={styles.verifiedIcon} />}
           </View>
         ) : (
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
               {title}
             </Text>
-            {verified && (
-              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
-            )}
+            {verified && <VerifiedBadge style={styles.verifiedIcon} />}
           </View>
         )}
 

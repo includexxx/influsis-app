@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDataPersist, DataPersistKeys } from '@/hooks';
-import { loadImages, loadFonts } from '@/theme';
+import { loadFonts } from '@/theme';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAppSlice } from '@/slices';
@@ -23,7 +23,7 @@ function Router() {
     (async () => {
       try {
         // preload assets
-        await Promise.all([loadImages(), loadFonts()]);
+        await loadFonts();
 
         // fetch & store user data to store (fake promise function to simulate async function)
         const user = await getUserAsync();

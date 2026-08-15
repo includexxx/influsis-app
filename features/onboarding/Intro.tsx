@@ -50,7 +50,7 @@ export default function Intro() {
   const { colors, palette } = useTheme();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dotOpacities = useRef(
-    Array.from({ length: DOT_COUNT }, () => new Animated.Value(DOT_MIN_OPACITY))
+    Array.from({ length: DOT_COUNT }, () => new Animated.Value(DOT_MIN_OPACITY)),
   ).current;
 
   function goToCarousel() {
@@ -64,7 +64,7 @@ export default function Intro() {
     const pulse = Animated.loop(
       Animated.stagger(
         DOT_PULSE_DURATION_MS,
-        dotOpacities.map((dot) =>
+        dotOpacities.map(dot =>
           Animated.sequence([
             Animated.timing(dot, {
               toValue: 1,
@@ -76,9 +76,9 @@ export default function Intro() {
               duration: DOT_PULSE_DURATION_MS,
               useNativeDriver: true,
             }),
-          ])
-        )
-      )
+          ]),
+        ),
+      ),
     );
     pulse.start();
 
@@ -97,8 +97,7 @@ export default function Intro() {
         {dotOpacities.map((dot, index) => (
           <Animated.Text
             key={index}
-            style={[styles.wordmark, { color: palette.primary[400], opacity: dot }]}
-          >
+            style={[styles.wordmark, { color: palette.primary[400], opacity: dot }]}>
             .
           </Animated.Text>
         ))}

@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { DetailProfileFields } from './detailProfile';
 
 export interface Review {
   id: string;
@@ -9,11 +10,10 @@ export interface Review {
   comment: string;
 }
 
-export interface Influencer {
+export interface Influencer extends DetailProfileFields {
   id: string;
   image: ImageSourcePropType;
   name: string;
-  verified?: boolean;
   topRated?: boolean;
   location: string;
   tags?: string[];
@@ -22,8 +22,6 @@ export interface Influencer {
   // Influencer Profile screen fields (scenes/main/InfluencerProfile.tsx) -
   // optional since the list/card views (InfluencerCard, Home's avatar row)
   // don't need them.
-  bannerImage?: ImageSourcePropType;
-  avatar?: ImageSourcePropType;
   bio?: string;
   categories?: string[];
   customerRating?: number;

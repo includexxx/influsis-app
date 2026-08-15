@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { gigs as allGigs } from './gigs';
+import { gigs as allGigs } from '@/features/gigs/gigs.data';
 import { influencers as allInfluencers } from './influencers';
 import { brands as allBrands } from './brands';
 

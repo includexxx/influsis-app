@@ -10,27 +10,9 @@ export const campaignDetailsStyle = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  // Banner + overlapping circular avatar composite - same geometry as
-  // Brand Details (173px banner, 62px avatar overlapping its bottom-left
-  // corner by 30px, so the composite's total height is 173 + (62-30) = 205)
-  // since Figma reuses the exact same banner/avatar photo pair.
-  bannerWrap: {
-    height: 205,
-  },
-  banner: {
-    width: '100%',
-    height: 173,
-  },
-  avatar: {
-    position: 'absolute',
-    left: 16,
-    top: 143,
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 4,
-    borderColor: '#FFFFFF',
-  },
+  // Banner + overlapping circular avatar composite now lives in the shared
+  // `ProfileBanner` component (components/elements/ProfileBanner) - Figma
+  // reuses the exact same banner/avatar photo pair as Brand Details.
   content: {
     paddingHorizontal: 16,
     paddingBottom: 32,
@@ -44,10 +26,6 @@ export const campaignDetailsStyle = StyleSheet.create({
   brandName: {
     fontSize: 12,
     lineHeight: 18,
-  },
-  verifiedIcon: {
-    width: 20,
-    height: 20,
   },
   title: {
     fontSize: 20,

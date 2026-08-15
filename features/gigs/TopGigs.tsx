@@ -2,10 +2,11 @@ import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
-import { layoutStyle, topGigsStyle } from '@/styles';
+import { layoutStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import GigCard from '@/components/elements/GigCard';
-import { topGigs } from '@/data/topGigs';
+import { topGigsStyle } from './topGigs.styles';
+import { gigs as topGigs } from './gigs.data';
 
 // The Top Gigs screen (Figma "Top Gigs", node 6028:7350), pushed from the
 // Home tab's "Top Gigs" section "See all" link (scenes/main/Home.tsx).

@@ -1,1 +1,1 @@
-export { SignInLanding as default } from '@/scenes/auth';
+export { SignInLanding as default } from '@/features/auth';

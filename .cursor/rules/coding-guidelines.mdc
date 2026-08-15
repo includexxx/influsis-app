@@ -22,7 +22,7 @@ React Native Expo SDK 54 project with TypeScript, Expo Router v6, Redux Toolkit,
 - **Always import from `@/theme`** for colors, fonts, and images
 - **Use `@/theme/colors`** instead of hardcoded color values
 - **Use theme system** for consistent dark/light mode support
-- **Load assets through `@/theme/images` and `@/theme/fonts`**
+- **Load fonts through `@/theme/fonts`** (`loadFonts()`) - images are loaded via `require('@/assets/images/...')` directly at point of use, not through a central registry
 
 ### Custom Hooks
 
