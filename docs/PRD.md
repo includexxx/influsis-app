@@ -24,6 +24,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
 - [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
+- [Order](./screen/orders/README.md) — the Order tab's campaign/gig order list, filtered by 4 status tabs
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
 - [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
@@ -61,7 +62,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.2 What is placeholder / not real yet
 
-- **Main app screens**: Order is still a placeholder screen (title + note); Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
+- **Main app screens**: Order, Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
 - **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
 - **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.

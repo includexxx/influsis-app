@@ -26,3 +26,4 @@ export * from './securitySettings';
 export * from './changePassword';
 export * from './privacyPolicy';
 export * from './helpCenter';
+export * from './order';
