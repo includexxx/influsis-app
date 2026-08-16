@@ -22,6 +22,20 @@ describe('<OptionSheet />', () => {
     expect(screen.getByText('Female')).not.toBeNull();
   });
 
+  test('renders a leading icon only for options that have one', () => {
+    render(
+      <OptionSheet
+        options={[
+          { label: 'Bangladesh', value: 'bd', icon: { uri: 'https://example.com/bd.svg' } },
+          { label: 'Canada', value: 'ca' },
+        ]}
+        onSelect={jest.fn()}
+      />,
+    );
+    expect(screen.getByTestId('option-icon-bd')).not.toBeNull();
+    expect(screen.queryByTestId('option-icon-ca')).toBeNull();
+  });
+
   test('calls onSelect with the tapped option value', () => {
     const onSelect = jest.fn();
     render(<OptionSheet options={options} onSelect={onSelect} />);

@@ -1,11 +1,14 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ImageSourcePropType } from 'react-native';
 import { useTheme } from '@/hooks';
 import { radius, spacing } from '@/theme';
 import BottomSheet from '../BottomSheet';
+import Image from '../Image';
 
 export interface OptionSheetOption {
   label: string;
   value: string;
+  /** Optional leading image (e.g. a country flag) rendered before the label. */
+  icon?: ImageSourcePropType;
 }
 
 export interface OptionSheetProps {
@@ -25,8 +28,14 @@ const styles = StyleSheet.create({
   option: {
     height: 56,
     borderRadius: radius.lg,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  optionIcon: {
+    width: 24,
+    height: 24,
   },
   optionText: {
     fontSize: 16,
@@ -39,8 +48,9 @@ const styles = StyleSheet.create({
 // over 2 stacked "Male"/"Female" pills) - a different shape than
 // `SelectField`'s own sheet (plain underlined text rows), so this is a new
 // component rather than a `SelectField` variant. Generic `options` prop
-// makes it reusable for any short pick-one list (used by Edit Profile's
-// Gender and Country fields).
+// makes it reusable for any pick-one list (used by Edit Profile's Gender
+// and Country fields), with an optional per-option `icon` for lists whose
+// rows carry a leading image (Country shows each country's flag).
 function OptionSheet({ options, value, onSelect, onClose }: OptionSheetProps) {
   const { colors, palette } = useTheme();
 
@@ -59,6 +69,14 @@ function OptionSheet({ options, value, onSelect, onClose }: OptionSheetProps) {
                 { backgroundColor: isSelected ? palette.primary[25] : palette.gray[25] },
               ]}
               onPress={() => onSelect(option.value)}>
+              {!!option.icon && (
+                <Image
+                  source={option.icon}
+                  style={styles.optionIcon}
+                  contentFit="contain"
+                  testID={`option-icon-${option.value}`}
+                />
+              )}
               <Text
                 style={[
                   styles.optionText,

@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks';
 import { useAppSlice, useProfileVerificationSlice } from '@/slices';
 import { layoutStyle, editProfileStyle } from '@/styles';
+import { countryFlags } from '@/data/country-flags';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import UnderlineField from '@/components/elements/UnderlineField';
@@ -22,14 +23,11 @@ const GENDER_OPTIONS = [
   { label: 'Female', value: 'female' },
 ];
 
-const COUNTRY_OPTIONS = [
-  { label: 'United States', value: 'united-states' },
-  { label: 'United Kingdom', value: 'united-kingdom' },
-  { label: 'Canada', value: 'canada' },
-  { label: 'Australia', value: 'australia' },
-  { label: 'Bangladesh', value: 'bangladesh' },
-  { label: 'India', value: 'india' },
-];
+// Every country from `@/data/country-flags`, alphabetical, keyed by its ISO
+// code so the sheet row shows the flag next to the name.
+const COUNTRY_OPTIONS = Object.values(countryFlags)
+  .map(({ code, country, flag }) => ({ label: country, value: code, icon: { uri: flag } }))
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 function formatDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -42,7 +40,7 @@ function genderLabel(value?: string): string | undefined {
 }
 
 function countryLabel(value?: string): string | undefined {
-  return COUNTRY_OPTIONS.find(option => option.value === value)?.label;
+  return value ? countryFlags[value]?.country : undefined;
 }
 
 // The Edit Profile screen (Figma "Profile", node 6001:39044 base state +
