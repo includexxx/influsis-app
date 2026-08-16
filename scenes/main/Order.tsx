@@ -89,6 +89,7 @@ export default function Order() {
                 statusTextColor={order.statusTextColor}
                 dueDate={order.dueDate}
                 orderedDate={order.orderedDate}
+                onPress={() => router.push(`/order/${order.id}`)}
                 testID={`order-card-${order.id}`}
               />
             ))}

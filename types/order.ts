@@ -8,11 +8,21 @@ import { ImageSourcePropType } from 'react-native';
 // changes, not the data shape.
 export type OrderTab = 'campaign' | 'gig-order' | 'completed' | 'cancelled';
 
-// A single order row on the Order screen (scenes/main/Order.tsx). Distinct
-// from `Campaign` (types/campaign.ts) and `AppliedCampaign`
-// (types/application.ts) - this list shows who the order was placed with
-// and its due/ordered dates, not campaign-detail fields like tags or brand
-// verification.
+// A single deliverable line on the Order Details screen's "Deliverable"
+// card (Figma node 6040:8515) - structurally the same shape as
+// `CampaignDeliverable` (types/campaign.ts) but kept as its own type since
+// the two screens' deliverable lists aren't the same data.
+export interface OrderDeliverable {
+  title: string;
+  description: string;
+}
+
+// A single order row on the Order screen (scenes/main/Order.tsx) and, when
+// its detail fields are set, the Order Details screen it's tapped into
+// (scenes/main/OrderDetails.tsx). Distinct from `Campaign`
+// (types/campaign.ts) and `AppliedCampaign` (types/application.ts) - this
+// shows who the order was placed with and its due/ordered dates, not
+// campaign-detail fields like tags.
 export interface Order {
   id: string;
   tab: OrderTab;
@@ -29,4 +39,12 @@ export interface Order {
   // when both are set.
   dueDate?: string;
   orderedDate?: string;
+  // Order Details screen fields (Figma node 6040:8515) - optional since
+  // OrderCard/the Order list don't need them, the same reasoning
+  // `Campaign`'s own detail-only fields document.
+  brandName?: string;
+  brandVerified?: boolean;
+  deliveryDate?: string;
+  deliverables?: OrderDeliverable[];
+  requirements?: string[];
 }

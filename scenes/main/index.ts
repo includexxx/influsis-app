@@ -1,5 +1,6 @@
 export { default as Home } from './Home';
 export { default as Order } from './Order';
+export { default as OrderDetails } from './OrderDetails';
 export { default as Message } from './Message';
 export { default as Profile } from './Profile';
 export { default as CreateGigBasics } from './CreateGigBasics';

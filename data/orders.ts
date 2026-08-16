@@ -53,6 +53,39 @@ const cancelledBadge = {
   statusTextColor: palette.primary[400],
 };
 
+// Order Details screen fields (scenes/main/OrderDetails.tsx, Figma node
+// 6040:8515) - shows a single example order (a verified brand, a delivery
+// date, 3 deliverables, 3 requirements) applied identically to every order
+// below rather than inventing distinct detail content Figma doesn't
+// specify, same convention data/campaigns.ts's own `detailFields` follows.
+// Figma's 3 deliverable items are themselves identical copies ("Instagram
+// Post" / "1 carousel post (3-5 images) featuring the products" x3) -
+// mirrored verbatim rather than assumed to be a paste error, since unlike
+// data/campaigns.ts's corrupted "About the brand" paragraph these three
+// read as plausible (if repetitive) real content, not garbled text.
+const detailFields = {
+  deliveryDate: 'Apr 24, 2025',
+  deliverables: [
+    {
+      title: 'Instagram Post',
+      description: '1 carousel post (3-5 images) featuring the products',
+    },
+    {
+      title: 'Instagram Post',
+      description: '1 carousel post (3-5 images) featuring the products',
+    },
+    {
+      title: 'Instagram Post',
+      description: '1 carousel post (3-5 images) featuring the products',
+    },
+  ],
+  requirements: [
+    '10,000+ Instagram followers',
+    'Fashion/Lifestyle content focus',
+    'High engagement rate (>2%)',
+  ],
+};
+
 // "Campaign" tab (node 6212:5540) - shorter card, no due/ordered-date
 // footer (OrderCard omits its divider + footer row when `dueDate`/
 // `orderedDate` are unset).
@@ -64,6 +97,9 @@ export const campaignOrders: Order[] = campaignImages.map((image, index) => ({
   orderedFrom: 'Ordered from Bkash',
   price: '$130',
   ...inProgressBadge,
+  brandName: 'Bkash Ltd.',
+  brandVerified: true,
+  ...detailFields,
 }));
 
 // "Gig order" tab (node 6212:5843) - taller card with a divider + due/
@@ -78,6 +114,9 @@ export const gigOrders: Order[] = Array.from({ length: 5 }, (_, index) => ({
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...inProgressBadge,
+  brandName: 'Jhon Smith',
+  brandVerified: true,
+  ...detailFields,
 }));
 
 // "Completed" tab (node 6212:6024) - same card shape as "Gig order", green
@@ -92,6 +131,9 @@ export const completedOrders: Order[] = Array.from({ length: 5 }, (_, index) => 
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...completedBadge,
+  brandName: 'Jhon Smith',
+  brandVerified: true,
+  ...detailFields,
 }));
 
 // "Cancelled" tab (node 6403:5508) - same card shape again, pink status
@@ -106,6 +148,9 @@ export const cancelledOrders: Order[] = Array.from({ length: 5 }, (_, index) => 
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...cancelledBadge,
+  brandName: 'Jhon Smith',
+  brandVerified: true,
+  ...detailFields,
 }));
 
 // Single flat array, filtered client-side by `tab` in the scene - the more
