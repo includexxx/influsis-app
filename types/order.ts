@@ -17,6 +17,30 @@ export interface OrderDeliverable {
   description: string;
 }
 
+// A single row on the Order Deliver screen's "Order Activity" timeline
+// (Figma node 6040:8590). `icon` names which of the two extracted glyphs to
+// show - kept as a narrow key rather than an `ImageSourcePropType` here so
+// `data/orders.ts` doesn't need to `require()` image assets just to
+// describe timeline content; `scenes/main/OrderDeliver.tsx` resolves it to
+// the actual asset. `muted` reproduces Figma's own 3rd timeline item, whose
+// action text is a lighter `rgba(0,0,0,0.7)` than the other two.
+export interface OrderActivityEvent {
+  icon: 'place-order' | 'order-started';
+  action: string;
+  timestamp: string;
+  muted?: boolean;
+}
+
+// A single step on the Order Deliver screen's "Order Details" tab's "Order
+// Tracker" card (Figma node 6040:8664). `completed` steps get a filled pink
+// circle + checkmark and a pink connector line down to the next step;
+// incomplete steps get a black circle + white dot and a gray connector.
+export interface OrderTrackerStep {
+  title: string;
+  description: string;
+  completed?: boolean;
+}
+
 // A single order row on the Order screen (scenes/main/Order.tsx) and, when
 // its detail fields are set, the Order Details screen it's tapped into
 // (scenes/main/OrderDetails.tsx). Distinct from `Campaign`
@@ -47,4 +71,13 @@ export interface Order {
   deliveryDate?: string;
   deliverables?: OrderDeliverable[];
   requirements?: string[];
+  // Order Deliver screen fields (Figma node 6040:8590) - optional for the
+  // same reason as the Order Details fields above.
+  activity?: OrderActivityEvent[];
+  // Order Deliver screen's in-place "Order Details" tab fields (Figma node
+  // 6040:8664) - `brandName`/`deliveryDate`/`title`/`price`/`status` are
+  // reused from the fields above rather than duplicated (Figma's own
+  // "Purchased by"/"Delivery due date" values are shown identically there).
+  orderNumber?: string;
+  tracker?: OrderTrackerStep[];
 }

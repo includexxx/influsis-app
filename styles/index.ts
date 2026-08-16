@@ -28,3 +28,5 @@ export * from './privacyPolicy';
 export * from './helpCenter';
 export * from './order';
 export * from './orderDetails';
+export * from './orderDeliver';
+export * from './orderDelivered';

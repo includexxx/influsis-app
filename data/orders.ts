@@ -84,7 +84,34 @@ const detailFields = {
     'Fashion/Lifestyle content focus',
     'High engagement rate (>2%)',
   ],
-};
+  // Order Deliver screen's "Order Activity" timeline (Figma node
+  // 6040:8590) - Figma's 3rd item is a verbatim duplicate of the 2nd
+  // ("The order started" / "April 28, 10:20 PM") with only a lighter text
+  // color, mirrored here via `muted` rather than invented distinct copy.
+  activity: [
+    { icon: 'place-order', action: 'place the order', timestamp: 'April 24, 12:20 PM' },
+    { icon: 'order-started', action: 'The order started', timestamp: 'April 28, 10:20 PM' },
+    {
+      icon: 'order-started',
+      action: 'The order started',
+      timestamp: 'April 28, 10:20 PM',
+      muted: true,
+    },
+  ],
+  // Order Deliver screen's in-place "Order Details" tab (Figma node
+  // 6040:8664) - "Order Tracker" card. Figma's step labels/descriptions
+  // ("Your details", "Company details", ...) read like a generic stepper
+  // component's default content rather than order-specific copy, but are
+  // mirrored verbatim per this project's practice of preserving real Figma
+  // text rather than inventing replacement content it doesn't specify.
+  orderNumber: '#G24510278',
+  tracker: [
+    { title: 'Your details', description: 'Please provide your name and email', completed: true },
+    { title: 'Company details', description: 'A few details about your company' },
+    { title: 'Invite your team', description: 'Start collaborating with your team' },
+    { title: 'Add your socials', description: 'Share posts to your social accounts' },
+  ],
+} satisfies Partial<Order>;
 
 // "Campaign" tab (node 6212:5540) - shorter card, no due/ordered-date
 // footer (OrderCard omits its divider + footer row when `dueDate`/

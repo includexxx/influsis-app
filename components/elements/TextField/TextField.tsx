@@ -22,6 +22,11 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
+  // Overrides the bordered row's own shape (radius/height/border color) -
+  // added for the Order Deliver screen's link field (Figma node 6040:8590),
+  // whose 8px radius and `rgba(0,0,0,0.2)` border don't match this
+  // component's original 12px/`gray[100]` caller.
+  inputRowStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   leftAdornment?: React.ReactNode;
   rightAdornment?: React.ReactNode;
@@ -78,6 +83,7 @@ function TextField({
   error,
   containerStyle,
   inputStyle,
+  inputRowStyle,
   style,
   leftAdornment,
   rightAdornment,
@@ -98,6 +104,7 @@ function TextField({
         style={[
           styles.inputRow,
           { borderColor: error ? colors.error : palette.gray[100], backgroundColor: colors.card },
+          inputRowStyle,
         ]}>
         {leftAdornment}
         <TextInput

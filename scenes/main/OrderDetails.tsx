@@ -128,6 +128,8 @@ export default function OrderDetails() {
             title="Delivery"
             style={buttonStyle.primary}
             titleStyle={buttonStyle.primaryTitle}
+            onPress={() => router.push(`/order/${order.id}/deliver`)}
+            testID="order-details-delivery-button"
           />
           <Button
             title="Message"

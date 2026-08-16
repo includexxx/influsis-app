@@ -26,6 +26,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
 - [Order](./screen/orders/README.md) — the Order tab's campaign/gig order list, filtered by 4 status tabs
 - [Order Details](./screen/order-details/README.md) — a single order's full detail view, opened by tapping any order card
+- [Order Deliver](./screen/order-deliver/README.md) — the delivery timeline + link-submission flow, opened from Order Details' "Delivery" button, ending in a confirmation screen
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
 - [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
