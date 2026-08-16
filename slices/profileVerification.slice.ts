@@ -15,6 +15,11 @@ export interface ProfileVerificationState {
   // by both the onboarding wizard and this screen, a single canonical
   // value either way).
   phoneNumber?: string;
+  // Lowercase ISO-3166 code of the phone number's *dial-code* country
+  // (`@/data/dial-codes`), kept apart from `phoneNumber` so the input holds
+  // only local digits - and distinct from `country` below, which is the
+  // user's residence country and moves independently.
+  phoneCountry?: string;
   gender?: string;
   country?: string;
 }
@@ -27,6 +32,7 @@ const initialState: ProfileVerificationState = {
   bio: '',
   username: '',
   phoneNumber: undefined,
+  phoneCountry: undefined,
   gender: undefined,
   country: undefined,
 };
@@ -59,6 +65,9 @@ const slice = createSlice({
     },
     setPhoneNumber: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.phoneNumber = payload;
+    },
+    setPhoneCountry: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.phoneCountry = payload;
     },
     setGender: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.gender = payload;

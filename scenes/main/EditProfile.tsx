@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,10 +7,12 @@ import { useTheme } from '@/hooks';
 import { useAppSlice, useProfileVerificationSlice } from '@/slices';
 import { layoutStyle, editProfileStyle } from '@/styles';
 import { countryFlags } from '@/data/country-flags';
+import { dialCodes } from '@/data/dial-codes';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import UnderlineField from '@/components/elements/UnderlineField';
 import OptionSheet from '@/components/elements/OptionSheet';
+import CountryCodeSheet from '@/components/elements/CountryCodeSheet';
 import CalendarPicker from '@/components/elements/CalendarPicker';
 import Image from '@/components/elements/Image';
 
@@ -28,6 +30,16 @@ const GENDER_OPTIONS = [
 const COUNTRY_OPTIONS = Object.values(countryFlags)
   .map(({ code, country, flag }) => ({ label: country, value: code, icon: { uri: flag } }))
   .sort((a, b) => a.label.localeCompare(b.label));
+
+// The same countries joined with `@/data/dial-codes` for the Phone Number
+// field's country-code picker. Entries with no dialable calling code of
+// their own (European Union, Bouvet Island, ...) drop out here.
+const PHONE_COUNTRY_OPTIONS = Object.values(countryFlags)
+  .filter(({ code }) => !!dialCodes[code])
+  .map(({ code, country, flag }) => ({ code, country, flag, dialCode: dialCodes[code] }))
+  .sort((a, b) => a.country.localeCompare(b.country));
+
+const DEFAULT_PHONE_COUNTRY = 'us';
 
 function formatDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -57,11 +69,13 @@ export default function EditProfile() {
   const { user, dispatch: dispatchApp, setUser } = useAppSlice();
   const {
     phoneNumber,
+    phoneCountry,
     gender,
     country,
     dateOfBirth,
     dispatch: dispatchProfile,
     setPhoneNumber,
+    setPhoneCountry,
     setGender,
     setCountry,
     setDateOfBirth,
@@ -69,10 +83,14 @@ export default function EditProfile() {
 
   const [avatarUri, setAvatarUri] = useState<string>();
   const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false);
+  const [isPhoneCountryPickerOpen, setIsPhoneCountryPickerOpen] = useState(false);
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const selectedDate = dateOfBirth ? new Date(dateOfBirth) : undefined;
+  const selectedPhoneCountry = PHONE_COUNTRY_OPTIONS.find(
+    option => option.code === (phoneCountry ?? DEFAULT_PHONE_COUNTRY),
+  );
 
   async function handlePickAvatar() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -126,18 +144,34 @@ export default function EditProfile() {
         />
         <UnderlineField
           label="Phone Number"
-          value={phoneNumber ?? '+1 111 467 378 399'}
+          value={phoneNumber ?? '111 467 378 399'}
           onChangeText={text => dispatchProfile(setPhoneNumber(text))}
           keyboardType="phone-pad"
           leadingAdornment={
-            <View style={editProfileStyle.phoneLeading}>
-              <Text style={editProfileStyle.flag}>{'\u{1F1EC}\u{1F1E7}'}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Select country code"
+              style={editProfileStyle.phoneLeading}
+              onPress={() => setIsPhoneCountryPickerOpen(true)}
+              testID="edit-profile-phone-country">
+              {!!selectedPhoneCountry && (
+                <>
+                  <Image
+                    source={{ uri: selectedPhoneCountry.flag }}
+                    style={editProfileStyle.phoneFlag}
+                    contentFit="contain"
+                  />
+                  <Text style={[editProfileStyle.phoneDialCode, { color: colors.text.primary }]}>
+                    {selectedPhoneCountry.dialCode}
+                  </Text>
+                </>
+              )}
               <Image
                 source={chevronDownIcon}
                 style={editProfileStyle.phoneChevron}
                 contentFit="contain"
               />
-            </View>
+            </Pressable>
           }
           testID="edit-profile-phone"
         />
@@ -194,6 +228,18 @@ export default function EditProfile() {
             setIsGenderPickerOpen(false);
           }}
           onClose={() => setIsGenderPickerOpen(false)}
+        />
+      )}
+
+      {isPhoneCountryPickerOpen && (
+        <CountryCodeSheet
+          options={PHONE_COUNTRY_OPTIONS}
+          value={phoneCountry ?? DEFAULT_PHONE_COUNTRY}
+          onSelect={code => {
+            dispatchProfile(setPhoneCountry(code));
+            setIsPhoneCountryPickerOpen(false);
+          }}
+          onClose={() => setIsPhoneCountryPickerOpen(false)}
         />
       )}
 

@@ -15,15 +15,19 @@ export const editProfileStyle = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.sm,
   },
-  flag: {
-    fontSize: 20,
+  phoneFlag: {
+    width: 24,
+    height: 20,
+  },
+  phoneDialCode: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   phoneChevron: {
     width: 18,
     height: 18,
-    marginTop: 4,
   },
   trailingIcon: {
     width: 18,

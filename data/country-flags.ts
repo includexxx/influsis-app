@@ -11,8 +11,8 @@ export const countryFlags: Record<string, ICountryFlag> = {
     code: "ac",
   },
   ad: {
-    flag: "https://twemoji.maxcdn.com/2/svg/1f1e6-1f1f4.svg",
-    country: "Angola",
+    flag: "https://twemoji.maxcdn.com/2/svg/1f1e6-1f1e9.svg",
+    country: "Andorra",
     code: "ad",
   },
   ae: {
@@ -39,6 +39,11 @@ export const countryFlags: Record<string, ICountryFlag> = {
     flag: "https://twemoji.maxcdn.com/2/svg/1f1e6-1f1f1.svg",
     country: "Albania",
     code: "al",
+  },
+  ao: {
+    flag: "https://twemoji.maxcdn.com/2/svg/1f1e6-1f1f4.svg",
+    country: "Angola",
+    code: "ao",
   },
   am: {
     flag: "https://twemoji.maxcdn.com/2/svg/1f1e6-1f1f2.svg",
