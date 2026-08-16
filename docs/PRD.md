@@ -5,7 +5,7 @@
 | **Product**      | Influsis (mobile + web app)                                                                |
 | **Status**       | Foundation stage — built on React Native boilerplate, product features not yet implemented |
 | **Platforms**    | iOS, Android, Web (single Expo codebase)                                                   |
-| **Last updated** | 2026-08-10                                                                                 |
+| **Last updated** | 2026-08-16                                                                                 |
 
 ---
 
@@ -37,6 +37,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Create Gig](./screen/create-gig/README.md) — the 3-step wizard for publishing a new gig, opened from the main tab bar's "Create Gig" button
 - [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
 - [Apply Campaign](./screen/apply-campaign/README.md) — the application form a creator submits to a campaign, opened from Campaign Details' "Apply Now" button
+- [Applications (Applied / Request)](./screen/apply-campaign/campaign-list.md) — a creator's own submitted applications and the campaign invitations they've received, opened from Profile's "My Applications" link
 - [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
 - [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
 

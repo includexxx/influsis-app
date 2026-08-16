@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { useAppSlice, useProfileVerificationSlice } from '@/slices';
 import { layoutStyle } from '@/styles';
@@ -56,6 +57,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
+  applicationsLink: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 16,
+  },
   fieldGroup: {
     gap: 20,
   },
@@ -107,6 +113,14 @@ export default function Profile() {
           <Text style={[styles.username, { color: palette.primary[400] }]}>
             Influsis.com/{username || '-'}
           </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/applications')}
+            testID="profile-my-applications-link">
+            <Text style={[styles.applicationsLink, { color: palette.primary[400] }]}>
+              My Applications
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.fieldGroup}>

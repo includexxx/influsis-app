@@ -19,3 +19,4 @@ export * from './messages';
 export * from './chat';
 export * from './createGig';
 export * from './applyCampaign';
+export * from './applications';

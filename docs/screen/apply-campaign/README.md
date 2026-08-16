@@ -12,6 +12,10 @@
 
 A single-screen application form a creator submits to a campaign: a read-only recap of what they're applying to, a portfolio file upload (multiple files, each shown as a progress row), two portfolio/social-media link fields, and an "Apply Now" CTA that opens a "Successful!" confirmation popup.
 
+## Related screen: Applications (Applied / Request)
+
+A separate screen, [campaign-list.md](./campaign-list.md) (Figma nodes `6015:7090` / `6475:6394`, route `/applications`), shows what a creator can check *after* applying: an "Applied" tab listing their own submitted applications, and a "Request" tab listing invitations brands have sent them, with Accept/Decline actions. It's reached from Profile, not chained directly onto this screen's "Successful!" popup — see that doc's own user flow.
+
 ## User flow
 
 ```
