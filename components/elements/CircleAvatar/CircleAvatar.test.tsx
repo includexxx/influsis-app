@@ -30,4 +30,11 @@ describe('<CircleAvatar />', () => {
     fireEvent.press(screen.getByTestId('avatar'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  test('renders an edit badge and calls onEditPress when tapped', () => {
+    const onEditPress = jest.fn();
+    render(<CircleAvatar source={source} size={120} onEditPress={onEditPress} testID="avatar" />);
+    fireEvent.press(screen.getByTestId('avatar'));
+    expect(onEditPress).toHaveBeenCalledTimes(1);
+  });
 });

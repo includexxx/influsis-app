@@ -9,6 +9,14 @@ export interface ProfileVerificationState {
   languages: string[];
   bio: string;
   username: string;
+  // Edit Profile screen fields (scenes/main/EditProfile.tsx) - live here
+  // rather than a new slice since this is already this project's "extra
+  // profile info beyond the core User type" slice (dateOfBirth is edited
+  // by both the onboarding wizard and this screen, a single canonical
+  // value either way).
+  phoneNumber?: string;
+  gender?: string;
+  country?: string;
 }
 
 const initialState: ProfileVerificationState = {
@@ -18,6 +26,9 @@ const initialState: ProfileVerificationState = {
   languages: [],
   bio: '',
   username: '',
+  phoneNumber: undefined,
+  gender: undefined,
+  country: undefined,
 };
 
 function toggleItem(list: string[], id: string): string[] {
@@ -45,6 +56,15 @@ const slice = createSlice({
     },
     setUsername: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.username = payload;
+    },
+    setPhoneNumber: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.phoneNumber = payload;
+    },
+    setGender: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.gender = payload;
+    },
+    setCountry: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.country = payload;
     },
     reset: () => initialState,
   },

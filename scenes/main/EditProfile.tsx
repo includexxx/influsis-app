@@ -1,0 +1,227 @@
+import { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { useTheme } from '@/hooks';
+import { useAppSlice, useProfileVerificationSlice } from '@/slices';
+import { layoutStyle, editProfileStyle } from '@/styles';
+import ScreenHeader from '@/components/elements/ScreenHeader';
+import CircleAvatar from '@/components/elements/CircleAvatar';
+import UnderlineField from '@/components/elements/UnderlineField';
+import OptionSheet from '@/components/elements/OptionSheet';
+import CalendarPicker from '@/components/elements/CalendarPicker';
+import Image from '@/components/elements/Image';
+
+const defaultAvatar = require('@/assets/images/account/avatar.png');
+const chevronDownIcon = require('@/assets/images/account/chevron-down.png');
+const calendarIcon = require('@/assets/images/account/calendar.png');
+
+const GENDER_OPTIONS = [
+  { label: 'Male', value: 'male' },
+  { label: 'Female', value: 'female' },
+];
+
+const COUNTRY_OPTIONS = [
+  { label: 'United States', value: 'united-states' },
+  { label: 'United Kingdom', value: 'united-kingdom' },
+  { label: 'Canada', value: 'canada' },
+  { label: 'Australia', value: 'australia' },
+  { label: 'Bangladesh', value: 'bangladesh' },
+  { label: 'India', value: 'india' },
+];
+
+function formatDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}/${day}/${date.getFullYear()}`;
+}
+
+function genderLabel(value?: string): string | undefined {
+  return GENDER_OPTIONS.find(option => option.value === value)?.label;
+}
+
+function countryLabel(value?: string): string | undefined {
+  return COUNTRY_OPTIONS.find(option => option.value === value)?.label;
+}
+
+// The Edit Profile screen (Figma "Profile", node 6001:39044 base state +
+// 6399:5469/6398:8469's Gender bottom sheet + 6398:5429's Date of Birth
+// calendar) - opened from the Account screen's "Profile" row. Every field
+// commits to Redux immediately as it's edited (Full Name/Email to the
+// `app` slice's `user`, Phone/Gender/Date of Birth/Country to the
+// `profileVerification` slice) rather than needing an explicit Save step,
+// since Figma's own navbar shows no save/checkmark icon anywhere across all
+// 3 captured states (only hidden variants) - see docs/screen/profile/
+// edit-profile.md "Scope notes".
+export default function EditProfile() {
+  const { colors } = useTheme();
+  const { user, dispatch: dispatchApp, setUser } = useAppSlice();
+  const {
+    phoneNumber,
+    gender,
+    country,
+    dateOfBirth,
+    dispatch: dispatchProfile,
+    setPhoneNumber,
+    setGender,
+    setCountry,
+    setDateOfBirth,
+  } = useProfileVerificationSlice();
+
+  const [avatarUri, setAvatarUri] = useState<string>();
+  const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false);
+  const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  const selectedDate = dateOfBirth ? new Date(dateOfBirth) : undefined;
+
+  async function handlePickAvatar() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+
+    setAvatarUri(result.assets[0].uri);
+  }
+
+  return (
+    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={layoutStyle.screen}
+        contentContainerStyle={layoutStyle.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <ScreenHeader
+          title="Profile"
+          onBack={() => router.back()}
+          style={editProfileStyle.headerGap}
+        />
+
+        <View style={editProfileStyle.avatarRow}>
+          <CircleAvatar
+            source={avatarUri ? { uri: avatarUri } : defaultAvatar}
+            size={120}
+            onEditPress={handlePickAvatar}
+            testID="edit-profile-avatar"
+          />
+        </View>
+
+        <UnderlineField
+          label="Full Name"
+          value={user?.name ?? ''}
+          onChangeText={text => dispatchApp(setUser({ name: text, email: user?.email ?? '' }))}
+          testID="edit-profile-full-name"
+        />
+        <UnderlineField
+          label="Email"
+          value={user?.email ?? ''}
+          onChangeText={text => dispatchApp(setUser({ name: user?.name ?? '', email: text }))}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          testID="edit-profile-email"
+        />
+        <UnderlineField
+          label="Phone Number"
+          value={phoneNumber ?? '+1 111 467 378 399'}
+          onChangeText={text => dispatchProfile(setPhoneNumber(text))}
+          keyboardType="phone-pad"
+          leadingAdornment={
+            <View style={editProfileStyle.phoneLeading}>
+              <Text style={editProfileStyle.flag}>{'\u{1F1EC}\u{1F1E7}'}</Text>
+              <Image
+                source={chevronDownIcon}
+                style={editProfileStyle.phoneChevron}
+                contentFit="contain"
+              />
+            </View>
+          }
+          testID="edit-profile-phone"
+        />
+        <UnderlineField
+          label="Gender"
+          value={genderLabel(gender) ?? 'Male'}
+          editable={false}
+          onPress={() => setIsGenderPickerOpen(true)}
+          trailingAdornment={
+            <Image
+              source={chevronDownIcon}
+              style={editProfileStyle.trailingIcon}
+              contentFit="contain"
+            />
+          }
+          testID="edit-profile-gender"
+        />
+        <UnderlineField
+          label="Date of Birth"
+          value={selectedDate ? formatDate(selectedDate) : '12/27/1995'}
+          editable={false}
+          onPress={() => setIsDatePickerOpen(true)}
+          trailingAdornment={
+            <Image
+              source={calendarIcon}
+              style={editProfileStyle.trailingIcon}
+              contentFit="contain"
+            />
+          }
+          testID="edit-profile-date-of-birth"
+        />
+        <UnderlineField
+          label="Country"
+          value={countryLabel(country) ?? 'United States'}
+          editable={false}
+          onPress={() => setIsCountryPickerOpen(true)}
+          trailingAdornment={
+            <Image
+              source={chevronDownIcon}
+              style={editProfileStyle.trailingIcon}
+              contentFit="contain"
+            />
+          }
+          testID="edit-profile-country"
+        />
+      </ScrollView>
+
+      {isGenderPickerOpen && (
+        <OptionSheet
+          options={GENDER_OPTIONS}
+          value={gender}
+          onSelect={value => {
+            dispatchProfile(setGender(value));
+            setIsGenderPickerOpen(false);
+          }}
+          onClose={() => setIsGenderPickerOpen(false)}
+        />
+      )}
+
+      {isCountryPickerOpen && (
+        <OptionSheet
+          options={COUNTRY_OPTIONS}
+          value={country}
+          onSelect={value => {
+            dispatchProfile(setCountry(value));
+            setIsCountryPickerOpen(false);
+          }}
+          onClose={() => setIsCountryPickerOpen(false)}
+        />
+      )}
+
+      {isDatePickerOpen && (
+        <CalendarPicker
+          value={selectedDate}
+          maxDate={new Date()}
+          onSelect={date => {
+            dispatchProfile(setDateOfBirth(date.toISOString()));
+            setIsDatePickerOpen(false);
+          }}
+          onClose={() => setIsDatePickerOpen(false)}
+        />
+      )}
+    </SafeAreaView>
+  );
+}
