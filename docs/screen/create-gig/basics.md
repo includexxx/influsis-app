@@ -5,7 +5,7 @@
 | **Figma nodes**     | [`6525:6020`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6020&m=dev) (empty), [`6525:6077`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6525-6077&m=dev) (photo uploaded), [`6521:5770`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6521-5770&m=dev) (title filled) |
 | **Route**           | `/create` (`app/(details)/create.tsx`)                                                                                                                                                                                                                                                                                                                                                                                              |
 | **Scene**           | `scenes/main/CreateGigBasics.tsx`                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Components used** | `ScreenHeader`, `TextField`, `Button` (existing); `ImageUploader`, `SelectField` (new)                                                                                                                                                                                                                                                                                                                                              |
+| **Components used** | `ScreenHeader`, `TextField`, `Button`, `OptionSheet` (existing); `ImageUploader`, `CustomSelectField` (new)                                                                                                                                                                                                                                                                                                                                              |
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Step 1 of 3. Cover photo/video, service title, category, and a free-text descrip
 - `ScreenHeader` — back chevron + centered "Create new gig" title, with a thin divider rule beneath it (Figma "Line 10").
 - `ImageUploader` — dashed pink drop-zone (empty) that opens the device photo library; once a photo is picked, swaps to a 148x148 preview with a green checkmark badge and a "Change Image" pill.
 - `TextField` "Service Title" — single line, no placeholder (Figma's own box is blank).
-- `SelectField` "Category" — opens a `BottomSheet` list of category options (`data/gigCategories.ts`).
+- `CustomSelectField` "Category" — boxed trigger showing the selected category (or "Select category"); pressing it opens the scene-owned `OptionSheet` pill list of category options (`data/gigCategories.ts`), the same picker Edit Profile's Gender field uses.
 - `TextField` "Description" — multiline, placeholder "Describe your service in detail..".
 - "Next" primary button — disabled until a cover photo, title, category, and description are all present.
 

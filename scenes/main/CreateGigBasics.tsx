@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -8,9 +9,9 @@ import { gigCategories } from '@/data/gigCategories';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import ImageUploader from '@/components/elements/ImageUploader';
 import TextField from '@/components/elements/TextField';
-import SelectField from '@/components/elements/SelectField';
 import Button from '@/components/elements/Button';
 import CustomSelectField from '@/components/elements/CustomSelectField';
+import OptionSheet from '@/components/elements/OptionSheet';
 
 // Step 1 of the Create Gig wizard - "basic info" (Figma "Create Gig", node
 // 6525:6020 empty state / 6521:5770 filled state): cover photo, service
@@ -31,6 +32,8 @@ export default function CreateGigBasics() {
     setCategory,
     setDescription,
   } = useCreateGigSlice();
+
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
 
   const canContinue = !!coverImageUri && !!title.trim() && !!category && !!description.trim();
 
@@ -68,7 +71,7 @@ export default function CreateGigBasics() {
           placeholder="Select category"
           value={category}
           options={gigCategories}
-          onSelect={value => dispatch(setCategory(value))}
+          onPress={() => setIsCategoryPickerOpen(true)}
           testID="category-select"
         />
 
@@ -93,6 +96,18 @@ export default function CreateGigBasics() {
           disabled={!canContinue}
         />
       </View>
+
+      {isCategoryPickerOpen && (
+        <OptionSheet
+          options={gigCategories}
+          value={category}
+          onSelect={value => {
+            dispatch(setCategory(value));
+            setIsCategoryPickerOpen(false);
+          }}
+          onClose={() => setIsCategoryPickerOpen(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

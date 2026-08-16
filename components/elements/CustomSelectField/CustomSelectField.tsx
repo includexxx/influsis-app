@@ -1,17 +1,4 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
 
@@ -28,9 +15,8 @@ export interface CustomSelectFieldProps {
   placeholder: string;
   value?: string;
   options: CustomSelectOption[];
-  onSelect: (value: string) => void;
-  /** Heading shown at the top of the full-screen overlay. Falls back to `label`, then `placeholder`. */
-  title?: string;
+  /** Opens the caller-owned option list (an `OptionSheet` rendered by the scene). */
+  onPress: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -66,95 +52,32 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  // Full-screen overlay: the backdrop takes all the leftover space above the
-  // panel, which pins the option list to the bottom section of the screen.
-  overlayRoot: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    flex: 1,
-  },
-  panel: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '70%',
-  },
-  panelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  panelTitle: {
-    flex: 1,
-    fontSize: 20,
-    lineHeight: 30,
-    fontWeight: '600',
-    marginRight: 12,
-  },
-  closeButton: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerDivider: {
-    height: 1,
-    width: '100%',
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 54,
-    borderBottomWidth: 1,
-  },
-  optionText: {
-    flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
-    marginRight: 12,
-  },
 });
 
-// Single-select field whose option list opens as a full-screen overlay with
-// the list anchored in the bottom section (Figma node 6399:5469). Distinct
-// from the existing SelectField, which presents the same kind of option list
-// in a content-hugging @gorhom/bottom-sheet; both are kept because the two
-// presentations are used by different screens.
+// Boxed single-select *trigger* (Figma node 6525:6068): it renders the label,
+// the selected option (or the placeholder) and the chevron, and delegates the
+// option list to whatever the caller opens from `onPress`. Same split Edit
+// Profile uses for its Gender/Country/Date fields, where UnderlineField is the
+// display row and the scene owns the `OptionSheet` - the sheet has to be a
+// sibling of the scene's ScrollView, not a descendant of it, because
+// @gorhom/bottom-sheet positions itself against its parent and this project
+// mounts no portal provider.
 //
-// This is the only place in the project that uses react-native's `Modal` -
-// the shared BottomSheet wrapper is `enableDynamicSizing` + pan-to-close and
-// is built to hug its content, so it can't produce a full-screen scrim with a
-// fixed-height bottom panel without being contorted. `Modal` keeps this
-// dependency-free and, unlike BottomSheet, needs no platform mock in tests.
+// Kept separate from SelectField (identical box, but that one owns its own
+// plain-row bottom sheet) because the two are used by different screens.
 function CustomSelectField({
   label,
   labelStyle,
   placeholder,
   value,
   options,
-  onSelect,
-  title,
+  onPress,
   style,
   testID,
 }: CustomSelectFieldProps) {
   const { colors, palette } = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
 
   const selectedLabel = options.find(option => option.value === value)?.label;
-
-  function handleSelect(optionValue: string) {
-    onSelect(optionValue);
-    setIsOpen(false);
-  }
 
   return (
     <View style={[styles.root, style]}>
@@ -166,7 +89,7 @@ function CustomSelectField({
         accessibilityRole="button"
         accessibilityLabel={label ?? placeholder}
         style={[styles.field, { borderColor: palette.gray[100], backgroundColor: colors.card }]}
-        onPress={() => setIsOpen(true)}
+        onPress={onPress}
         testID={testID}>
         <Text
           style={[
@@ -178,71 +101,6 @@ function CustomSelectField({
         </Text>
         <Image source={chevronDownIcon} style={styles.chevron} contentFit="contain" />
       </Pressable>
-
-      <Modal
-        visible={isOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsOpen(false)}>
-        <View style={styles.overlayRoot}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close"
-            style={[styles.backdrop, { backgroundColor: colors.overlay }]}
-            onPress={() => setIsOpen(false)}
-            testID={testID ? `${testID}-backdrop` : undefined}
-          />
-
-          <SafeAreaView edges={['bottom']} style={[styles.panel, { backgroundColor: colors.card }]}>
-            <View style={styles.panelHeader}>
-              <Text style={[styles.panelTitle, { color: colors.text.primary }]} numberOfLines={1}>
-                {title ?? label ?? placeholder}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close"
-                hitSlop={8}
-                style={styles.closeButton}
-                onPress={() => setIsOpen(false)}>
-                <Feather name="x" size={20} color={colors.text.primary} />
-              </Pressable>
-            </View>
-            <View style={[styles.headerDivider, { backgroundColor: colors.divider }]} />
-
-            <ScrollView
-              contentContainerStyle={styles.list}
-              showsVerticalScrollIndicator={false}
-              bounces={false}>
-              {options.map(option => {
-                const isSelected = option.value === value;
-
-                return (
-                  <Pressable
-                    key={option.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    style={[styles.option, { borderBottomColor: colors.divider }]}
-                    onPress={() => handleSelect(option.value)}>
-                    <Text
-                      style={[
-                        styles.optionText,
-                        {
-                          color: isSelected ? palette.primary[400] : colors.text.primary,
-                          fontWeight: isSelected ? '600' : '400',
-                        },
-                      ]}>
-                      {option.label}
-                    </Text>
-                    {isSelected ? (
-                      <Feather name="check" size={20} color={palette.primary[400]} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      </Modal>
     </View>
   );
 }
