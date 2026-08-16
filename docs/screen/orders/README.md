@@ -53,7 +53,8 @@ Figma's "No Campaign Found"/"No Gig Found" empty states reuse the exact same "Il
 
 ## Scope notes
 
-- **No real backend.** As with every other flow, there's no orders API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/orders.ts`'s mock `orders` array, filtered client-side by `Order['tab']`. Cards aren't tappable yet (no order-detail screen exists in the Figma nodes given for this task).
+- **No real backend.** As with every other flow, there's no orders API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/orders.ts`'s mock `orders` array, filtered client-side by `Order['tab']`.
+- **Now tappable.** Each card's `onPress={() => router.push(\`/order/${item.id}\`)}` (`scenes/main/Order.tsx`) leads to Order Details — see `docs/screen/order-details/README.md`.
 - **A single flat `orders` array, not 4 separate arrays.** Unlike `data/applications.ts`'s `appliedCampaigns`/`campaignRequests` split (where the "Applied" and "Request" tabs render structurally different rows), every Order tab renders the exact same `OrderCard` shape — only the filter and status pairing differ — so one array with a `tab` field and a client-side `.filter()` (matching `scenes/main/Search.tsx`'s `filteredResults` pattern) avoids 4x'ing the same mock-data boilerplate.
 - **Photos reuse existing Home assets** rather than exporting near-duplicates of Figma's stock thumbnails: the "Campaign" tab cycles through `assets/images/home/campaign-list-{1..4}.jpg` and `popular-campaign-{1..3}.jpg`; the "Gig order"/"Completed"/"Cancelled" tabs cycle through `assets/images/home/gig-{1,2}.jpg`, the same convention `data/applications.ts` and `data/campaigns.ts` already follow.
 - **Content repeats across cards, mirroring Figma.** Every card in a tab reads the same title ("Social Media Management"), subtitle ("Ordered from Bkash" on the "Campaign" tab, "Ordered from Jhon Smith" elsewhere) and price ("$130") — Figma repeats this verbatim across every card instance on all 4 tabs, so the mock data does too rather than inventing distinct content.
@@ -67,4 +68,4 @@ Figma's "No Campaign Found"/"No Gig Found" empty states reuse the exact same "Il
 ## Navigation
 
 - **Entry:** bottom tab bar's "Order" tab (`app/(main)/_layout.tsx`).
-- **Exit:** tab bar switches to Home/Order/Create Gig/Message/Profile as normal, or the header's back chevron → `router.push('/home')`.
+- **Exit:** tab bar switches to Home/Order/Create Gig/Message/Profile as normal, the header's back chevron → `router.push('/home')`, or tapping any order card → `/order/[id]` (`docs/screen/order-details/README.md`).
