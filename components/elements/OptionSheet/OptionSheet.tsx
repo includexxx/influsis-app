@@ -69,21 +69,40 @@ function OptionSheet({ options, value, onSelect, onClose }: OptionSheetProps) {
                 { backgroundColor: isSelected ? palette.primary[25] : palette.gray[25] },
               ]}
               onPress={() => onSelect(option.value)}>
-              {!!option.icon && (
-                <Image
-                  source={option.icon}
-                  style={styles.optionIcon}
-                  contentFit="contain"
-                  testID={`option-icon-${option.value}`}
-                />
+              {!!option.icon ? (
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    width: '100%',
+                    paddingLeft: 36,
+                    gap: 12,
+                  }}>
+                  <Image
+                    source={option.icon}
+                    style={styles.optionIcon}
+                    contentFit="contain"
+                    testID={`option-icon-${option.value}`}
+                  />
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: isSelected ? palette.primary[400] : colors.text.primary },
+                    ]}>
+                    {option.label}
+                  </Text>
+                </View>
+              ) : (
+                <Text
+                  style={[
+                    styles.optionText,
+                    { color: isSelected ? palette.primary[400] : colors.text.primary },
+                  ]}>
+                  {option.label}
+                </Text>
               )}
-              <Text
-                style={[
-                  styles.optionText,
-                  { color: isSelected ? palette.primary[400] : colors.text.primary },
-                ]}>
-                {option.label}
-              </Text>
             </Pressable>
           );
         })}

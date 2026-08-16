@@ -14,17 +14,19 @@ export const editProfileStyle = StyleSheet.create({
   phoneLeading: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 12,
   },
   flag: {
     fontSize: 20,
   },
   phoneChevron: {
-    width: 16,
-    height: 16,
+    width: 18,
+    height: 18,
+    marginTop: 4,
   },
   trailingIcon: {
-    width: 24,
-    height: 24,
+    width: 18,
+    height: 18,
   },
 });
