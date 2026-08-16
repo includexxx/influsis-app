@@ -7,7 +7,7 @@ import { useTheme } from '@/hooks';
 import { useAppSlice, useProfileVerificationSlice } from '@/slices';
 import { layoutStyle, editProfileStyle } from '@/styles';
 import { countryFlags } from '@/data/country-flags';
-import { dialCodes } from '@/data/dial-codes';
+import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import UnderlineField from '@/components/elements/UnderlineField';
@@ -31,14 +31,9 @@ const COUNTRY_OPTIONS = Object.values(countryFlags)
   .map(({ code, country, flag }) => ({ label: country, value: code, icon: { uri: flag } }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-// The same countries joined with `@/data/dial-codes` for the Phone Number
-// field's country-code picker. Entries with no dialable calling code of
-// their own (European Union, Bouvet Island, ...) drop out here.
-const PHONE_COUNTRY_OPTIONS = Object.values(countryFlags)
-  .filter(({ code }) => !!dialCodes[code])
-  .map(({ code, country, flag }) => ({ code, country, flag, dialCode: dialCodes[code] }))
-  .sort((a, b) => a.country.localeCompare(b.country));
-
+// Figma pairs a UK flag with a US-formatted `+1 111...` number - see
+// docs/screen/profile/edit-profile.md. The number wins now that the prefix
+// is a real picker, and `us` also matches the Country field's own default.
 const DEFAULT_PHONE_COUNTRY = 'us';
 
 function formatDate(date: Date): string {
@@ -88,9 +83,7 @@ export default function EditProfile() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const selectedDate = dateOfBirth ? new Date(dateOfBirth) : undefined;
-  const selectedPhoneCountry = PHONE_COUNTRY_OPTIONS.find(
-    option => option.code === (phoneCountry ?? DEFAULT_PHONE_COUNTRY),
-  );
+  const selectedPhoneCountry = findPhoneCountry(phoneCountry ?? DEFAULT_PHONE_COUNTRY);
 
   async function handlePickAvatar() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -233,7 +226,7 @@ export default function EditProfile() {
 
       {isPhoneCountryPickerOpen && (
         <CountryCodeSheet
-          options={PHONE_COUNTRY_OPTIONS}
+          options={phoneCountries}
           value={phoneCountry ?? DEFAULT_PHONE_COUNTRY}
           onSelect={code => {
             dispatchProfile(setPhoneCountry(code));

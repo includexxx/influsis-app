@@ -1,8 +1,9 @@
+import { countryFlags } from './country-flags';
+
 // E.164 country calling codes, keyed by the same lowercase ISO-3166 alpha-2
 // `code` used by `@/data/country-flags` - the two datasets join on that key
-// (see `PHONE_COUNTRY_OPTIONS` in scenes/main/EditProfile.tsx). Kept as a
-// separate lookup rather than a `dialCode` field on `ICountryFlag` so the
-// flag dataset stays untouched.
+// (see `phoneCountries` below). Kept as a separate lookup rather than a
+// `dialCode` field on `ICountryFlag` so the flag dataset stays untouched.
 //
 // Entries in `countryFlags` that have no dialable calling code of their own
 // (`bv` Bouvet Island, `cp` Clipperton Island, `eu` European Union, `hm`
@@ -263,3 +264,16 @@ export const dialCodes: Record<string, string> = {
   zm: '+260',
   zw: '+263',
 };
+
+// The two datasets already joined and sorted, ready for `CountryCodeSheet`.
+// Derived once here rather than per screen since every country-code picker
+// wants the same list (Edit Profile's Phone Number field, Sign Up's Phone
+// field); only the default selection differs per caller.
+export const phoneCountries = Object.values(countryFlags)
+  .filter(({ code }) => !!dialCodes[code])
+  .map(({ code, country, flag }) => ({ code, country, flag, dialCode: dialCodes[code] }))
+  .sort((a, b) => a.country.localeCompare(b.country));
+
+export function findPhoneCountry(code: string) {
+  return phoneCountries.find(option => option.code === code);
+}
