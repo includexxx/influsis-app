@@ -12,3 +12,4 @@ export * from './order';
 export * from './balance';
 export * from './transaction';
 export * from './bank';
+export * from './withdrawMethod';

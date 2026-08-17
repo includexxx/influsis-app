@@ -1,2 +1,2 @@
 export { default } from './SummaryRow';
-export type { SummaryRowProps } from './SummaryRow';
+export type { SummaryRowProps, SummaryRowVariant } from './SummaryRow';

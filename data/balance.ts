@@ -22,6 +22,7 @@ export const paymentMethods: PaymentMethodOption[] = [
     icon: require('@/assets/images/withdraw/method-mobile-banking.png'),
     title: 'Mobile banking',
     description: 'Instant transfer',
+    href: '/withdraw/method',
   },
   {
     id: 'bank-transfer',

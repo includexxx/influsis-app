@@ -46,7 +46,8 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Profile / Account Settings](./screen/profile/README.md) — the Profile tab's settings menu and its 5 sub-screens: Edit Profile, Security Settings, Change Password, Privacy Policy, Help Center (FAQ)
 - [Balance](./screen/balance/README.md) — the creator's balance, monthly/total earnings and payment-method list, opened from Profile's "Ballance" link
 - [Transaction](./screen/transactions/README.md) — the full transfer history, opened from Balance's "Recent transaction" row
-- [Withdraw to Bank](./screen/withdraw-bank/README.md) — the 4-screen bank payout flow (bank directory → account number → OTP → success), opened from Balance's "Bank transfer" row
+- [Withdraw to Bank](./screen/withdraw-bank/README.md) — the bank payout branch (bank directory → account number → OTP), opened from Balance's "Bank transfer" row
+- [Mobile Banking](./screen/mobile-banking/README.md) — the wallet payout branch (provider picker → bKash hand-off) plus the amount → review → success steps both branches share, opened from Balance's "Mobile banking" row
 
 ## 2. Current State of the App
 

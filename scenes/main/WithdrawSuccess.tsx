@@ -1,11 +1,13 @@
-import { View, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/hooks';
-import { layoutStyle, withdrawSuccessStyle } from '@/styles';
-import SuccessHero from '@/components/elements/SuccessHero';
+import Button from '@/components/elements/Button';
 import RecipientPill from '@/components/elements/RecipientPill';
+import SuccessHero from '@/components/elements/SuccessHero';
 import SummaryRow from '@/components/elements/SummaryRow';
 import { withdrawReceipt } from '@/data/banks';
+import { useTheme } from '@/hooks';
+import { buttonStyle, layoutStyle, withdrawSuccessStyle } from '@/styles';
+import { router } from 'expo-router';
+import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // The withdraw confirmation screen (Figma "Balance", node 6407:5772).
 // Confetti hero, a receipt pill naming who was paid and how much, then the
@@ -40,6 +42,16 @@ export default function WithdrawSuccess() {
         <View style={withdrawSuccessStyle.details}>
           <SummaryRow label="Transaction ID" value={withdrawReceipt.transactionId} />
           <SummaryRow label="Date & Time" value={withdrawReceipt.dateTime} />
+        </View>
+
+        <View style={{ marginTop: 32 }}>
+          <Button
+            title="Profile"
+            style={buttonStyle.primary}
+            titleStyle={buttonStyle.primaryTitle}
+            onPress={() => router.push('/profile')}
+            testID="withdraw-method-continue"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

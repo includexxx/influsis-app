@@ -19,7 +19,11 @@ const OTP_LENGTH = 4;
 //
 // "Continue" stays disabled until all four digits are entered; Figma draws
 // only the empty state, but shipping an always-enabled CTA on an OTP form
-// would let a half-typed code through. See
+// would let a half-typed code through.
+//
+// It then hands off to the shared amount step (Figma node 6212:7543),
+// where the bank and mobile-wallet branches converge before the review and
+// success screens - see docs/screen/mobile-banking/README.md and
 // docs/screen/withdraw-bank/README.md.
 export default function WithdrawBankVerify() {
   const { colors } = useTheme();
@@ -71,7 +75,7 @@ export default function WithdrawBankVerify() {
           disabled={code.length < OTP_LENGTH}
           style={buttonStyle.primary}
           titleStyle={buttonStyle.primaryTitle}
-          onPress={() => router.push('/withdraw/success')}
+          onPress={() => router.push('/withdraw/amount')}
           testID="withdraw-bank-verify-continue"
         />
       </View>

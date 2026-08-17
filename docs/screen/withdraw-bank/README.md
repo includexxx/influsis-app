@@ -136,8 +136,8 @@ None of these frames carries a Tab Bar instance, unlike the Balance frame (`6402
 
 ## Scope notes
 
-- **Where this flow sits in Figma's fuller design.** Figma routes the bank branch through an amount step (`6212:7543`) and a review step (`6212:7574`) between the OTP and the success screen. Those two frames weren't part of this request, so OTP → "Continue" goes straight to `/withdraw/success`. Inserting them later means changing one `router.push`.
-- **Entry point.** `data/balance.ts`'s "Bank transfer" row gained `href: '/withdraw/bank'`, the same optional-`href` mechanism the "Recent transaction" row already uses. Figma reaches this flow via a "Withdraw Method" picker (`6212:7700`) that isn't built; wiring it from Balance gives the flow a real entry without inventing that screen.
+- **The OTP hands off to the shared amount step.** Figma routes the bank branch through an amount step (`6212:7543`) and a review step (`6212:7574`) between the OTP and the success screen. Those were built with the [Mobile Banking](../mobile-banking/README.md) flow, so OTP → "Continue" now goes to `/withdraw/amount`, where both branches converge. (It went straight to `/withdraw/success` while those screens didn't exist.)
+- **Two entry points.** `data/balance.ts`'s "Bank transfer" row carries `href: '/withdraw/bank'`, and the [Withdraw Method picker](../mobile-banking/README.md#1--withdraw-method-picker-62127700)'s "Bank Account" and "Visa Debit Card" rows — Figma's own route into this flow — lead here too.
 - **"Socail Islami Bank Limited" appears three times.** Figma lists that name (typo included) against three different logos. Kept verbatim rather than renamed or de-duplicated, the convention `data/orders.ts` already follows.
 - **No backend.** No account-number validation, no real OTP (any four digits pass), "Resend Code" is inert, and the receipt values are Figma's literals — `#1234567889909` and `Oct 12, 15.87 PM`, odd time format included. See `docs/PRD.md` §2.2/§4.1.
 - **Terms links are inert**, matching the rest of the app's "don't build interactions beyond what's been designed" convention.
