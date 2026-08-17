@@ -1,14 +1,13 @@
-import { useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useTheme } from '@/hooks';
-import { layoutStyle, balanceStyle } from '@/styles';
-import ScreenHeader from '@/components/elements/ScreenHeader';
 import BalanceCard from '@/components/elements/BalanceCard';
-import EarningTile from '@/components/elements/EarningTile';
 import BillingRow from '@/components/elements/BillingRow';
+import EarningTile from '@/components/elements/EarningTile';
+import ScreenHeader from '@/components/elements/ScreenHeader';
 import { balanceSummary, paymentMethods } from '@/data/balance';
+import { useTheme } from '@/hooks';
+import { balanceStyle, layoutStyle } from '@/styles';
+import { router } from 'expo-router';
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // The Balance screen (Figma "Balance", node 6402:5295), pushed from the
 // Profile tab's "Ballance" row (scenes/main/Profile.tsx). Registered inside
@@ -19,12 +18,6 @@ import { balanceSummary, paymentMethods } from '@/data/balance';
 // See docs/screen/balance/README.md.
 export default function Balance() {
   const { colors } = useTheme();
-  // Figma seeds the pink pressed state on the "Recent transaction" row
-  // (node 6402:5348), but the rows ship unhighlighted at rest - the pink
-  // fill is a press affordance, not a persisted default. `selectedId` is
-  // tracked ready for whichever row should own it once these rows have
-  // destinations to navigate to.
-  const [selectedId, setSelectedId] = useState('recent-transaction');
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -57,7 +50,6 @@ export default function Balance() {
               description={method.description}
               highlighted={false}
               onPress={() => {
-                setSelectedId(method.id);
                 if (method.href) router.push(method.href);
               }}
               testID={`balance-method-${method.id}`}
