@@ -5,7 +5,7 @@
 | **Product**      | Influsis (mobile + web app)                                                                |
 | **Status**       | Foundation stage — built on React Native boilerplate, product features not yet implemented |
 | **Platforms**    | iOS, Android, Web (single Expo codebase)                                                   |
-| **Last updated** | 2026-08-16                                                                                 |
+| **Last updated** | 2026-08-17                                                                                 |
 
 ---
 
@@ -44,6 +44,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
 - [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
 - [Profile / Account Settings](./screen/profile/README.md) — the Profile tab's settings menu and its 5 sub-screens: Edit Profile, Security Settings, Change Password, Privacy Policy, Help Center (FAQ)
+- [Balance](./screen/balance/README.md) — the creator's balance, monthly/total earnings and payment-method list, opened from Profile's "Ballance" link
 
 ## 2. Current State of the App
 

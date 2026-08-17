@@ -9,3 +9,4 @@ export * from './brand';
 export * from './message';
 export * from './application';
 export * from './order';
+export * from './balance';

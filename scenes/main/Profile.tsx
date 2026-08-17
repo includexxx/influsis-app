@@ -80,7 +80,12 @@ export default function Profile() {
               onPress={() => router.push('/security-settings')}
               testID="account-row-security"
             />
-            <SettingsRow icon={billingIcon} title="Billing" testID="account-row-billing" />
+            <SettingsRow
+              icon={billingIcon}
+              title="Ballance"
+              testID="account-row-ballance"
+              onPress={() => router.push('/ballance')}
+            />
             <SettingsRow
               icon={applicationsIcon}
               title="My Applications"
