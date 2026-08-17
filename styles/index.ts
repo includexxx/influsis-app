@@ -31,3 +31,4 @@ export * from './orderDetails';
 export * from './orderDeliver';
 export * from './orderDelivered';
 export * from './balance';
+export * from './transactions';

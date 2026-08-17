@@ -56,7 +56,10 @@ export default function Balance() {
               title={method.title}
               description={method.description}
               highlighted={false}
-              onPress={() => setSelectedId(method.id)}
+              onPress={() => {
+                setSelectedId(method.id);
+                if (method.href) router.push(method.href);
+              }}
               testID={`balance-method-${method.id}`}
             />
           ))}

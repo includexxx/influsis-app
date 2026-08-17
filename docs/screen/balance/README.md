@@ -72,7 +72,7 @@ Figma's frame keeps a **Tab Bar** instance mounted at `y=848`, so the screen is 
 ## Scope notes
 
 - **Route is spelled `/ballance`.** That matches the `router.push('/ballance')` already in `scenes/main/Profile.tsx`, so the existing entry point works. It's a misspelling of "balance" — renaming means changing the route file name, the `Tabs.Screen name` in `app/(main)/_layout.tsx`, and the Profile row's `push`.
-- **Rows select but don't navigate.** Figma gives each row a chevron, implying a destination, but none of those destinations exist in this codebase yet. Rather than inventing routes, tapping a row moves the pink selection — which is a state Figma actually specifies. Wiring each row to its screen is a one-line `onPress` change once those screens exist.
+- **Only "Recent transaction" navigates so far.** Figma gives every row a chevron, implying a destination, but only the transaction history exists in this codebase — that row carries an `href` to [`/transactions`](../transactions/README.md) and the other three just take the pressed state. Adding an `href` in `data/balance.ts` is the whole change once the payout-rail screens are built.
 - **No backend.** `data/balance.ts` is mock content standing in for a payouts API, like every other screen (`docs/PRD.md` §2.2/§4.1). The amounts are Figma's literals, not computed.
 - **Assets.** 8 SVG glyphs were rasterized to PNG (`scripts/rasterize-balance-assets.py`) because expo-image doesn't render SVG — the same approach `scripts/rasterize-icons.py` established. The back chevron reuses `ScreenHeader`'s existing `assets/images/icons/back-chevron.png`.
 

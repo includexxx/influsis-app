@@ -40,5 +40,6 @@ export const paymentMethods: PaymentMethodOption[] = [
     icon: require('@/assets/images/withdraw/method-recent-transaction.png'),
     title: 'Recent transaction',
     description: 'Various processing times',
+    href: '/transactions',
   },
 ];

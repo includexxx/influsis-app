@@ -28,3 +28,4 @@ export { default as PrivacyPolicy } from './PrivacyPolicy';
 export { default as HelpCenter } from './HelpCenter';
 export { default as ChatDetails } from './ChatDetails';
 export { default as Balance } from './Balance';
+export { default as Transactions } from './Transactions';

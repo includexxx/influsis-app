@@ -17,9 +17,15 @@ export interface BalanceSummary {
 
 // A row in the "Payment Method" section - a 30px 3D glyph, a title, a
 // one-line description and a trailing chevron on a rounded tile.
+//
+// `href` is optional because only some of these rows have a destination
+// that exists yet: Figma gives every row a chevron, but the payout-rail
+// screens behind the first three aren't built. A row without one just
+// takes the pressed state.
 export interface PaymentMethodOption {
   id: string;
   icon: ImageSourcePropType;
   title: string;
   description: string;
+  href?: string;
 }
