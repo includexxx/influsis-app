@@ -11,3 +11,4 @@ export * from './application';
 export * from './order';
 export * from './balance';
 export * from './transaction';
+export * from './bank';

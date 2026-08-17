@@ -28,6 +28,7 @@ export const paymentMethods: PaymentMethodOption[] = [
     icon: require('@/assets/images/withdraw/method-bank-transfer.png'),
     title: 'Bank transfer',
     description: '1-3 business days',
+    href: '/withdraw/bank',
   },
   {
     id: 'card',

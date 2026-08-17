@@ -29,3 +29,7 @@ export { default as HelpCenter } from './HelpCenter';
 export { default as ChatDetails } from './ChatDetails';
 export { default as Balance } from './Balance';
 export { default as Transactions } from './Transactions';
+export { default as WithdrawBank } from './WithdrawBank';
+export { default as WithdrawBankAccount } from './WithdrawBankAccount';
+export { default as WithdrawBankVerify } from './WithdrawBankVerify';
+export { default as WithdrawSuccess } from './WithdrawSuccess';
