@@ -19,6 +19,7 @@ export type SettingsRowVariant = 'flat' | 'card';
 export interface SettingsRowProps {
   icon: ImageSourcePropType;
   iconTint?: string;
+  iconBackground?: string;
   title: string;
   description?: string;
   trailing?: ReactNode;
@@ -47,9 +48,21 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
+  iconChip: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   textBlock: {
     flex: 1,
     marginLeft: 20,
+    gap: 4,
+  },
+  chipTextBlock: {
+    flex: 1,
+    marginLeft: spacing.md,
     gap: 4,
   },
   cardTextBlock: {
@@ -79,10 +92,13 @@ const styles = StyleSheet.create({
 // with a description line and a `Toggle` trailing slot instead of a
 // chevron). `trailing` is a generic slot (defaults to the chevron icon on
 // `flat`, since every Account row uses it) rather than a fixed prop, so
-// this same row shape can carry either affordance.
+// this same row shape can carry either affordance. `iconBackground` is an
+// opt-in tinted chip behind the glyph (used by the Account screen's grouped
+// setting cards); leaving it unset keeps the bare-glyph rendering.
 function SettingsRow({
   icon,
   iconTint,
+  iconBackground,
   title,
   description,
   trailing,
@@ -98,6 +114,14 @@ function SettingsRow({
 
   const titleColor = destructive ? colors.error : colors.text.primary;
 
+  const iconImage = (
+    <Image
+      source={icon}
+      style={[styles.icon, iconTint ? { tintColor: iconTint } : null]}
+      contentFit="contain"
+    />
+  );
+
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
@@ -109,12 +133,15 @@ function SettingsRow({
         isCard && { backgroundColor: colors.card },
         style,
       ]}>
-      <Image
-        source={icon}
-        style={[styles.icon, iconTint ? { tintColor: iconTint } : null]}
-        contentFit="contain"
-      />
-      <View style={isCard ? styles.cardTextBlock : styles.textBlock}>
+      {iconBackground ? (
+        <View style={[styles.iconChip, { backgroundColor: iconBackground }]}>{iconImage}</View>
+      ) : (
+        iconImage
+      )}
+      <View
+        style={
+          isCard ? styles.cardTextBlock : iconBackground ? styles.chipTextBlock : styles.textBlock
+        }>
         <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
         {description ? (
           <Text style={[styles.description, { color: palette.gray[300] }]}>{description}</Text>

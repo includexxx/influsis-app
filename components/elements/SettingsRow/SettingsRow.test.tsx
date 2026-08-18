@@ -33,6 +33,22 @@ describe('<SettingsRow />', () => {
     expect(screen.getByText('ON')).not.toBeNull();
   });
 
+  test('renders inside a tinted icon chip when iconBackground is set', () => {
+    const onPress = jest.fn();
+    render(
+      <SettingsRow
+        icon={icon}
+        title="Profile"
+        iconBackground="#FDE6F5"
+        onPress={onPress}
+        testID="row"
+      />,
+    );
+    expect(screen.getByText('Profile')).not.toBeNull();
+    fireEvent.press(screen.getByTestId('row'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
   test('calls onPress when tapped', () => {
     const onPress = jest.fn();
     render(<SettingsRow icon={icon} title="Security" onPress={onPress} testID="row" />);
