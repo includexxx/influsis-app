@@ -5,7 +5,7 @@
 | **Figma nodes** | [`6001:39044`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-39044&m=dev) (base state), [`6399:5469`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6399-5469&m=dev) / [`6398:8469`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6398-8469&m=dev) (Gender bottom sheet open - two identical duplicate frames), [`6398:5429`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6398-5429&m=dev) (Date of Birth calendar open) — all named "100_Light_settings, personal info" |
 | **Route** | `/profile-edit` (`app/(details)/profile-edit.tsx`) |
 | **Scene** | `scenes/main/EditProfile.tsx` |
-| **Components used** | `ScreenHeader`, `CircleAvatar` (extended), `UnderlineField` (new), `OptionSheet` (new), `CountryCodeSheet` (new), `CalendarPicker` (existing, reused from profile-verification) |
+| **Components used** | `ScreenHeader`, `CircleAvatar` (extended), `TextField` (existing, extended with `onPress`), `OptionSheet` (new), `CountryCodeSheet` (new), `CalendarPicker` (existing, reused from profile-verification) |
 
 ## Purpose
 
@@ -33,8 +33,8 @@ Edit personal info: photo, full name, email, phone number, gender, date of birth
 | # | Section | Layout | Component |
 |---|---|---|---|
 | 1 | Header | Back chevron + centered "Profile" title, empty right side | `ScreenHeader` |
-| 2 | Avatar | 120px circular photo + pink pencil edit badge, centered | `CircleAvatar` (`onEditPress`) |
-| 3-8 | Fields | Full Name, Email, Phone Number, Gender, Date of Birth, Country - each label-above/bold-value/underline | `UnderlineField` ×6 |
+| 2 | Avatar | 120px circular photo + pink pencil edit badge on a soft tinted disc, centered | `CircleAvatar` (`onEditPress`) |
+| 3-8 | Fields | Full Name, Email, Phone Number, Gender, Date of Birth, Country - each label-above over a bordered input row | `TextField` ×6 |
 
 ## Scope notes
 
@@ -49,6 +49,15 @@ Edit personal info: photo, full name, email, phone number, gender, date of birth
 - **Date of Birth reuses `CalendarPicker`/its date-key logic verbatim** from the profile-verification wizard's own date-of-birth step (`scenes/profile-verification/DateOfBirth.tsx`) - same component, same `maxDate={new Date()}` guard against future birthdates, same `toISOString()` storage format.
 - **Avatar photo picker is local-only, not persisted anywhere beyond this screen's session.** No avatar/photo field exists on the `User` type or in Redux - picking a new photo (`expo-image-picker`, the same library/permission flow `ApplyCampaign.tsx` already uses) only updates this component's own `useState`, and reverts to the mock photo if the screen is left and reopened. No other screen in the app currently reads or displays "my own" avatar, so there was nothing else to keep in sync.
 - **The two "Gender bottom sheet open" nodes (`6399:5469`/`6398:8469`) are pixel-identical duplicates** of the same interaction state, not two different designs - implemented once.
+
+## Presentation
+
+The fields, values and pickers above are as specified; their *presentation* was moved onto the bordered form shape the auth screens use ([sign-up.md](../auth/sign-up.md), `scenes/auth/SignUp.tsx`) so a form on the settings side of the app reads the same as one on the sign-up side:
+
+- Each of the 6 fields is now a `TextField` - 14px label above a 12px-radius bordered row on `colors.card` - stacked in `layoutStyle.fieldGroup`, replacing the previous `UnderlineField` (label above an 18px bold value over a hairline rule). `UnderlineField` itself is untouched and still exported; this screen was its only caller.
+- The three picker fields (Gender, Date of Birth, Country) use `TextField`'s new opt-in `onPress`, which wraps the field in a pressable and stops the input row taking touches, so they open their caller-owned sheet instead of a keyboard. Their chevron/calendar glyphs moved from `UnderlineField`'s `trailingAdornment` to `TextField`'s `rightAdornment`.
+- The phone dial-code picker rides in `TextField`'s `leftAdornment` exactly as it does on Sign Up, sized to that row's 14px type, with a hairline separating the prefix from the number.
+- The avatar sits on a `primary/25` disc (a low-alpha wash of the same accent on the dark theme) so the photo still reads as the focal point of an otherwise plain form.
 
 ## Navigation
 

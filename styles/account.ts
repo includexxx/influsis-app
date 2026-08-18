@@ -64,6 +64,7 @@ export const accountStyle = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.lg,
     color: palette.white,
+    textTransform: 'capitalize',
   },
   email: {
     fontSize: 14,

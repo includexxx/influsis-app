@@ -1,4 +1,4 @@
-import { test, expect } from '@jest/globals';
+import { test, expect, jest } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import TextField from './TextField';
 
@@ -23,5 +23,21 @@ describe('<TextField />', () => {
 
     fireEvent.press(screen.getByLabelText('Show password'));
     expect(input.props.secureTextEntry).toBe(false);
+  });
+
+  test('opens a picker instead of a keyboard when onPress is given', () => {
+    const onPress = jest.fn();
+    render(
+      <TextField
+        label="Gender"
+        value="Male"
+        editable={false}
+        onPress={onPress}
+        testID="gender-field"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('gender-field'));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

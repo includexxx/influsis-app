@@ -17,6 +17,6 @@ export const layoutStyle = StyleSheet.create({
   },
   // Vertical gap between stacked form fields.
   fieldGroup: {
-    gap: spacing['2xl'],
+    gap: spacing['sm'],
   },
 });
