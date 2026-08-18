@@ -1,12 +1,13 @@
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { useTheme, useDebouncedOtherOption } from '@/hooks';
 import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
 import { useProfileVerificationSlice } from '@/slices';
 import Button from '@/components/elements/Button';
 import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import SelectableListItem from '@/components/elements/SelectableListItem';
+import TextField from '@/components/elements/TextField';
 
 const TOTAL_STEPS = 5;
 
@@ -36,11 +37,22 @@ const LANGUAGE_OPTIONS = [
     label: 'Hindi',
     icon: require('@/assets/images/profile-verification/flag-hindi.png'),
   },
+  {
+    id: 'others',
+    label: 'Others',
+    icon: require('@/assets/images/tab-bar/create-gig.png'),
+  },
 ];
 
 export default function Languages() {
   const { colors } = useTheme();
   const { languages, toggleLanguage, dispatch } = useProfileVerificationSlice();
+  const {
+    showInput: showOtherInput,
+    setShowInput: setShowOtherInput,
+    text: otherText,
+    setText: setOtherText,
+  } = useDebouncedOtherOption(dispatch, toggleLanguage);
 
   function handleNext() {
     router.push('/profile-verification/bio');
@@ -60,16 +72,39 @@ export default function Languages() {
           style={profileStepStyle.header}
         />
         <View style={profileStepStyle.optionList}>
-          {LANGUAGE_OPTIONS.map(option => (
-            <SelectableListItem
-              key={option.id}
-              icon={option.icon}
-              label={option.label}
-              selected={languages.includes(option.id)}
-              onPress={() => dispatch(toggleLanguage(option.id))}
-              testID={`language-${option.id}`}
-            />
-          ))}
+          {LANGUAGE_OPTIONS.map(option =>
+            option.id === 'others' ? (
+              showOtherInput ? (
+                <TextField
+                  key={option.id}
+                  label="Others"
+                  placeholder="Enter a language"
+                  value={otherText}
+                  onChangeText={setOtherText}
+                  autoFocus
+                  testID="language-other-input"
+                />
+              ) : (
+                <SelectableListItem
+                  key={option.id}
+                  icon={option.icon}
+                  label={option.label}
+                  selected={false}
+                  onPress={() => setShowOtherInput(true)}
+                  testID={`language-${option.id}`}
+                />
+              )
+            ) : (
+              <SelectableListItem
+                key={option.id}
+                icon={option.icon}
+                label={option.label}
+                selected={languages.includes(option.id)}
+                onPress={() => dispatch(toggleLanguage(option.id))}
+                testID={`language-${option.id}`}
+              />
+            ),
+          )}
         </View>
       </ScrollView>
       <View style={layoutStyle.scrollContent}>
