@@ -20,7 +20,7 @@ First half of step 5 of 5 (see [README.md](./README.md) on why bio + username sh
 
 ## States
 
-- **Empty** — placeholder "Tell brands about your passion...".
+- **Empty** — placeholder "Tell businesses about your passion...".
 - **Filled** — free text.
 - **Error** — pressing "Next" with more than 250 words shows "Please keep it under 250 words" (word count, not character count, computed client-side on submit — not truncated while typing).
 

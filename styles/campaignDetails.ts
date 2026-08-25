@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 // Shared fragments for the Campaign Details scene
-// (scenes/main/CampaignDetails.tsx). Like Brand Details, the banner photo
+// (scenes/main/CampaignDetails.tsx). Like Business Details, the banner photo
 // is full-bleed (no horizontal padding) - see the scene file for how the
 // content below it applies its own padding instead of reusing
 // layoutStyle.scrollContent for the whole screen.
@@ -11,7 +11,7 @@ export const campaignDetailsStyle = StyleSheet.create({
     paddingBottom: 16,
   },
   // Banner + overlapping circular avatar composite - same geometry as
-  // Brand Details (173px banner, 62px avatar overlapping its bottom-left
+  // Business Details (173px banner, 62px avatar overlapping its bottom-left
   // corner by 30px, so the composite's total height is 173 + (62-30) = 205)
   // since Figma reuses the exact same banner/avatar photo pair.
   bannerWrap: {
@@ -35,13 +35,13 @@ export const campaignDetailsStyle = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
-  brandNameRow: {
+  businessNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: 8,
   },
-  brandName: {
+  businessName: {
     fontSize: 12,
     lineHeight: 18,
   },

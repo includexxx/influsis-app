@@ -14,7 +14,7 @@ Terminal screen of the profile-verification wizard — confirms the profile is c
 ## UI elements
 
 - A centered card with the confetti illustration as its background, the same green tick-square badge used by `SuccessSheet` (reusing `assets/images/icons/success-check.png` rather than re-extracting it), and "Congratulation! You have completed profile" heading.
-- Description text — Figma's copy here is a Lorem Ipsum placeholder; replaced with real copy ("Your profile is ready - brands can now discover you for campaigns that fit your niche.").
+- Description text — Figma's copy here is a Lorem Ipsum placeholder; replaced with real copy ("Your profile is ready - businesses can now discover you for campaigns that fit your niche.").
 - "Explore" primary button.
 
 ## Scope notes

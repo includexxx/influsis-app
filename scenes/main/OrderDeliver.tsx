@@ -108,7 +108,7 @@ export default function OrderDeliver() {
                   <OrderActivityRow
                     key={index}
                     icon={activityIcons[event.icon]}
-                    brand={order.brandName ?? ''}
+                    business={order.businessName ?? ''}
                     action={event.action}
                     timestamp={event.timestamp}
                     muted={event.muted}
@@ -162,7 +162,7 @@ export default function OrderDeliver() {
             <View style={orderDeliverStyle.metaList}>
               <View style={orderDeliverStyle.metaRow}>
                 <Text style={orderDeliverStyle.metaLabel}>Purchased by</Text>
-                <Text style={orderDeliverStyle.metaValue}>{order.brandName}</Text>
+                <Text style={orderDeliverStyle.metaValue}>{order.businessName}</Text>
               </View>
               {order.deliveryDate && (
                 <View style={orderDeliverStyle.metaRow}>

@@ -66,8 +66,8 @@ export interface Order {
   // Order Details screen fields (Figma node 6040:8515) - optional since
   // OrderCard/the Order list don't need them, the same reasoning
   // `Campaign`'s own detail-only fields document.
-  brandName?: string;
-  brandVerified?: boolean;
+  businessName?: string;
+  businessVerified?: boolean;
   deliveryDate?: string;
   deliverables?: OrderDeliverable[];
   requirements?: string[];
@@ -75,7 +75,7 @@ export interface Order {
   // same reason as the Order Details fields above.
   activity?: OrderActivityEvent[];
   // Order Deliver screen's in-place "Order Details" tab fields (Figma node
-  // 6040:8664) - `brandName`/`deliveryDate`/`title`/`price`/`status` are
+  // 6040:8664) - `businessName`/`deliveryDate`/`title`/`price`/`status` are
   // reused from the fields above rather than duplicated (Figma's own
   // "Purchased by"/"Delivery due date" values are shown identically there).
   orderNumber?: string;

@@ -32,16 +32,16 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
 - [Live Campaigns](./screen/live-campaign/README.md) — a creator's ongoing campaigns, opened from the Home tab's Active Campaigns section
 - [Campaigns](./screen/campaigns/README.md) — all of a creator's campaigns, opened from the Home tab's Campaigns section
-- [Brands](./screen/brands/README.md) — brand logo directory, opened from the Home tab's Brand section
-- [Brand Details](./screen/brand-details/README.md) — a single brand's full profile view, opened by tapping any brand logo
+- [Businesses](./screen/businesses/README.md) — business logo directory, opened from the Home tab's Business section
+- [Business Details](./screen/business-details/README.md) — a single business's full profile view, opened by tapping any business logo
 - [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
-- [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
+- [Top Creators](./screen/top-creators/README.md) — top-rated creator directory, opened from the Home tab's Top Rated Creator section
 - [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
 - [Create Gig](./screen/create-gig/README.md) — the 3-step wizard for publishing a new gig, opened from the main tab bar's "Create Gig" button
 - [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
 - [Apply Campaign](./screen/apply-campaign/README.md) — the application form a creator submits to a campaign, opened from Campaign Details' "Apply Now" button
 - [Applications (Applied / Request)](./screen/apply-campaign/campaign-list.md) — a creator's own submitted applications and the campaign invitations they've received, opened from Profile's "My Applications" link
-- [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
+- [Creator Profile](./screen/creator-profile/README.md) — a single creator's full profile, opened by tapping any creator
 - [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
 - [Profile / Account Settings](./screen/profile/README.md) — the Profile tab's settings menu and its 5 sub-screens: Edit Profile, Security Settings, Change Password, Privacy Policy, Help Center (FAQ)
 - [Balance](./screen/balance/README.md) — the creator's balance, monthly/total earnings and payment-method list, opened from Profile's "Ballance" link
@@ -91,7 +91,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ## 4. Product Direction (to be defined)
 
-The product scope of Influsis (target users, core features, monetization) is **not yet captured in the codebase** and must be defined by the product owner. Based on the name, the working assumption is an influencer-marketing platform; the requirements below are structured so feature epics can be slotted in.
+The product scope of Influsis (target users, core features, monetization) is **not yet captured in the codebase** and must be defined by the product owner. Based on the name, the working assumption is an creator-marketing platform; the requirements below are structured so feature epics can be slotted in.
 
 ### 4.1 Proposed epics (placeholders — confirm before building)
 
@@ -132,7 +132,7 @@ The product scope of Influsis (target users, core features, monetization) is **n
 
 ## 7. Open Questions
 
-1. What is the confirmed product scope of Influsis (influencer marketplace? campaign management? analytics?) and who are the primary personas?
+1. What is the confirmed product scope of Influsis (creator marketplace? campaign management? analytics?) and who are the primary personas?
 2. Which backend will the app talk to (existing API, new service, BaaS)?
 3. Auth provider decision: custom, OAuth/social, or managed (e.g., Auth0/Firebase/Supabase)?
 4. Is the drawer navigation needed for the final IA, or should it be removed in favor of tabs only?

@@ -60,7 +60,7 @@ export default function SocialMedia() {
           step={3}
           totalSteps={TOTAL_STEPS}
           title="Connect your social media"
-          description="Brands seek creators within age ranges for campaign"
+          description="Businesses seek creators within age ranges for campaign"
           style={profileStepStyle.header}
         />
         <View style={profileStepStyle.optionList}>

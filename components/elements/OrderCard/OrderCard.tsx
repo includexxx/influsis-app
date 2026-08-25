@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 // CampaignCard (components/elements/CampaignCard) since an order needs an
 // "Ordered from X" line and a due/ordered-date footer that CampaignCard's
 // field set has no equivalent for, rather than campaign-detail fields like
-// tags, brand verification or a services description.
+// tags, business verification or a services description.
 function OrderCard({
   image,
   title,

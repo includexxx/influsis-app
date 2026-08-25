@@ -68,7 +68,7 @@ export default function Languages() {
           step={4}
           totalSteps={TOTAL_STEPS}
           title="What languages are you fluent in?"
-          description="Brands seek creators within age ranges for campaign"
+          description="Businesses seek creators within age ranges for campaign"
           style={profileStepStyle.header}
         />
         <View style={profileStepStyle.optionList}>

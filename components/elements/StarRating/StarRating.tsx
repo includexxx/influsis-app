@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 });
 
 // Row of filled star icons + an optional trailing label - two shapes on the
-// Influencer Profile screen share this: the header's single-star "4.5"
+// Creator Profile screen share this: the header's single-star "4.5"
 // rating (Figma node 6001:37880, `maxStars={1}`) and each review's
 // five-star "(5/5)" row (node 6001:37892, `maxStars={5}`). Figma doesn't
 // show a partial/half-filled star for any rating shown, so `rating` only

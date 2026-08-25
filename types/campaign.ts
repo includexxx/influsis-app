@@ -13,8 +13,8 @@ export interface Campaign {
   dueDate: string;
   tags?: string[];
   verified?: boolean;
-  brandAvatar?: ImageSourcePropType;
-  brandName?: string;
+  businessAvatar?: ImageSourcePropType;
+  businessName?: string;
   servicesDescription?: string;
   status?: string;
   // Campaign Details screen fields (scenes/main/CampaignDetails.tsx) -
@@ -27,7 +27,7 @@ export interface Campaign {
   about?: string;
   requirements?: string[];
   deliverables?: CampaignDeliverable[];
-  brandDescription?: string;
+  businessDescription?: string;
   website?: string;
   applicationDeadline?: string;
 }

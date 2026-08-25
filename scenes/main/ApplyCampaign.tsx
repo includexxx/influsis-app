@@ -186,7 +186,7 @@ export default function ApplyCampaign() {
       {isSuccessOpen && (
         <SuccessSheet
           title="Successful!"
-          description="Your application has been submitted. The brand will be in touch if you're a good fit."
+          description="Your application has been submitted. The business will be in touch if you're a good fit."
           buttonLabel="Go to campaign"
           buttonStyle={{ backgroundColor: '#DADADA' }}
           buttonTitleStyle={{ color: '#000000' }}

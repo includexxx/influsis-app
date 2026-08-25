@@ -18,8 +18,8 @@ import { ChatDateGroup } from '@/types';
 // other screen in that group - Figma shows this screen with a composer
 // where the tab bar would be. Routed under /chat/ rather than /message/ so
 // it can't collide with the /message tab route itself, following the same
-// distinct-segment naming every other detail route uses (/brand/[id] beside
-// /brands, /campaign/[id] beside /campaigns). Looks the tapped thread up by
+// distinct-segment naming every other detail route uses (/business/[id] beside
+// /businesses, /campaign/[id] beside /campaigns). Looks the tapped thread up by
 // id in data/messages.ts - see docs/screen/message/README.md.
 export default function ChatDetails() {
   const { colors } = useTheme();

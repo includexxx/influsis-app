@@ -11,7 +11,7 @@ import { topGigs } from '@/data/topGigs';
 // Home tab's "Top Gigs" section "See all" link (scenes/main/Home.tsx).
 // Registered in the app/(details)/ route group (outside the (main) Tabs
 // group) since Figma shows no tab bar on this screen, the same reasoning
-// as /notifications, /live-campaign, /campaigns and /brands.
+// as /notifications, /live-campaign, /campaigns and /businesses.
 // Populated from data/topGigs.ts mock content - no backend exists yet
 // (docs/PRD.md §2.2/§4.1) - see docs/screen/top-gigs/README.md.
 export default function TopGigs() {

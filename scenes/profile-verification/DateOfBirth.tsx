@@ -48,7 +48,7 @@ export default function DateOfBirth() {
           step={1}
           totalSteps={TOTAL_STEPS}
           title="When were you born?"
-          description="Brands seek creators within age ranges for campaign"
+          description="Businesses seek creators within age ranges for campaign"
           style={profileStepStyle.header}
         />
         <DateField

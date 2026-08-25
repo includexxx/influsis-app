@@ -7,8 +7,8 @@ import { spacing } from '@/theme';
 // with those components instead - this file only holds shapes the scene
 // file itself assembles sections out of.
 export const homeStyle = StyleSheet.create({
-  // Vertical gap between the six Home sections (Active Campaigns, Brand,
-  // Popular Campaigns, Campaigns, Top Gigs, Top Rated Influencer).
+  // Vertical gap between the six Home sections (Active Campaigns, Business,
+  // Popular Campaigns, Campaigns, Top Gigs, Top Rated Creator).
   sectionGap: {
     gap: spacing['3xl'],
   },
@@ -22,7 +22,7 @@ export const homeStyle = StyleSheet.create({
   horizontalListGap: {
     gap: 8,
   },
-  // Gap between circular avatars in the Brand logo / Top Rated Influencer
+  // Gap between circular avatars in the Business logo / Top Rated Creator
   // rows - Figma's own spacing here is inconsistent (14-16px between
   // instances), normalized to 12.
   avatarListGap: {

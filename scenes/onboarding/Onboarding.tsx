@@ -31,7 +31,7 @@ const slide3Hero = require('@/assets/images/onboarding/slide3-hero.jpg');
 // slides 2-3 = "Next") - see docs/screen/onboarding-carousel.md.
 const SLIDES = [
   {
-    title: 'Discover and Collaborate with Brands',
+    title: 'Discover and Collaborate with Businesses',
     description:
       'Working with Salman Muktadir was an absolute pleasure! They brilliantly promoted our.',
     buttonLabel: 'Get Started',
@@ -43,7 +43,7 @@ const SLIDES = [
     buttonLabel: 'Next',
   },
   {
-    title: 'Manage Brand Collaboration',
+    title: 'Manage Business Collaboration',
     description:
       'Working with Salman Muktadir was an absolute pleasure! They brilliantly promoted our.',
     buttonLabel: 'Next',

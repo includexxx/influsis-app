@@ -54,14 +54,14 @@ const cancelledBadge = {
 };
 
 // Order Details screen fields (scenes/main/OrderDetails.tsx, Figma node
-// 6040:8515) - shows a single example order (a verified brand, a delivery
+// 6040:8515) - shows a single example order (a verified business, a delivery
 // date, 3 deliverables, 3 requirements) applied identically to every order
 // below rather than inventing distinct detail content Figma doesn't
 // specify, same convention data/campaigns.ts's own `detailFields` follows.
 // Figma's 3 deliverable items are themselves identical copies ("Instagram
 // Post" / "1 carousel post (3-5 images) featuring the products" x3) -
 // mirrored verbatim rather than assumed to be a paste error, since unlike
-// data/campaigns.ts's corrupted "About the brand" paragraph these three
+// data/campaigns.ts's corrupted "About the business" paragraph these three
 // read as plausible (if repetitive) real content, not garbled text.
 const detailFields = {
   deliveryDate: 'Apr 24, 2025',
@@ -124,8 +124,8 @@ export const campaignOrders: Order[] = campaignImages.map((image, index) => ({
   orderedFrom: 'Ordered from Bkash',
   price: '$130',
   ...inProgressBadge,
-  brandName: 'Bkash Ltd.',
-  brandVerified: true,
+  businessName: 'Bkash Ltd.',
+  businessVerified: true,
   ...detailFields,
 }));
 
@@ -141,8 +141,8 @@ export const gigOrders: Order[] = Array.from({ length: 5 }, (_, index) => ({
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...inProgressBadge,
-  brandName: 'Jhon Smith',
-  brandVerified: true,
+  businessName: 'Jhon Smith',
+  businessVerified: true,
   ...detailFields,
 }));
 
@@ -158,8 +158,8 @@ export const completedOrders: Order[] = Array.from({ length: 5 }, (_, index) => 
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...completedBadge,
-  brandName: 'Jhon Smith',
-  brandVerified: true,
+  businessName: 'Jhon Smith',
+  businessVerified: true,
   ...detailFields,
 }));
 
@@ -175,8 +175,8 @@ export const cancelledOrders: Order[] = Array.from({ length: 5 }, (_, index) => 
   dueDate: 'Due in 12 days',
   orderedDate: 'Ordered Feb 12, 2025',
   ...cancelledBadge,
-  brandName: 'Jhon Smith',
-  brandVerified: true,
+  businessName: 'Jhon Smith',
+  businessVerified: true,
   ...detailFields,
 }));
 

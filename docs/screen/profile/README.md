@@ -40,7 +40,7 @@ The Profile tab's settings menu ("Account") and its 5 sub-screens: editing perso
 ```
 
 - `/profile` is the `(main)` Tabs group's Profile tab (`app/(main)/profile.tsx`, unchanged route) - it now renders the Figma "Account" design (a settings menu) instead of the previous read-only field dump.
-- Every sub-screen (`/profile-edit`, `/security-settings`, `/change-password`, `/privacy-policy`, `/help-center`) lives in `app/(details)/` - pushed with no tab bar, the same reasoning as every other `(details)` screen (gig/brand/campaign details, notifications, applications, ...).
+- Every sub-screen (`/profile-edit`, `/security-settings`, `/change-password`, `/privacy-policy`, `/help-center`) lives in `app/(details)/` - pushed with no tab bar, the same reasoning as every other `(details)` screen (gig/business/campaign details, notifications, applications, ...).
 
 ## Screens
 

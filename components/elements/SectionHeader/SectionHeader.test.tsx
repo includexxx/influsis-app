@@ -11,7 +11,7 @@ describe('<SectionHeader />', () => {
 
   test('calls onSeeAllPress when "See all" is pressed', () => {
     const onSeeAllPress = jest.fn();
-    render(<SectionHeader title="Brand" onSeeAllPress={onSeeAllPress} />);
+    render(<SectionHeader title="Business" onSeeAllPress={onSeeAllPress} />);
     fireEvent.press(screen.getByText('See all'));
     expect(onSeeAllPress).toHaveBeenCalledTimes(1);
   });

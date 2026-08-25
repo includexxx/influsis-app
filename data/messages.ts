@@ -10,13 +10,13 @@ import { ChatDateGroup, Conversation } from '@/types';
 // reuse existing headshot photos already in the repo (no distinct photo
 // asset exists per thread) rather than duplicating files.
 const avatars = [
-  require('@/assets/images/influencers/sunehra-tasnim.jpg'),
-  require('@/assets/images/influencers/salman-muqtadir-1.jpg'),
-  require('@/assets/images/influencers/salman-muqtadir-2.jpg'),
-  require('@/assets/images/influencers/influencer-4.jpg'),
+  require('@/assets/images/creators/sunehra-tasnim.jpg'),
+  require('@/assets/images/creators/salman-muqtadir-1.jpg'),
+  require('@/assets/images/creators/salman-muqtadir-2.jpg'),
+  require('@/assets/images/creators/creator-4.jpg'),
   require('@/assets/images/profile/avatar.jpg'),
   require('@/assets/images/profile/reviewer-avatar.jpg'),
-  require('@/assets/images/brand-details/avatar.jpg'),
+  require('@/assets/images/business-details/avatar.jpg'),
 ];
 
 const names = [

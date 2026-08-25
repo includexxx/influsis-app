@@ -54,11 +54,11 @@ export default function Bio() {
           step={5}
           totalSteps={TOTAL_STEPS}
           title="Write something about passion"
-          description="Brands seek creators within age ranges for campaign"
+          description="Businesses seek creators within age ranges for campaign"
           style={profileStepStyle.header}
         />
         <TextField
-          placeholder="Tell brands about your passion..."
+          placeholder="Tell businesses about your passion..."
           value={bio}
           onChangeText={handleChange}
           multiline

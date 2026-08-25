@@ -4,7 +4,7 @@ import Image from '../Image';
 
 export interface OrderActivityRowProps {
   icon: ImageSourcePropType;
-  brand: string;
+  business: string;
   action: string;
   timestamp: string;
   muted?: boolean;
@@ -29,12 +29,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
   },
-  brandActionGroup: {
+  businessActionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  brand: {
+  business: {
     fontSize: 14,
     lineHeight: 21,
   },
@@ -50,13 +50,13 @@ const styles = StyleSheet.create({
 });
 
 // A single row on the Order Deliver screen's "Order Activity" timeline
-// (Figma node 6040:8590) - a status icon, "{brand} {action}" text and a
+// (Figma node 6040:8590) - a status icon, "{business} {action}" text and a
 // timestamp. `muted` reproduces Figma's own 3rd timeline item, whose action
 // text is a lighter `rgba(0,0,0,0.7)` than the other two (data/orders.ts's
 // `OrderActivityEvent.muted`).
 function OrderActivityRow({
   icon,
-  brand,
+  business,
   action,
   timestamp,
   muted,
@@ -69,8 +69,8 @@ function OrderActivityRow({
     <View style={[styles.root, style]} testID={testID}>
       <Image source={icon} style={styles.icon} contentFit="contain" />
       <View style={styles.textRow}>
-        <View style={styles.brandActionGroup}>
-          <Text style={[styles.brand, { color: palette.gray[900] }]}>{brand}</Text>
+        <View style={styles.businessActionGroup}>
+          <Text style={[styles.business, { color: palette.gray[900] }]}>{business}</Text>
           <Text
             style={[styles.action, { color: muted ? 'rgba(0, 0, 0, 0.7)' : palette.gray[900] }]}>
             {action}

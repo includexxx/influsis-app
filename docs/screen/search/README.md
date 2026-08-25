@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Figma nodes** | [`6119:6016`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6119-6016&m=dev) "Home - Influencer Ongoing" (keyboard-open/typing state), [`6119:6338`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6119-6338&m=dev) (results state), [`6123:7171`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6123-7171&m=dev) (no-results state) |
+| **Figma nodes** | [`6119:6016`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6119-6016&m=dev) "Home - Creator Ongoing" (keyboard-open/typing state), [`6119:6338`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6119-6338&m=dev) (results state), [`6123:7171`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6123-7171&m=dev) (no-results state) |
 | **Route** | `/search` (`app/(main)/search.tsx`, hidden tab - see "Navigation" below) |
 | **Scene** | `scenes/main/Search.tsx` |
 | **Data** | `data/search.ts` |

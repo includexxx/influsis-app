@@ -34,7 +34,7 @@ A single static content screen: the app's privacy policy text. Opened from the A
 
 ## Scope notes
 
-- **Rendered once, not twice.** Figma's own frame repeats the entire heading/intro/bullet-list block twice back-to-back (node `6027:8300`, a duplicated content group sitting directly below the first copy) - the same kind of copy-paste content error already normalized away elsewhere in this project (`data/campaigns.ts`'s "About the brand" note). Implemented as a single copy.
+- **Rendered once, not twice.** Figma's own frame repeats the entire heading/intro/bullet-list block twice back-to-back (node `6027:8300`, a duplicated content group sitting directly below the first copy) - the same kind of copy-paste content error already normalized away elsewhere in this project (`data/campaigns.ts`'s "About the business" note). Implemented as a single copy.
 - **Not built on the existing `BulletList` component.** Each bullet here is a **bold label + regular-weight description in the same line** ("**Device Information**: We may collect..."), which `BulletList` (`items: string[]`, built for Gig Details' plain bullet copy) has no way to express - forcing it in would mean either losing the bold label or overloading that component's simple shape for one screen. Rendered inline instead with a small local `{ label, text }[]` array and a nested bold `Text`, keeping `BulletList` itself unchanged and still simple for its existing callers.
 
 ## Navigation

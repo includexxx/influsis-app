@@ -12,7 +12,7 @@ import EmptyState from '@/components/elements/EmptyState';
 import SearchIllustration from '@/components/elements/SearchIllustration';
 import { searchCategories, searchResults } from '@/data/search';
 
-// The Search screen (Figma "Home - Influencer Ongoing", nodes 6119:6016
+// The Search screen (Figma "Home - Creator Ongoing", nodes 6119:6016
 // (typing, keyboard open), 6119:6338 (results) and 6123:7171 (no results)),
 // pushed from the Home tab's search bar (scenes/main/Home.tsx). Registered
 // as a hidden route inside app/(main) (see app/(main)/_layout.tsx) so the

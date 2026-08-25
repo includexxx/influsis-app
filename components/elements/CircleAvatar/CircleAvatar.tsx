@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
   },
 });
 
-// Plain circular photo used by the Home screen's "Brand" logo row and "Top
-// Rated Influencer" avatar row (Figma nodes 6770:6071 / 6121:6533) - both
+// Plain circular photo used by the Home screen's "Business" logo row and "Top
+// Rated Creator" avatar row (Figma nodes 6770:6071 / 6121:6533) - both
 // are the same 80px circle shape, just with different source images. The
 // optional `label` (a name centered below the circle, Figma node
-// 6010:16915) was added for the Brands screen's grid (docs/screen/brands),
-// and `onPress` (Figma's Influencer Profile screen, docs/screen/
-// influencer-profile) for Home's avatar row linking through to a profile -
+// 6010:16915) was added for the Businesses screen's grid (docs/screen/businesses),
+// and `onPress` (Figma's Creator Profile screen, docs/screen/
+// creator-profile) for Home's avatar row linking through to a profile -
 // omitting both keeps the original call sites' plain-circle rendering (and
 // root element) unchanged. `onEditPress` (Figma "Type=Edit, Component=
 // Avatar", node 6001:39057) adds the small pink pencil badge overlapping

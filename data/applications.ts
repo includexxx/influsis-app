@@ -44,57 +44,57 @@ export const appliedCampaigns: AppliedCampaign[] = [
 ];
 
 // "Request" tab - every card reads "5 min ago" in Figma (node 6475:6394 and
-// its 7 card instances), mirrored verbatim. Logos reuse the existing brand
-// photos already extracted for Home/Brands (assets/images/home,
-// assets/images/brands) rather than exporting near-duplicate assets:
-// KFC/Bkash/Pathao match real existing brand entries 1:1; "Grameen" reuses
-// brands/gp.jpg since GP *is* Grameenphone in data/brands.ts (brand-11);
-// "Go zayn" has no existing real-brand match, so it reuses brands/robi.jpg
+// its 7 card instances), mirrored verbatim. Logos reuse the existing business
+// photos already extracted for Home/Businesses (assets/images/home,
+// assets/images/businesses) rather than exporting near-duplicate assets:
+// KFC/Bkash/Pathao match real existing business entries 1:1; "Grameen" reuses
+// businesses/gp.jpg since GP *is* Grameenphone in data/businesses.ts (business-11);
+// "Go zayn" has no existing real-business match, so it reuses businesses/robi.jpg
 // as a mismatched stand-in, following the same documented precedent as
-// data/brands.ts's own "Bkash Ltd" label on the Bata logo. The 7th card
+// data/businesses.ts's own "Bkash Ltd" label on the Bata logo. The 7th card
 // keeps Figma's own text/logo mismatch (node 6475:6567's "KFC" copy paired
 // with the Pathao logo instance) rather than silently correcting it.
 export const campaignRequests: CampaignRequest[] = [
   {
     id: 'request-1',
-    brandLogo: require('@/assets/images/home/brand-logo-2.jpg'),
-    brandName: 'KFC',
+    businessLogo: require('@/assets/images/home/business-logo-2.jpg'),
+    businessName: 'KFC',
     time: '5 min ago',
   },
   {
     id: 'request-2',
-    brandLogo: require('@/assets/images/home/brand-logo-1.jpg'),
-    brandName: 'Bkash',
+    businessLogo: require('@/assets/images/home/business-logo-1.jpg'),
+    businessName: 'Bkash',
     time: '5 min ago',
   },
   {
     id: 'request-3',
-    brandLogo: require('@/assets/images/home/brand-logo-3.jpg'),
-    brandName: 'Pathao',
+    businessLogo: require('@/assets/images/home/business-logo-3.jpg'),
+    businessName: 'Pathao',
     time: '5 min ago',
   },
   {
     id: 'request-4',
-    brandLogo: require('@/assets/images/brands/robi.jpg'),
-    brandName: 'Go zayn',
+    businessLogo: require('@/assets/images/businesses/robi.jpg'),
+    businessName: 'Go zayn',
     time: '5 min ago',
   },
   {
     id: 'request-5',
-    brandLogo: require('@/assets/images/brands/gp.jpg'),
-    brandName: 'Grameen',
+    businessLogo: require('@/assets/images/businesses/gp.jpg'),
+    businessName: 'Grameen',
     time: '5 min ago',
   },
   {
     id: 'request-6',
-    brandLogo: require('@/assets/images/home/brand-logo-2.jpg'),
-    brandName: 'KFC',
+    businessLogo: require('@/assets/images/home/business-logo-2.jpg'),
+    businessName: 'KFC',
     time: '5 min ago',
   },
   {
     id: 'request-7',
-    brandLogo: require('@/assets/images/home/brand-logo-3.jpg'),
-    brandName: 'KFC',
+    businessLogo: require('@/assets/images/home/business-logo-3.jpg'),
+    businessName: 'KFC',
     time: '5 min ago',
   },
 ];

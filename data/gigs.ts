@@ -33,7 +33,7 @@ const services: GigService[] = [
 // Figma's own "Description of this Gig" repeats its second bullet
 // verbatim as a third - mirrored as-is (see docs/screen/gig-details).
 const descriptionBullets: string[] = [
-  'I believe every brand has a story and I love narrating one with my unique statement.',
+  'I believe every business has a story and I love narrating one with my unique statement.',
   'Let me know your requirement and brief about your product and I will create the best UGC content to promote it.',
   'Let me know your requirement and brief about your product and I will create the best UGC content to promote it.',
 ];

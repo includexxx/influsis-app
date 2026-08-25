@@ -17,7 +17,7 @@ export const faqs: Faq[] = [
   {
     question: 'How influsis Works?',
     answer:
-      'Influsis connects creators with brands running influencer marketing campaigns. Browse campaigns and gigs on the Home tab, apply to the ones that fit, and message brands directly once you’re in touch.',
+      'Influsis connects creators with businesses running creator marketing campaigns. Browse campaigns and gigs on the Home tab, apply to the ones that fit, and message businesses directly once you’re in touch.',
   },
   {
     question: 'Is the influsis App free?',
@@ -41,6 +41,6 @@ export const faqs: Faq[] = [
   {
     question: 'How do I apply to a campaign?',
     answer:
-      'Open any campaign’s details and tap Apply Now. Add a couple of portfolio files and a link to your work, then submit - the brand will follow up if you’re a good fit.',
+      'Open any campaign’s details and tap Apply Now. Add a couple of portfolio files and a link to your work, then submit - the business will follow up if you’re a good fit.',
   },
 ];

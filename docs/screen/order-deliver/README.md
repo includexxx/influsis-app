@@ -19,7 +19,7 @@ Two screens forming the tail end of the Order Details flow: **Order Deliver** �
   │  tap "Delivery" button
   ▼
 /order/[id]/deliver                     tab: Order Activity (default)
-  │  timeline: {brand} place the order / The order started / The order started
+  │  timeline: {business} place the order / The order started / The order started
   │  link field: "Deliver your file here" → user types a URL
   │
   ├─ tap "Order Details" tab ─────────▶  tab: Order Details (in-place switch, no navigation)
@@ -46,7 +46,7 @@ Two screens forming the tail end of the Order Details flow: **Order Deliver** �
 |---|---|---|---|
 | 1 | Header | Back chevron + centered "Order details" title | `ScreenHeader` |
 | 2 | Tabs | "Order Activity" / "Order Details", each with its own underline | plain `Pressable`/`Text` |
-| 3 | Activity timeline | Icon + "{brand} {action}" + timestamp, one row per event | `OrderActivityRow` ×3 |
+| 3 | Activity timeline | Icon + "{business} {action}" + timestamp, one row per event | `OrderActivityRow` ×3 |
 | 4 | Link field | Bordered text input with a paperclip trailing icon | `TextField` |
 | 5 | Submit | Filled "Delivery" button | `Button` |
 
@@ -66,7 +66,7 @@ Two screens forming the tail end of the Order Details flow: **Order Deliver** �
 
 ## New component: `OrderActivityRow`
 
-No existing row component pairs a status icon with "{subject} {verb}" rich text and a trailing timestamp — `NotificationCard` and `ConversationCard` are both closer to a tappable list-item shape (avatar, unread state) than a timeline entry. `OrderActivityRow` (`components/elements/OrderActivityRow/`) is a new, narrowly-scoped component for this one pattern: a 26×26 icon, a "{brand} {action}" text group, and a lighter timestamp, with an optional `muted` flag reproducing Figma's own 3rd timeline item (its action text is a lighter `rgba(0,0,0,0.7)` than the other two, identical copy otherwise).
+No existing row component pairs a status icon with "{subject} {verb}" rich text and a trailing timestamp — `NotificationCard` and `ConversationCard` are both closer to a tappable list-item shape (avatar, unread state) than a timeline entry. `OrderActivityRow` (`components/elements/OrderActivityRow/`) is a new, narrowly-scoped component for this one pattern: a 26×26 icon, a "{business} {action}" text group, and a lighter timestamp, with an optional `muted` flag reproducing Figma's own 3rd timeline item (its action text is a lighter `rgba(0,0,0,0.7)` than the other two, identical copy otherwise).
 
 ## New component: `StepTracker`
 
@@ -78,9 +78,9 @@ The link field's bordered box uses an 8px radius, a `rgba(0,0,0,0.2)` border and
 
 ## Scope notes
 
-- **No real backend, and no dedicated content per order.** As with every other flow, there's no orders/delivery API (`docs/PRD.md` §2.2/§4.1). Figma's "Order Deliver" node shows one example timeline (`<brand> place the order` / `<brand> The order started` ×2) and one example tracker (4 steps, the first completed) - both applied identically to every order via `data/orders.ts`'s shared `detailFields.activity`/`.tracker`, the same pattern already used for Order Details' own deliverables/requirements. `<brand>` is substituted with the tapped order's own `brandName` at render time rather than left as a literal placeholder; the "Order Details" tab's summary/meta rows reuse that same order's `title`/`image`/`status`/`price`/`brandName`/`deliveryDate` fields rather than Figma's independently-authored sample values ($250.00, order number `#G24510278` stays as its own new field since nothing else on `Order` covers it).
-- **"Purchased by" value substituted.** Figma's own value for this row is literally the string "Purchased by" again (not an actual name) - read as a text-entry placeholder error and substituted with the order's real `brandName`, the same normalization already applied to Order Details' own title/price mismatch (`docs/screen/order-details/README.md`).
-- **Tracker step copy kept verbatim.** "Your details" / "Company details" / "Invite your team" / "Add your socials" read like a generic stepper component's default placeholder content rather than order-specific copy - but since it isn't garbled or duplicated text (unlike `data/campaigns.ts`'s corrupted "About the brand" paragraph), it's mirrored as-is per this project's practice of implementing real Figma copy rather than inventing replacement text.
+- **No real backend, and no dedicated content per order.** As with every other flow, there's no orders/delivery API (`docs/PRD.md` §2.2/§4.1). Figma's "Order Deliver" node shows one example timeline (`<business> place the order` / `<business> The order started` ×2) and one example tracker (4 steps, the first completed) - both applied identically to every order via `data/orders.ts`'s shared `detailFields.activity`/`.tracker`, the same pattern already used for Order Details' own deliverables/requirements. `<business>` is substituted with the tapped order's own `businessName` at render time rather than left as a literal placeholder; the "Order Details" tab's summary/meta rows reuse that same order's `title`/`image`/`status`/`price`/`businessName`/`deliveryDate` fields rather than Figma's independently-authored sample values ($250.00, order number `#G24510278` stays as its own new field since nothing else on `Order` covers it).
+- **"Purchased by" value substituted.** Figma's own value for this row is literally the string "Purchased by" again (not an actual name) - read as a text-entry placeholder error and substituted with the order's real `businessName`, the same normalization already applied to Order Details' own title/price mismatch (`docs/screen/order-details/README.md`).
+- **Tracker step copy kept verbatim.** "Your details" / "Company details" / "Invite your team" / "Add your socials" read like a generic stepper component's default placeholder content rather than order-specific copy - but since it isn't garbled or duplicated text (unlike `data/campaigns.ts`'s corrupted "About the business" paragraph), it's mirrored as-is per this project's practice of implementing real Figma copy rather than inventing replacement text.
 - **The link field doesn't gate the "Delivery" button.** Figma shows both an empty-field state (node `6040:8590`) and a filled one (`6574:6219`, `https://www.tiktok.com/`) but no validation/error state for either - the field is a plain controlled `TextField` and "Delivery" always navigates forward regardless of its content, since there's no backend to actually submit a delivery to.
 - **The paperclip icon is decorative.** Figma's `fi-rr-clip` icon suggests file attachment, but the filled-state frame shows a *typed URL*, not an attached-file chip - so this is a link/URL field with a decorative clip icon, not a real file picker (unlike Apply Campaign's `FilePicker`, which does open the device's image library). Kept as a static trailing icon via `TextField`'s `rightAdornment`.
 - **Tabs switch in-place via local state**, not navigation - `useState<'activity' | 'details'>('activity')` in `OrderDeliver.tsx`. Each tab renders its own `borderBottomWidth`/`borderBottomColor` (gray by default, pink when active) rather than one shared absolutely-positioned indicator spanning a computed width - simpler and robust now that either tab can be active, at the cost of the underline hairline not visibly continuing through the gap between the two tabs the way Figma's single full-width line + overlaid shorter accent does.

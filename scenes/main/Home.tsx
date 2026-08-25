@@ -12,11 +12,11 @@ import GigCard from '@/components/elements/GigCard';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import {
   activeCampaigns,
-  brandLogos,
+  businessLogos,
   popularCampaigns,
   campaigns,
   gigs,
-  topRatedInfluencers,
+  topRatedCreators,
 } from '@/data/home';
 
 const searchIcon = require('@/assets/images/home/search.png');
@@ -99,17 +99,17 @@ export default function Home() {
 
         <View>
           <SectionHeader
-            title="Brand"
-            onSeeAllPress={() => router.push('/brands')}
+            title="Business"
+            onSeeAllPress={() => router.push('/businesses')}
             style={homeStyle.sectionHeaderGap}
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
-              {brandLogos.map(item => (
+              {businessLogos.map(item => (
                 <CircleAvatar
                   key={item.id}
                   source={item.source}
-                  onPress={() => router.push(`/brand/${item.id}`)}
+                  onPress={() => router.push(`/business/${item.id}`)}
                 />
               ))}
             </View>
@@ -166,17 +166,17 @@ export default function Home() {
 
         <View>
           <SectionHeader
-            title="Top Rated Influencer"
-            onSeeAllPress={() => router.push('/top-influencers')}
+            title="Top Rated Creator"
+            onSeeAllPress={() => router.push('/top-creators')}
             style={homeStyle.sectionHeaderGap}
           />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={[styles.row, homeStyle.avatarListGap]}>
-              {topRatedInfluencers.map(item => (
+              {topRatedCreators.map(item => (
                 <CircleAvatar
                   key={item.id}
                   source={item.image}
-                  onPress={() => router.push(`/influencer/${item.id}`)}
+                  onPress={() => router.push(`/creator/${item.id}`)}
                 />
               ))}
             </View>

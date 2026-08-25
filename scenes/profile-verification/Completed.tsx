@@ -78,7 +78,7 @@ export default function Completed() {
             Congratulation!{'\n'}You have completed profile
           </Text>
           <Text style={[styles.description, { color: colors.text.secondary }]}>
-            Your profile is ready - brands can now discover you for campaigns that fit your niche.
+            Your profile is ready - businesses can now discover you for campaigns that fit your niche.
           </Text>
         </View>
       </View>

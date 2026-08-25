@@ -3,10 +3,10 @@ import { Campaign } from '@/types';
 // Canonical campaign list - the single source of truth for every screen
 // that shows campaigns (Home's "Active Campaigns" hero row and "Campaigns"
 // list section, the full /campaigns list, /live-campaign, /search results,
-// Brand Details' "Ongoing Campaign" section, and the Campaign Details
+// Business Details' "Ongoing Campaign" section, and the Campaign Details
 // screen at /campaign/[id], which looks a tapped campaign up here by id
 // regardless of which screen the tap came from). Consolidated the same way
-// data/gigs.ts and data/influencers.ts already are - see
+// data/gigs.ts and data/creators.ts already are - see
 // docs/screen/campaign-details/README.md "Data consolidation". Previously
 // five separate arrays (this file, data/home.ts, data/liveCampaigns.ts,
 // data/search.ts) with disjoint, non-overlapping ids and no shared lookup;
@@ -16,26 +16,26 @@ import { Campaign } from '@/types';
 // Campaign Details (Figma node 6001:37641, docs/screen/campaign-details)
 // shows a single example campaign - budget/duration/follower stats, an
 // "About campaign" paragraph, requirements, three deliverables, an "About
-// the brand" paragraph, a website link and an application deadline -
+// the business" paragraph, a website link and an application deadline -
 // applied identically to every campaign below rather than inventing
-// distinct detail content Figma doesn't specify, same as data/brands.ts's
+// distinct detail content Figma doesn't specify, same as data/businesses.ts's
 // bannerImage/avatar/description and data/gigs.ts's service breakdown.
 // Figma's own banner/avatar photos are the exact same asset pair already
-// extracted for Brand Details (same hashes) - reused directly rather than
-// re-exporting duplicates. Figma's "About the brand" paragraph is
+// extracted for Business Details (same hashes) - reused directly rather than
+// re-exporting duplicates. Figma's "About the business" paragraph is
 // corrupted into four back-to-back copies of the same sentence pasted
 // together (node 6001:37699) - a designer text-entry error, not
 // intentional repeated content like the mismatches this project otherwise
 // preserves - so only one clean copy is kept here.
 const detailFields = {
-  bannerImage: require('@/assets/images/brand-details/banner.jpg'),
-  avatar: require('@/assets/images/brand-details/avatar.jpg'),
-  brandName: 'Bkash Ltd. Company',
+  bannerImage: require('@/assets/images/business-details/banner.jpg'),
+  avatar: require('@/assets/images/business-details/avatar.jpg'),
+  businessName: 'Bkash Ltd. Company',
   budget: '500-1000',
   duration: '15 days',
   followerWanted: 'Up to 200k',
   about:
-    "We're looking for fashion-forward influencers to showcase our new summer collection. Create authentic content that highlights the versatility and style of our pieces while sharing your personal fashion story.",
+    "We're looking for fashion-forward creators to showcase our new summer collection. Create authentic content that highlights the versatility and style of our pieces while sharing your personal fashion story.",
   requirements: [
     '10,000+ Instagram followers',
     'Fashion/Lifestyle content focus',
@@ -57,15 +57,15 @@ const detailFields = {
       description: '1 carousel post (3-5 images) featuring the products',
     },
   ],
-  brandDescription:
+  businessDescription:
     'FashionBrand is a contemporary fashion label known for its sustainable practices and modern designs. Our mission is to create stylish, eco-conscious clothing for the fashion-forward generation.',
   website: 'https://food.net',
   applicationDeadline: 'Feb 28, 2024',
 };
 
 // Originally this file's only content (Campaigns screen, scenes/main/
-// Campaigns.tsx, and Brand Details' "Ongoing Campaign" section via
-// data/brands.ts's campaignIds) - see docs/screen/campaigns/README.md
+// Campaigns.tsx, and Business Details' "Ongoing Campaign" section via
+// data/businesses.ts's campaignIds) - see docs/screen/campaigns/README.md
 // "Scope notes" for why all four cards share the same "Bkash Branding
 // Campaign" / "Bkash Ltd." content.
 export const campaigns: Campaign[] = [
@@ -74,7 +74,7 @@ export const campaigns: Campaign[] = [
     id: 'campaign-1',
     image: require('@/assets/images/home/hero-campaign.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     price: '$2,000',
@@ -85,7 +85,7 @@ export const campaigns: Campaign[] = [
     id: 'campaign-2',
     image: require('@/assets/images/home/campaign-list-1.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -97,7 +97,7 @@ export const campaigns: Campaign[] = [
     id: 'campaign-3',
     image: require('@/assets/images/home/campaign-list-2.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -109,7 +109,7 @@ export const campaigns: Campaign[] = [
     id: 'campaign-4',
     image: require('@/assets/images/home/campaign-list-3.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -127,7 +127,7 @@ export const activeCampaigns: Campaign[] = [
     ...detailFields,
     id: 'kfc-branding',
     image: require('@/assets/images/home/hero-campaign.jpg'),
-    brandAvatar: require('@/assets/images/home/hero-brand-avatar.jpg'),
+    businessAvatar: require('@/assets/images/home/hero-business-avatar.jpg'),
     title: 'KFC Branding Campaign',
     verified: true,
     tags: ['Male', 'Female'],
@@ -138,7 +138,7 @@ export const activeCampaigns: Campaign[] = [
     ...detailFields,
     id: 'bkash-branding-hero',
     image: require('@/assets/images/home/campaign-list-1.jpg'),
-    brandAvatar: require('@/assets/images/home/hero-brand-avatar.jpg'),
+    businessAvatar: require('@/assets/images/home/hero-business-avatar.jpg'),
     title: 'Bkash Branding Campaign',
     verified: true,
     tags: ['Male', 'Female'],
@@ -156,7 +156,7 @@ export const homeCampaigns: Campaign[] = [
     id: 'bkash-1',
     image: require('@/assets/images/home/campaign-list-1.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     price: '$2,000',
@@ -167,7 +167,7 @@ export const homeCampaigns: Campaign[] = [
     id: 'bkash-2',
     image: require('@/assets/images/home/campaign-list-2.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -179,7 +179,7 @@ export const homeCampaigns: Campaign[] = [
     id: 'bkash-3',
     image: require('@/assets/images/home/campaign-list-3.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -191,7 +191,7 @@ export const homeCampaigns: Campaign[] = [
     id: 'bkash-4',
     image: require('@/assets/images/home/campaign-list-4.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     tags: ['Male', 'Female'],
     servicesDescription: '3 Tiktok Video, 1 Youtube Reel,  2 Facebook Post',
@@ -212,7 +212,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-1',
     image: require('@/assets/images/home/hero-campaign.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -223,7 +223,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-2',
     image: require('@/assets/images/home/campaign-list-1.jpg'),
     title: 'Summer Unisex T-Shirt Fashion Collection Campaigns',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -234,7 +234,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-3',
     image: require('@/assets/images/home/campaign-list-2.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -245,7 +245,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-4',
     image: require('@/assets/images/home/campaign-list-3.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -256,7 +256,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-5',
     image: require('@/assets/images/home/campaign-list-4.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -267,7 +267,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-6',
     image: require('@/assets/images/home/popular-campaign-1.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -278,7 +278,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-7',
     image: require('@/assets/images/home/popular-campaign-2.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -289,7 +289,7 @@ export const liveCampaigns: Campaign[] = [
     id: 'live-8',
     image: require('@/assets/images/home/popular-campaign-3.jpg'),
     title: 'Bkash Branding Campaign',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -306,7 +306,7 @@ export const searchResults: Campaign[] = [
     id: 'search-1',
     image: require('@/assets/images/home/campaign-list-1.jpg'),
     title: 'Summer Unisex T-Shirt Fashion Collection Campaigns',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -317,7 +317,7 @@ export const searchResults: Campaign[] = [
     id: 'search-2',
     image: require('@/assets/images/home/campaign-list-2.jpg'),
     title: 'Summer Unisex T-Shirt Fashion Collection Campaigns',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
@@ -328,7 +328,7 @@ export const searchResults: Campaign[] = [
     id: 'search-3',
     image: require('@/assets/images/home/campaign-list-3.jpg'),
     title: 'Summer Unisex T-Shirt Fashion Collection Campaigns',
-    brandName: 'Bkash Ltd.',
+    businessName: 'Bkash Ltd.',
     verified: true,
     status: 'Ongoing',
     price: '$2,000',
