@@ -1,11 +1,11 @@
 # Product Requirements Document (PRD) — Influsis App
 
-| | |
-|---|---|
-| **Product** | Influsis (mobile + web app) |
-| **Status** | Foundation stage — built on React Native boilerplate, product features not yet implemented |
-| **Platforms** | iOS, Android, Web (single Expo codebase) |
-| **Last updated** | 2026-08-10 |
+|                  |                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| **Product**      | Influsis (mobile + web app)                                                                |
+| **Status**       | Foundation stage — built on React Native boilerplate, product features not yet implemented |
+| **Platforms**    | iOS, Android, Web (single Expo codebase)                                                   |
+| **Last updated** | 2026-08-10                                                                                 |
 
 ---
 
@@ -15,19 +15,28 @@ Influsis is a cross-platform application currently at the **scaffolding stage**.
 
 This document records (a) what the app does today, (b) the technical foundation product features will be built on, and (c) the gaps that must be closed before the app can be considered Influsis rather than the boilerplate.
 
+## Design System
+
+- [Design Tokens and systems](./design-system.md)
+
+## Screen Specs (per screen)
+
+- [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
+- [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
+- [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
+
 ## 2. Current State of the App
 
 ### 2.1 What works today
 
-- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides and a welcome bottom sheet opens (`app/_layout.tsx`).
-- **Navigation** (Expo Router v6, file-based):
+- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides (`app/_layout.tsx`).
+- **Navigation** (Expo Router v6, file-based) — see the Screen Specs above for the full flow; at a glance:
   ```
-  Root (Drawer)
-  └── Tabs
-      ├── Home tab  → Stack: Home → Details
-      └── Profile tab → Stack: Profile → Details
+  /onboarding → /auth/* (sign-in/sign-up/OTP/forgot-reset password)
+    → /profile-verification/* (post-signup wizard, sign-up only)
+    → /(main) Tabs: Home | Order | Create Gig (modal) | Message | Profile
   ```
-  Includes a custom drawer, custom navigation header components, and a hidden index route that redirects into the Home tab.
+  The original boilerplate's Drawer + demo Home/Profile/Details tabs were removed; `(main)` is a fresh Tabs-only shell (no drawer) matching the real Figma tab bar design. See `docs/design-system.md` "App shell reset".
 - **Theming**: Automatic light/dark mode via `useColorScheme`, centralized color palette (`theme/colors.ts`), font and image loaders.
 - **State management**: Redux Toolkit with a single `app` slice (`checked`, `loggedIn`, `user`) exposed through a `useAppSlice` convenience hook.
 - **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys.
@@ -35,26 +44,26 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.2 What is placeholder / not real yet
 
-- **Screens**: Home, Profile, and Details are demo screens containing only a title and a navigation button.
+- **Main app screens**: Home, Order, Message are placeholder screens (title + note); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
 - **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
-- **Auth**: `loggedIn` state exists but there is no login/signup flow; every launch "logs in" the fake user.
+- **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.
 - **Backend**: No API client, no endpoints, no data models beyond a minimal `User { name, email }` type.
 
 ## 3. Technical Foundation (inherited, keep)
 
-| Concern | Implementation |
-|---|---|
-| Framework | React Native 0.81.5, React 19.1, Expo SDK 54, New Architecture |
-| Language | TypeScript 5.9, strict mode |
-| Routing | Expo Router v6 (drawer → tabs → stacks) |
-| Global state | Redux Toolkit + react-redux, `useAppSlice` pattern |
-| Local storage | AsyncStorage via `useDataPersist` |
-| Theming | Custom theme system (`@/theme`) with light/dark support |
-| UI elements | Reusable `Button`, `GradientButton`, `Image`, `BottomSheet` components with tests |
-| Environment | dotenvx + `app.config.ts` → typed access via `utils/config.ts` |
-| Build/Deploy | EAS Build (iOS/Android), EAS Hosting (web), OTA via expo-updates |
-| Quality | ESLint 9 (flat config), Prettier, Jest + React Native Testing Library, Husky + lint-staged pre-commit |
+| Concern       | Implementation                                                                                        |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| Framework     | React Native 0.81.5, React 19.1, Expo SDK 54, New Architecture                                        |
+| Language      | TypeScript 5.9, strict mode                                                                           |
+| Routing       | Expo Router v6 (drawer → tabs → stacks)                                                               |
+| Global state  | Redux Toolkit + react-redux, `useAppSlice` pattern                                                    |
+| Local storage | AsyncStorage via `useDataPersist`                                                                     |
+| Theming       | Custom theme system (`@/theme`) with light/dark support                                               |
+| UI elements   | Reusable `Button`, `GradientButton`, `Image`, `BottomSheet` components with tests                     |
+| Environment   | dotenvx + `app.config.ts` → typed access via `utils/config.ts`                                        |
+| Build/Deploy  | EAS Build (iOS/Android), EAS Hosting (web), OTA via expo-updates                                      |
+| Quality       | ESLint 9 (flat config), Prettier, Jest + React Native Testing Library, Husky + lint-staged pre-commit |
 
 ## 4. Product Direction (to be defined)
 
@@ -62,22 +71,22 @@ The product scope of Influsis (target users, core features, monetization) is **n
 
 ### 4.1 Proposed epics (placeholders — confirm before building)
 
-| # | Epic | Depends on |
-|---|---|---|
-| E1 | Rebrand app (name, slug, bundle IDs, icons, splash, colors) | — |
-| E2 | Real authentication (signup, login, logout, session refresh) | Backend API |
-| E3 | API service layer (replace fake `getUserAsync`, add error handling, token storage) | E2 |
-| E4 | Core Influsis feature set (feeds, campaigns, discovery — TBD) | E2, E3 |
-| E5 | Profile management (edit profile, avatar upload, settings) | E2, E3 |
-| E6 | Push notifications & deep linking | E2 |
-| E7 | Analytics and crash reporting | — |
+| #   | Epic                                                                               | Depends on  |
+| --- | ---------------------------------------------------------------------------------- | ----------- |
+| E1  | Rebrand app (name, slug, bundle IDs, icons, splash, colors)                        | —           |
+| E2  | Real authentication (signup, login, logout, session refresh)                       | Backend API |
+| E3  | API service layer (replace fake `getUserAsync`, add error handling, token storage) | E2          |
+| E4  | Core Influsis feature set (feeds, campaigns, discovery — TBD)                      | E2, E3      |
+| E5  | Profile management (edit profile, avatar upload, settings)                         | E2, E3      |
+| E6  | Push notifications & deep linking                                                  | E2          |
+| E7  | Analytics and crash reporting                                                      | —           |
 
 ### 4.2 Functional requirements that already have scaffolding
 
-- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. *(Scaffolded — currently always "logs in".)*
-- **FR-2 Theme**: All screens must render correctly in light and dark mode. *(Working pattern established.)*
-- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. *(Working with fake data.)*
-- **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. *(Working.)*
+- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Scaffolded — currently always "logs in".)_
+- **FR-2 Theme**: All screens must render correctly in light and dark mode. _(Working pattern established.)_
+- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working with fake data.)_
+- **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. _(Working.)_
 
 ## 5. Non-Functional Requirements
 

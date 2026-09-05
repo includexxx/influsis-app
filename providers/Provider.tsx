@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as ReduxProvider } from 'react-redux';
 import useColorScheme from '@/hooks/useColorScheme';
 import store from '@/utils/store';
@@ -9,9 +10,11 @@ export default function Provider({ children }: Readonly<{ children: React.ReactN
   const { isDark } = useColorScheme();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ReduxProvider store={store}>
-        <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>{children}</ThemeProvider>
-      </ReduxProvider>
+      <SafeAreaProvider>
+        <ReduxProvider store={store}>
+          <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>{children}</ThemeProvider>
+        </ReduxProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

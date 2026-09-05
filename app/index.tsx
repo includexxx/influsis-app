@@ -1,5 +1,10 @@
 import { Redirect } from 'expo-router';
+import { useAppSlice } from '@/slices';
 
 export default function Index() {
-  return <Redirect href="/(main)/home" />;
+  const { checked } = useAppSlice();
+
+  if (!checked) return null;
+
+  return <Redirect href="/onboarding" />;
 }

@@ -1,11 +1,11 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const expoProjectId = process.env.EXPO_PROJECT_ID ?? '18adc0d0-eb1d-11e9-8009-d524ed5cc4a7';
+  const expoProjectId = process.env.EXPO_PROJECT_ID ?? '0fd3df0c-7c43-4859-9c5a-f4b7ecf8b179';
   const expoConfig: ExpoConfig = {
     ...config,
-    slug: process.env.EXPO_SLUG ?? 'react-native-boilerplate',
-    name: process.env.EXPO_NAME ?? 'React Native Boilerplate',
+    slug: process.env.EXPO_SLUG ?? 'infus',
+    name: process.env.EXPO_NAME ?? 'Influsis',
     ios: {
       ...config.ios,
       bundleIdentifier:
@@ -19,7 +19,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...config.web,
       bundler: 'metro',
       output: 'static',
-      favicon: './assets/images/logo-sm.png',
     },
     updates: {
       url: `https://u.expo.dev/${expoProjectId}`,
@@ -38,12 +37,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'expo-splash-screen',
         {
           backgroundColor: '#ffffff',
-          dark: {
-            backgroundColor: '#101212',
-          },
-          image: './assets/images/logo-lg.png',
-          imageWidth: 200,
-          resizeMode: 'contain',
+          image: './assets/images/Influsis_logo.png',
+          imageWidth: 300,
         },
       ],
       [
@@ -56,6 +51,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             './assets/fonts/OpenSans-Regular.ttf',
             './assets/fonts/OpenSans-Semibold.ttf',
             './assets/fonts/OpenSans-SemiboldItalic.ttf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Bold.otf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Extralight.otf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Light.otf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Medium.otf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Regular.otf',
+            './assets/fonts/ClashDisplay/ClashDisplay-Semibold.otf',
           ],
         },
       ],

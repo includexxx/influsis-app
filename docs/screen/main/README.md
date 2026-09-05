@@ -1,0 +1,42 @@
+# Screen Specs — Main App Shell
+
+| | |
+|---|---|
+| **Figma node** | [`6355:6595`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6355-6595&m=dev) — "TabBar" (4 `property1` variants: Campaign/Home Active, Order Active, Message Active, Profile Active) |
+| **Route group** | `app/(main)/` (Expo Router group — segment is invisible in the URL) |
+| **Layout** | `app/(main)/_layout.tsx` — `expo-router`'s `<Tabs>` |
+| **Scenes** | `scenes/main/{Home,Order,Message,Profile,CreateGig}.tsx` |
+| **Components used** | `TabBarIcon`, `TabBarLabel` (new, `components/layouts/`) |
+
+## Purpose
+
+The tab-based shell a user lands in once they're signed in — this is the third product flow, replacing the placeholder `/welcome` screen that stood in for it (see `docs/screen/auth/README.md` and `docs/screen/profile-verification/README.md` for how a user arrives here). It has no content of its own; it's the navigation frame the rest of the product gets built inside.
+
+## Tabs
+
+| Tab | Route | Icon (inactive → active) |
+|---|---|---|
+| Home | `/home` | outline house → filled house, bold label |
+| Order | `/order` | outline clapperboard → filled clapperboard + two accent marks, bold label |
+| **Create Gig** | *(none — see below)* | circle-plus, same in both states |
+| Message | `/message` | outline speech bubble → filled speech bubble, bold label |
+| Profile | `/profile` | outline person → filled person (two layered glyphs), bold label |
+
+Figma's tab bar component only defines four `property1` states — "Campaign  Active" (Home), "Order Active", "Message Active", "Profile Active" — there is no "Create Gig Active" variant. That's a real signal, not an omission: Create Gig isn't a persisted tab a user "is on", it's an action button that happens to live in the tab bar. So unlike the other four, it has:
+
+- No active/inactive icon or label distinction — `TabBarIcon`'s `create-gig` case always renders the same glyph.
+- A `tabPress` listener in `_layout.tsx` that calls `e.preventDefault()` and pushes `/create` instead of switching tabs. `/create` (`app/(main)/create.tsx`) is registered as a `<Tabs.Screen name="create" options={{ href: null }} />` — a real route inside the same `(main)` group, but `href: null` keeps Expo Router from also rendering it as a 6th tab bar button. `app/(main)/create-gig.tsx` still exists as its own file (Expo Router's file-based Tabs needs one to render the bar button in the right position) but only renders as a `<Redirect href="/home" />` fallback for the edge case of a stale deep link pointing straight at it.
+
+## Scope notes
+
+- **Placeholder content.** None of the four real tabs have a Figma design yet (`docs/PRD.md` §4.1 Epic 4 — "Core Influsis feature set… TBD"). Home/Order/Message render a simple themed "not built yet" placeholder, matching the pattern the original boilerplate used for its own demo screens (see `docs/design-system.md` "App shell reset").
+- **Profile is the exception.** Rather than a blank placeholder, `scenes/main/Profile.tsx` reads `slices/profileVerification.slice.ts` (populated by the wizard in `docs/screen/profile-verification/`) and displays what was collected — date of birth, categories, social platforms, languages, bio, username — read-only. There's no backend to fetch a real profile from yet, so this is literally just echoing back the in-memory Redux state from the signup flow, but it's real data rather than invented content.
+- **No auth guarding.** `docs/PRD.md` §8 lists "route guarding (logged-out users cannot reach main tabs)" as an open Success Criterion, not yet implemented — `(main)` is reachable by anyone who navigates to `/home` directly, same as every other route in this app today.
+- **Icons.** Extracted from Figma via the Dev Mode MCP server into `assets/images/tab-bar/`. Order and Profile's *active* states are genuinely composited from multiple Figma layers (a base glyph plus one-or-two small accent/overlay images) rather than a single flattened asset — `TabBarIcon` reproduces that layering with absolutely-positioned `Image`s instead of pre-flattening it, matching Figma's own layer structure. Home and Message's active states are simple single-image swaps.
+- **Tab bar shadow.** Figma specifies a literal `0px -7px 12px rgba(0,0,0,0.25)` upward shadow that doesn't match any existing token in `theme/shadows.ts` (all of which are downward-offset) — applied directly in `_layout.tsx`, platform-branched the same way `theme/shadows.ts`'s own `getShadowStyle` is (`boxShadow` on web, `shadow*`/`elevation` on native), since raw `shadow*` props are deprecated on React Native Web.
+- **Label sizing.** Figma sets the Home label at 10px and the other three at 11px — normalized to 11px everywhere here as a minor, clearly-unintentional Figma inconsistency.
+
+## Navigation
+
+- **Entry:** `router.replace('/home')` from Sign In (`docs/screen/auth/sign-in.md`) or from the profile-verification completion screen's "Explore" button (`docs/screen/profile-verification/completed.md`).
+- **Within the shell:** tapping Home/Order/Message/Profile switches tabs normally. Tapping Create Gig pushes the hidden `/create` screen (dismissed via its own "Close" button, `router.back()`); since it's a `Tabs.Screen` rather than a `Stack` route, it does not get native modal slide-up presentation - the tab bar stays mounted underneath as with any other tab.
