@@ -186,3 +186,57 @@ Review AI-generated code periodically, especially for:
 - Performance (unnecessary re-renders, N+1 queries)
 - Logic errors (edge cases)
 - Patterns (matches existing codebase?)
+
+## Cross-Repository Context
+
+This repo is one of four in the Influsis platform (`backend`, `web`, `admin`,
+`mobile-app`), plus a shared sibling directory `../platform-context/` that
+holds the cross-repo contracts, domain model, business rules, permissions
+model, ADRs, and integration notes. **`backend` is the implementation
+authority; this repo only consumes its contracts** — never invent an
+endpoint, field, role, or permission on this side.
+
+This app currently has **zero backend integration** — see
+`platform-context/integration/backend-mobile.md`. Every screen reads
+`data/*.ts` mock fixtures. Do not load all of `platform-context/` for every
+task; when a task is purely UI/mock-data work, this app's own
+`blueprint/context/project-overview.md` and `data/*.ts` types are usually
+enough. Load `platform-context/api-contracts/` and `domain-model.md` only
+when the task is actually about wiring real backend calls (build-plan items
+19-21) or when you need to know the target shape a mock should eventually
+match.
+
+## Anti-Hallucination Rules
+
+Never invent, guess, or assume any of the following — check
+`platform-context/` first, and if it's not documented there, STOP and report
+rather than guessing:
+
+- Do not claim a screen "calls the backend" or "is wired up" — nothing in
+  this app is today; verify against `platform-context/integration/backend-mobile.md`
+  before describing any behavior as backend-connected
+- API endpoints, fields, or response shapes for a future real-backend
+  wiring task — check `platform-context/api-contracts/`; for the
+  campaign/gig/order/wallet/messaging screens, there is likely **no real
+  contract yet** — check `domain-model.md`'s "Specified, not built" section
+- Permission/role names — check `platform-context/permissions/roles.md`
+- OTP/auth behavior — this app's OTP screen (4-digit, no expiry, accepts any
+  complete entry) is a **known, unresolved mismatch** against the backend's
+  real OTP contract (see `platform-context/open-questions.md` #2). Don't
+  silently "fix" this by guessing which shape is correct — flag it
+- Business rules for the campaign/gig/order/wallet loop — check
+  `platform-context/business-rules.md`; most of that loop is specified but
+  not enforced anywhere yet
+
+If required information is missing, or this app's existing mock-data
+assumption conflicts with `platform-context`, STOP and report: what's known,
+what's missing or conflicting, why it's needed, where it should be recorded,
+and a proposed resolution if you have one — never silently pick one side.
+
+## Cross-Repository Feature Changes
+
+If a task needs a real backend call this repo doesn't have today, check
+`platform-context/api-contracts/` first. If the endpoint genuinely doesn't
+exist yet, that's backend work — tell the user which `platform-context` file
+and which backend endpoint need to exist first, rather than building this
+app's mock data further as if it were a backend contract.

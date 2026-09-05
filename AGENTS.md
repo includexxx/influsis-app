@@ -7,7 +7,22 @@ this file, so there is a single source of truth.
 
 ## What this is
 
-A description of your project and the problem it solves.
+The creator-facing side of Influsis, a cross-platform marketplace (iOS,
+Android, Web from one Expo codebase) connecting creators and businesses for
+paid promotional work — campaigns and gigs, applications, delivery,
+messaging, and payouts. Replaces the ad-hoc DMs/spreadsheets/manual
+invoicing businesses and creators use today. **This app currently has no
+backend integration** — every screen runs on typed mock fixtures
+(`data/*.ts`); see `blueprint/context/project-overview.md`'s "Not yet built"
+section.
+
+This repo is one of four (`backend`, `web`, `admin`, `mobile-app`) sharing a
+cross-repo context layer at the sibling directory `../platform-context/`
+(architecture, domain model, business rules, API contracts, permissions,
+ADRs). `backend` is the implementation authority; this repo only consumes
+its contracts, once real backend wiring starts. See
+`blueprint/context/ai-interaction.md`'s "Cross-Repository Context" section
+for what to read and when.
 
 This project is built with the **AI Blueprint**, a workflow layer, not an
 app skeleton. To start a new project, scaffold the app first in an empty folder
