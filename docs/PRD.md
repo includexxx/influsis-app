@@ -24,6 +24,18 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
 - [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
+- [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
+- [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
+- [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
+- [Live Campaigns](./screen/live-campaign/README.md) — a creator's ongoing campaigns, opened from the Home tab's Active Campaigns section
+- [Campaigns](./screen/campaigns/README.md) — all of a creator's campaigns, opened from the Home tab's Campaigns section
+- [Brands](./screen/brands/README.md) — brand logo directory, opened from the Home tab's Brand section
+- [Brand Details](./screen/brand-details/README.md) — a single brand's full profile view, opened by tapping any brand logo
+- [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
+- [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
+- [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
+- [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
+- [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
 
 ## 2. Current State of the App
 

@@ -10,7 +10,7 @@
 
 ## Purpose
 
-The tab-based shell a user lands in once they're signed in — this is the third product flow, replacing the placeholder `/welcome` screen that stood in for it (see `docs/screen/auth/README.md` and `docs/screen/profile-verification/README.md` for how a user arrives here). It has no content of its own; it's the navigation frame the rest of the product gets built inside.
+The tab-based shell a user lands in once they're signed in — this is the third product flow, replacing the placeholder `/welcome` screen that stood in for it (see `docs/screen/auth/README.md` and `docs/screen/profile-verification/README.md` for how a user arrives here). This doc covers the shell itself (the tab bar and navigation frame); see [`docs/screen/home/README.md`](../home/README.md) for the Home tab's own content spec.
 
 ## Tabs
 
@@ -29,8 +29,8 @@ Figma's tab bar component only defines four `property1` states — "Campaign  Ac
 
 ## Scope notes
 
-- **Placeholder content.** None of the four real tabs have a Figma design yet (`docs/PRD.md` §4.1 Epic 4 — "Core Influsis feature set… TBD"). Home/Order/Message render a simple themed "not built yet" placeholder, matching the pattern the original boilerplate used for its own demo screens (see `docs/design-system.md` "App shell reset").
-- **Profile is the exception.** Rather than a blank placeholder, `scenes/main/Profile.tsx` reads `slices/profileVerification.slice.ts` (populated by the wizard in `docs/screen/profile-verification/`) and displays what was collected — date of birth, categories, social platforms, languages, bio, username — read-only. There's no backend to fetch a real profile from yet, so this is literally just echoing back the in-memory Redux state from the signup flow, but it's real data rather than invented content.
+- **Placeholder content for Order and Message.** Neither has a Figma design yet (`docs/PRD.md` §4.1 Epic 4 — "Core Influsis feature set… TBD") — they render a simple themed "not built yet" placeholder, matching the pattern the original boilerplate used for its own demo screens (see `docs/design-system.md` "App shell reset").
+- **Home and Profile are real.** `scenes/main/Home.tsx` has its own Figma design and full spec — see [`docs/screen/home/README.md`](../home/README.md). `scenes/main/Profile.tsx` reads `slices/profileVerification.slice.ts` (populated by the wizard in `docs/screen/profile-verification/`) and displays what was collected — date of birth, categories, social platforms, languages, bio, username — read-only. Neither has a real backend yet (Home's campaigns/gigs are mock data, Profile is literally just echoing back the signup flow's in-memory Redux state), but both show real structured content rather than a placeholder.
 - **No auth guarding.** `docs/PRD.md` §8 lists "route guarding (logged-out users cannot reach main tabs)" as an open Success Criterion, not yet implemented — `(main)` is reachable by anyone who navigates to `/home` directly, same as every other route in this app today.
 - **Icons.** Extracted from Figma via the Dev Mode MCP server into `assets/images/tab-bar/`. Order and Profile's *active* states are genuinely composited from multiple Figma layers (a base glyph plus one-or-two small accent/overlay images) rather than a single flattened asset — `TabBarIcon` reproduces that layering with absolutely-positioned `Image`s instead of pre-flattening it, matching Figma's own layer structure. Home and Message's active states are simple single-image swaps.
 - **Tab bar shadow.** Figma specifies a literal `0px -7px 12px rgba(0,0,0,0.25)` upward shadow that doesn't match any existing token in `theme/shadows.ts` (all of which are downward-offset) — applied directly in `_layout.tsx`, platform-branched the same way `theme/shadows.ts`'s own `getShadowStyle` is (`boxShadow` on web, `shadow*`/`elevation` on native), since raw `shadow*` props are deprecated on React Native Web.
