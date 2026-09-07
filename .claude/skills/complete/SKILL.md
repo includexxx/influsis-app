@@ -228,6 +228,31 @@ into the app - delete the `prototypes/` folder now. The tokens live in the real
 stylesheet and the HTML mockups were always throwaway; fold the deletion into this
 feature's commit. Skip this if the feature didn't consume prototypes.
 
+## Step 1b - sync platform-context
+
+Skip this step if the feature didn't change what this app actually calls on
+the backend, or how real vs. mocked a screen is - most pure-UI/copy/styling
+work will skip it (today, that's almost everything, since this app has no
+backend integration yet).
+
+When the feature wires a screen to a real backend endpoint for the first
+time, changes which endpoint or fields a screen depends on, or otherwise
+changes this app's integration surface:
+
+1. Update `platform-context/integration/backend-mobile.md` - move the
+   relevant item out of "nothing is backend-wired" and note what's now real.
+2. If the feature relies on an endpoint or field not yet documented in
+   `platform-context/api-contracts/`, that's a sign backend work should have
+   come first - flag it in the completion note rather than inventing the
+   contract entry from this side.
+3. If the feature resolves an item in `platform-context/open-questions.md`
+   (for example, the OTP shape mismatch), remove that entry.
+
+`platform-context/` is a separate git repository - never commit or push there
+as part of this repo's work commit. Leave the edits in its working tree and
+name exactly which files changed in the completion note (Step 3), so the
+user can review and commit them there independently.
+
 ## Step 2 - make the work commit
 
 Stage everything on the branch (any uncommitted step work plus the Step 1 logging
@@ -253,6 +278,9 @@ rollback, explain how to confirm the removed behavior is gone and name one
 unaffected regression path. If the
 manual path is more than a couple of steps, tell the user to run `/try latest`;
 that command can read the archived feature after `current-feature.md` is reset.
+If Step 1b updated any `platform-context/` file, name exactly which ones in
+this note and remind the user they need a separate review and commit inside
+that repo - this repo's merge does not cover it.
 
 ## Rules
 
