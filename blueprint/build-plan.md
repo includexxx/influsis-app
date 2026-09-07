@@ -122,7 +122,7 @@ cleaned-up checkbox version before generating the project overview.
 - [ ] 19. **Real authentication + route guarding** - replace client-side-only
       auth validation with real backend auth
       (`../backend/docs/Implementations/`); block logged-out users from reaching
-      the `(main)` and `(details)` route groups. Split into 19a-19d.
+      the `(main)` and `(details)` route groups. Split into 19a-19e.
   - [x] 19a. **Auth API client + token store** - typed `fetch` wrapper for the
         `/api/v1` response envelope and error codes, AsyncStorage-backed token
         persistence, and `services/auth.service.ts` (login, register, OTP,
@@ -132,9 +132,15 @@ cleaned-up checkbox version before generating the project overview.
         and refresh on app launch, and a logout thunk.
   - [ ] 19c. **Route guarding** - `_layout` guards on `(auth)`, `(main)`, and
         `(details)`, and fix `app/index.tsx` first-run vs authenticated routing.
-  - [ ] 19d. **Wire auth screens to the backend** - Sign In (+ MFA-required
-        branch), Sign Up, Verify OTP, Forgot/Reset Password, and Profile logout
-        call the real endpoints with envelope-driven inline errors.
+        Depends on 19d (needs real sessions).
+  - [x] 19d. **Wire Sign In + Sign Up to the backend** - Sign In calls
+        `POST /auth/login` (+ the MFA-code branch), Sign Up calls
+        `POST /auth/register` then auto-`login`; `sessionAuthenticated` on
+        success, envelope-driven inline errors. No OTP step (that is 19e).
+  - [ ] 19e. **Wire OTP verification + password reset** - `VerifyOtp`
+        (6-digit), `ForgotPassword`, `ResetPassword` call the real OTP
+        endpoints. Blocked until the backend fixes registration-OTP issuance
+        and `channel=email` delivery.
 - [ ] 20. **Product API service layer** - generalize the 19a HTTP client for
       authenticated product resources: list/pagination helpers, shared error
       surfacing, and the per-resource `services/*.service.ts` modules

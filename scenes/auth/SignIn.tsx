@@ -3,20 +3,23 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { useAppSlice, signIn } from '@/slices';
 import { layoutStyle, buttonStyle } from '@/styles';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
 import AuthHeader from '@/components/elements/AuthHeader';
 
+// Light client pre-check only - the backend owns password rules and the real
+// credential check, and its error is always surfaced too.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// No real auth backend exists yet (see docs/PRD.md Epic 2/3) - this is a
-// deliberately simple client-side stand-in so the invalid-email and
-// wrong-password states from Figma are still reachable and demonstrable.
-const MIN_PASSWORD_LENGTH = 6;
 
 const styles = StyleSheet.create({
   header: {
     marginBottom: 32,
+  },
+  formError: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -28,22 +31,53 @@ const styles = StyleSheet.create({
 
 export default function SignIn() {
   const { colors, palette } = useTheme();
+  const { dispatch } = useAppSlice();
 
-  const [email, setEmail] = useState('test@example.com');
-  const [password, setPassword] = useState('pass1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
+  const [formError, setFormError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit() {
-    const isEmailValid = EMAIL_REGEX.test(email.trim());
-    const isPasswordValid = password.length >= MIN_PASSWORD_LENGTH;
+  function clearErrors() {
+    setEmailError(undefined);
+    setPasswordError(undefined);
+    setFormError(undefined);
+  }
 
-    setEmailError(isEmailValid ? undefined : 'Invalid email');
-    setPasswordError(isEmailValid && !isPasswordValid ? 'Wrong password' : undefined);
+  async function handleSubmit() {
+    if (submitting) return;
 
-    if (!isEmailValid || !isPasswordValid) return;
+    const identifier = email.trim();
+    const isEmailValid = EMAIL_REGEX.test(identifier);
+    const isPasswordPresent = password.length > 0;
 
-    router.replace('/home');
+    setFormError(undefined);
+    setEmailError(isEmailValid ? undefined : 'Enter a valid email address');
+    setPasswordError(isPasswordPresent ? undefined : 'Enter your password');
+
+    if (!isEmailValid || !isPasswordPresent) return;
+
+    setSubmitting(true);
+    const result = await dispatch(signIn({ identifier, password }));
+    setSubmitting(false);
+
+    if (result.status === 'ok') {
+      router.replace('/home');
+      return;
+    }
+
+    if (result.status === 'mfa-unsupported') {
+      setFormError(
+        'This account needs two-factor authentication, which the app does not support yet.',
+      );
+      return;
+    }
+
+    setFormError(result.message);
+    setEmailError(result.fieldErrors.email);
+    setPasswordError(result.fieldErrors.password);
   }
 
   return (
@@ -53,13 +87,16 @@ export default function SignIn() {
         showsVerticalScrollIndicator={false}>
         <AuthHeader title="Sign In" onBack={() => router.back()} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
+          {!!formError && (
+            <Text style={[styles.formError, { color: colors.error }]}>{formError}</Text>
+          )}
           <TextField
             label="Email"
             placeholder="you@example.com"
             value={email}
             onChangeText={text => {
               setEmail(text);
-              if (emailError) setEmailError(undefined);
+              if (emailError || formError) clearErrors();
             }}
             error={emailError}
             autoCapitalize="none"
@@ -73,7 +110,7 @@ export default function SignIn() {
               value={password}
               onChangeText={text => {
                 setPassword(text);
-                if (passwordError) setPasswordError(undefined);
+                if (passwordError || formError) clearErrors();
               }}
               error={passwordError}
               secureTextEntry
@@ -89,6 +126,7 @@ export default function SignIn() {
             title="Sign in"
             titleStyle={buttonStyle.primaryTitle}
             style={buttonStyle.primary}
+            isLoading={submitting}
             onPress={handleSubmit}
           />
         </View>

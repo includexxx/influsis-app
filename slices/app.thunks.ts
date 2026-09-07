@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppThunk } from '@/utils/store';
 import { DataPersistKeys } from '@/hooks/useDataPersist';
 import { ApiError } from '@/services/http';
-import { getMe, logout, refresh } from '@/services/auth.service';
+import { getMe, login, logout, refresh, register } from '@/services/auth.service';
+import { authErrorFieldErrors, authErrorMessage } from '@/utils/authError';
 import {
   clearStoredAccount,
   clearTokens,
@@ -31,6 +32,34 @@ async function refreshAndFetch(refreshToken: string) {
   const account = await getMe(tokens.token);
   await setStoredAccount(account);
   return { account, tokens };
+}
+
+// Shared tail of signIn / signUp: exchange a fresh token pair for the full
+// AuthAccount, persist both, and hand the pair to sessionAuthenticated. Mirrors
+// refreshAndFetch - login returns only a reduced LoginAccount, so getMe always
+// runs before the slice sees an account.
+async function fetchAndPersist(tokens: AuthTokens) {
+  const account = await getMe(tokens.token);
+  await setTokens(tokens);
+  await setStoredAccount(account);
+  return { account, tokens };
+}
+
+export type AuthResult =
+  | { status: 'ok' }
+  | { status: 'mfa-unsupported' }
+  | { status: 'error'; message: string; fieldErrors: Record<string, string> };
+
+function toErrorResult(err: unknown): Extract<AuthResult, { status: 'error' }> {
+  const apiError =
+    err instanceof ApiError
+      ? err
+      : new ApiError({ code: 'UNKNOWN', statusCode: 0, message: 'Unknown error' });
+  return {
+    status: 'error',
+    message: authErrorMessage(apiError),
+    fieldErrors: authErrorFieldErrors(apiError),
+  };
 }
 
 function isAuthDead(err: unknown): boolean {
@@ -88,6 +117,55 @@ export function bootstrapSession(): AppThunk<Promise<void>> {
       }
     } catch {
       dispatch(sessionEnded());
+    }
+  };
+}
+
+// Sign In. Never throws - the scene renders the returned result. The
+// login -> getMe -> persist -> dispatch sequence mirrors bootstrapSession.
+export function signIn(input: {
+  identifier: string;
+  password: string;
+}): AppThunk<Promise<AuthResult>> {
+  return async dispatch => {
+    try {
+      const result = await login(input);
+      if (result.status === 'mfa') return { status: 'mfa-unsupported' };
+
+      dispatch(sessionAuthenticated(await fetchAndPersist(result.tokens)));
+      return { status: 'ok' };
+    } catch (err) {
+      return toErrorResult(err);
+    }
+  };
+}
+
+// Sign Up: register a creator, then log the new account straight in. A
+// just-created creator has no 2FA, so the 'mfa' branch is defensive only.
+export function signUp(input: {
+  email: string;
+  phone?: string;
+  password: string;
+}): AppThunk<Promise<AuthResult>> {
+  return async dispatch => {
+    try {
+      const email = input.email.trim();
+      await register({ roleKey: 'creator', email, password: input.password });
+
+      const result = await login({ identifier: email, password: input.password });
+      if (result.status === 'mfa') {
+        return {
+          status: 'error',
+          message:
+            'This account needs two-factor authentication, which the app does not support yet.',
+          fieldErrors: {},
+        };
+      }
+
+      dispatch(sessionAuthenticated(await fetchAndPersist(result.tokens)));
+      return { status: 'ok' };
+    } catch (err) {
+      return toErrorResult(err);
     }
   };
 }

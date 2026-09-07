@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { useAppSlice, signUp } from '@/slices';
 import { layoutStyle, buttonStyle as sharedButton, textStyle as sharedText } from '@/styles';
 import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
 import Button from '@/components/elements/Button';
@@ -14,10 +15,11 @@ import Image from '@/components/elements/Image';
 
 const chevronDownIcon = require('@/assets/images/account/chevron-down.png');
 
+// Light client pre-checks for instant feedback - the backend owns the real
+// rules and its error is always surfaced too.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
 
-// Matches the `+880` this screen's phone field was already seeded with.
 const DEFAULT_PHONE_COUNTRY = 'bd';
 
 const styles = StyleSheet.create({
@@ -43,6 +45,10 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
   },
+  formError: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   submitButton: {
     marginTop: 8,
   },
@@ -57,32 +63,40 @@ const styles = StyleSheet.create({
 
 export default function SignUp() {
   const { colors, palette } = useTheme();
+  const { dispatch } = useAppSlice();
 
-  const [fullName, setFullName] = useState('Test User');
-  const [email, setEmail] = useState('test@example.com');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   // Local digits only - the dial code lives in `phoneCountry` and is shown
   // by the field's own prefix, the same split Edit Profile uses.
-  const [phone, setPhone] = useState('1521000000');
+  const [phone, setPhone] = useState('');
   const [phoneCountry, setPhoneCountry] = useState(DEFAULT_PHONE_COUNTRY);
   const [isPhoneCountryPickerOpen, setIsPhoneCountryPickerOpen] = useState(false);
-  const [password, setPassword] = useState('pass1234');
-  const [confirmPassword, setConfirmPassword] = useState('pass1234');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [fullNameError, setFullNameError] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
   const [phoneError, setPhoneError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
   const [confirmPasswordError, setConfirmPasswordError] = useState<string>();
+  const [formError, setFormError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedPhoneCountry = findPhoneCountry(phoneCountry);
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (submitting) return;
+
+    const trimmedEmail = email.trim();
+    const trimmedPhone = phone.trim();
     const isNameValid = fullName.trim().length > 0;
-    const isEmailValid = EMAIL_REGEX.test(email.trim());
-    const isPhoneValid = phone.trim().length > 0;
+    const isEmailValid = EMAIL_REGEX.test(trimmedEmail);
+    const isPhoneValid = trimmedPhone.length > 0;
     const isPasswordValid = password.length >= MIN_PASSWORD_LENGTH;
     const doPasswordsMatch = password === confirmPassword;
 
+    setFormError(undefined);
     setFullNameError(isNameValid ? undefined : 'Full name is required');
     setEmailError(isEmailValid ? undefined : 'Invalid email');
     setPhoneError(isPhoneValid ? undefined : 'Phone number is required');
@@ -94,7 +108,28 @@ export default function SignUp() {
     if (!isNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid || !doPasswordsMatch)
       return;
 
-    router.push({ pathname: '/auth/verify-otp', params: { email: email.trim() } });
+    setSubmitting(true);
+    const result = await dispatch(
+      signUp({ email: trimmedEmail, phone: trimmedPhone, password }),
+    );
+    setSubmitting(false);
+
+    if (result.status === 'ok') {
+      router.replace('/profile-verification/date-of-birth');
+      return;
+    }
+
+    if (result.status === 'mfa-unsupported') {
+      setFormError(
+        'This account needs two-factor authentication, which the app does not support yet.',
+      );
+      return;
+    }
+
+    setFormError(result.message);
+    if (result.fieldErrors.email) setEmailError(result.fieldErrors.email);
+    if (result.fieldErrors.phone) setPhoneError(result.fieldErrors.phone);
+    if (result.fieldErrors.password) setPasswordError(result.fieldErrors.password);
   }
 
   return (
@@ -104,6 +139,9 @@ export default function SignUp() {
         showsVerticalScrollIndicator={false}>
         <AuthHeader title="Sign Up" onBack={() => router.back()} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
+          {!!formError && (
+            <Text style={[styles.formError, { color: colors.error }]}>{formError}</Text>
+          )}
           <TextField
             label="Full Name"
             placeholder="Gazi Delowar"
@@ -111,6 +149,7 @@ export default function SignUp() {
             onChangeText={text => {
               setFullName(text);
               if (fullNameError) setFullNameError(undefined);
+              if (formError) setFormError(undefined);
             }}
             error={fullNameError}
           />
@@ -121,6 +160,7 @@ export default function SignUp() {
             onChangeText={text => {
               setEmail(text);
               if (emailError) setEmailError(undefined);
+              if (formError) setFormError(undefined);
             }}
             error={emailError}
             autoCapitalize="none"
@@ -133,6 +173,7 @@ export default function SignUp() {
             onChangeText={text => {
               setPhone(text);
               if (phoneError) setPhoneError(undefined);
+              if (formError) setFormError(undefined);
             }}
             error={phoneError}
             keyboardType="phone-pad"
@@ -167,6 +208,7 @@ export default function SignUp() {
             onChangeText={text => {
               setPassword(text);
               if (passwordError) setPasswordError(undefined);
+              if (formError) setFormError(undefined);
             }}
             error={passwordError}
             secureTextEntry
@@ -178,6 +220,7 @@ export default function SignUp() {
             onChangeText={text => {
               setConfirmPassword(text);
               if (confirmPasswordError) setConfirmPasswordError(undefined);
+              if (formError) setFormError(undefined);
             }}
             error={confirmPasswordError}
             secureTextEntry
@@ -186,6 +229,7 @@ export default function SignUp() {
             title="Sign Up"
             titleStyle={sharedButton.primaryTitle}
             style={[sharedButton.primary, styles.submitButton]}
+            isLoading={submitting}
             onPress={handleSubmit}
           />
         </View>

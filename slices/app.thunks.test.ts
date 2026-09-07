@@ -4,11 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiError } from '@/services/http';
 import * as auth from '@/services/auth.service';
 import * as store from '@/services/tokenStore';
-import { AuthAccount, AuthTokens } from '@/types';
+import { AuthAccount, AuthTokens, LoginAccount } from '@/types';
 import app from './app.slice';
 import profileVerification from './profileVerification.slice';
 import createGig from './createGig.slice';
-import { bootstrapSession, signOut } from './app.thunks';
+import { bootstrapSession, signIn, signOut, signUp } from './app.thunks';
 
 jest.mock('@/services/auth.service');
 jest.mock('@/services/tokenStore');
@@ -28,6 +28,8 @@ const clearStoredAccount = store.clearStoredAccount as jest.MockedFunction<
 const getMe = auth.getMe as jest.MockedFunction<typeof auth.getMe>;
 const refresh = auth.refresh as jest.MockedFunction<typeof auth.refresh>;
 const logout = auth.logout as jest.MockedFunction<typeof auth.logout>;
+const login = auth.login as jest.MockedFunction<typeof auth.login>;
+const register = auth.register as jest.MockedFunction<typeof auth.register>;
 
 const account: AuthAccount = {
   id: 'u1',
@@ -65,7 +67,19 @@ const rotated: AuthTokens = {
   tokenExpires: Date.now() + 3_600_000,
 };
 
-const apiError = (code: string) => new ApiError({ code, statusCode: 401, message: code });
+const loginAccount: LoginAccount = {
+  id: 'u1',
+  roleKey: 'creator',
+  role: account.role,
+  status: 'active',
+  createdAt: account.createdAt,
+  updatedAt: account.createdAt,
+  deactivatedAt: null,
+  deletedAt: null,
+};
+
+const apiError = (code: string, errors: Record<string, string> | null = null) =>
+  new ApiError({ code, statusCode: 401, message: code, errors });
 
 function makeStore() {
   return configureStore({ reducer: { app, profileVerification, createGig } });
@@ -228,5 +242,87 @@ describe('signOut', () => {
 
     expect(logout).not.toHaveBeenCalled();
     expect(s.getState().app.status).toBe('unauthenticated');
+  });
+});
+
+describe('signIn', () => {
+  test('logs in, fetches the full account, persists and authenticates', async () => {
+    login.mockResolvedValue({ status: 'ok', tokens: fresh, account: loginAccount });
+    getMe.mockResolvedValue(account);
+    const s = makeStore();
+
+    const result = await s.dispatch(signIn({ identifier: 'a@b.com', password: 'pass1234' }));
+
+    expect(login).toHaveBeenCalledWith({ identifier: 'a@b.com', password: 'pass1234' });
+    expect(getMe).toHaveBeenCalledWith(fresh.token);
+    expect(setTokens).toHaveBeenCalledWith(fresh);
+    expect(setStoredAccount).toHaveBeenCalledWith(account);
+    expect(result).toEqual({ status: 'ok' });
+    expect(s.getState().app).toMatchObject({ status: 'authenticated', account, tokens: fresh });
+  });
+
+  test('reports mfa-unsupported without touching the session', async () => {
+    login.mockResolvedValue({ status: 'mfa', preAuthToken: 'p' });
+    const s = makeStore();
+
+    const result = await s.dispatch(signIn({ identifier: 'a@b.com', password: 'pass1234' }));
+
+    expect(result).toEqual({ status: 'mfa-unsupported' });
+    expect(getMe).not.toHaveBeenCalled();
+    expect(setTokens).not.toHaveBeenCalled();
+    expect(s.getState().app.account).toBeNull();
+  });
+
+  test('maps invalid credentials to an error result and leaves the session alone', async () => {
+    login.mockRejectedValue(apiError('AUTH_INVALID_CREDENTIALS'));
+    const s = makeStore();
+
+    const result = await s.dispatch(signIn({ identifier: 'a@b.com', password: 'nope' }));
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'Incorrect email or password.',
+      fieldErrors: {},
+    });
+    expect(setTokens).not.toHaveBeenCalled();
+    expect(s.getState().app.account).toBeNull();
+  });
+});
+
+describe('signUp', () => {
+  test('registers a creator, logs in and authenticates', async () => {
+    register.mockResolvedValue(undefined);
+    login.mockResolvedValue({ status: 'ok', tokens: fresh, account: loginAccount });
+    getMe.mockResolvedValue(account);
+    const s = makeStore();
+
+    const result = await s.dispatch(
+      signUp({ email: ' a@b.com ', phone: '123', password: 'pass1234' }),
+    );
+
+    expect(register).toHaveBeenCalledWith({
+      roleKey: 'creator',
+      email: 'a@b.com',
+      password: 'pass1234',
+    });
+    expect(login).toHaveBeenCalledWith({ identifier: 'a@b.com', password: 'pass1234' });
+    expect(setStoredAccount).toHaveBeenCalledWith(account);
+    expect(result).toEqual({ status: 'ok' });
+    expect(s.getState().app).toMatchObject({ status: 'authenticated', account });
+  });
+
+  test('surfaces a 409 as an email field error and never calls login', async () => {
+    register.mockRejectedValue(apiError('ALREADY_EXISTS', { email: 'emailAlreadyExists' }));
+    const s = makeStore();
+
+    const result = await s.dispatch(signUp({ email: 'a@b.com', password: 'pass1234' }));
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'An account with this email already exists.',
+      fieldErrors: { email: 'An account with this email already exists.' },
+    });
+    expect(login).not.toHaveBeenCalled();
+    expect(s.getState().app.account).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle, cardStyle as sharedCard, textStyle as sharedText } from '@/styles';
 import Image from '@/components/elements/Image';
@@ -121,9 +121,6 @@ export default function SignInLanding() {
           <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
             Welcome to Influsis
           </Text>
-          <Link href="/home" style={{ color: palette.primary[400] }}>
-            Skip to Home
-          </Link>
         </View>
 
         <View style={styles.buttonList}>
