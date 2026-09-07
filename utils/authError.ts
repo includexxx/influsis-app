@@ -45,3 +45,21 @@ export function authErrorFieldErrors(err: ApiError): Record<string, string> {
   }
   return out;
 }
+
+// Copy for the password-reset flow: POST /auth/otp/verify reports a bad code in
+// `errors.code`, POST /auth/reset-password reports a dead token in
+// `errors.resetToken`. A stale-code copy is reused for NOT_FOUND so the screen
+// never confirms whether an account exists. Everything else falls through to
+// `authErrorMessage` (RATE_LIMITED, NETWORK_ERROR, the default).
+const STALE_CODE_MESSAGE = 'This code has expired or is not valid. Request a new one.';
+
+export function otpErrorMessage(err: ApiError): string {
+  const codeToken = err.errors?.code;
+  if (codeToken === 'invalidOrExpired') return STALE_CODE_MESSAGE;
+  if (codeToken === 'incorrect') return 'That code is not correct.';
+  if (err.errors?.resetToken === 'invalidToken') {
+    return 'This password reset has expired. Start over.';
+  }
+  if (err.code === 'NOT_FOUND') return STALE_CODE_MESSAGE;
+  return authErrorMessage(err);
+}

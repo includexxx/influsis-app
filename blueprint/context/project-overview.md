@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 81ca1c94768e6a9aad40640eed8fddb3a0e22e3e9ed2e7f52cdf9ef7220f60e1 -->
+<!-- blueprint:source-hash 239b93da053541a398a666639343fb7f5c1c688fddf6ebf2759eb84b3634c42b -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and

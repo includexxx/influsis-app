@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { ApiError } from '@/services/http';
-import { authErrorFieldErrors, authErrorMessage } from './authError';
+import { authErrorFieldErrors, authErrorMessage, otpErrorMessage } from './authError';
 
 const err = (code: string, extra: { errors?: Record<string, string> | null } = {}) =>
   new ApiError({ code, statusCode: 400, message: code, errors: extra.errors ?? null });
@@ -68,5 +68,41 @@ describe('authErrorFieldErrors', () => {
 
   test('null errors yields an empty object', () => {
     expect(authErrorFieldErrors(err('INTERNAL_ERROR'))).toEqual({});
+  });
+});
+
+describe('otpErrorMessage', () => {
+  const STALE = 'This code has expired or is not valid. Request a new one.';
+
+  test('invalidOrExpired code token', () => {
+    expect(otpErrorMessage(err('VALIDATION_FAILED', { errors: { code: 'invalidOrExpired' } }))).toBe(
+      STALE,
+    );
+  });
+
+  test('incorrect code token', () => {
+    expect(otpErrorMessage(err('VALIDATION_FAILED', { errors: { code: 'incorrect' } }))).toBe(
+      'That code is not correct.',
+    );
+  });
+
+  test('invalidToken reset-token token', () => {
+    expect(
+      otpErrorMessage(err('VALIDATION_FAILED', { errors: { resetToken: 'invalidToken' } })),
+    ).toBe('This password reset has expired. Start over.');
+  });
+
+  test('NOT_FOUND is reported as a stale code, not an account hint', () => {
+    expect(otpErrorMessage(err('NOT_FOUND'))).toBe(STALE);
+  });
+
+  test('RATE_LIMITED falls through to authErrorMessage', () => {
+    expect(otpErrorMessage(err('RATE_LIMITED'))).toBe(
+      'Too many attempts. Please wait a moment and try again.',
+    );
+  });
+
+  test('an unmapped code falls through to the default message', () => {
+    expect(otpErrorMessage(err('INTERNAL_ERROR'))).toBe('Something went wrong. Please try again.');
   });
 });

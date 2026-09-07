@@ -3,6 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { ApiError } from '@/services/http';
+import { requestOtp, verifyOtp } from '@/services/auth.service';
+import { otpErrorMessage } from '@/utils/authError';
 import { layoutStyle, buttonStyle as sharedButton } from '@/styles';
 import Button from '@/components/elements/Button';
 import AuthHeader from '@/components/elements/AuthHeader';
@@ -20,6 +23,12 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
+  },
+  error: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 16,
   },
   resend: {
     fontSize: 14,
@@ -39,22 +48,69 @@ export default function VerifyOtp() {
 
   const [code, setCode] = useState('');
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-
-  function handleResend() {
-    setCode('');
-  }
+  const [error, setError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const isComplete = code.length === OTP_LENGTH;
 
-  function handleVerify() {
-    if (!isComplete) return;
+  async function handleResend() {
+    setError(undefined);
+    if (!isResetFlow) {
+      // 19f: the signup branch has no real resend until registration is OTP-gated.
+      setCode('');
+      return;
+    }
+    if (resending || !email) return;
 
-    if (isResetFlow) {
-      router.replace({ pathname: '/auth/reset-password', params: { email } });
+    setResending(true);
+    try {
+      await requestOtp({ destination: email, channel: 'email', purpose: 'password_reset' });
+      setCode('');
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? otpErrorMessage(err) : 'Something went wrong. Please try again.',
+      );
+    } finally {
+      setResending(false);
+    }
+  }
+
+  async function handleVerify() {
+    if (!isComplete || submitting) return;
+
+    // 19f: the signup branch below is a stub until registration is OTP-gated -
+    // it is unreachable today (SignUp goes straight to profile-verification).
+    if (!isResetFlow) {
+      setIsSuccessOpen(true);
       return;
     }
 
-    setIsSuccessOpen(true);
+    setError(undefined);
+    if (!email) {
+      setError('Start the reset from the Forgot Password screen.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await verifyOtp({ destination: email, purpose: 'password_reset', code });
+      if (result.kind === 'reset') {
+        router.replace({
+          pathname: '/auth/reset-password',
+          params: { resetToken: result.resetToken },
+        });
+        return;
+      }
+      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? otpErrorMessage(err) : 'Something went wrong. Please try again.',
+      );
+      setCode('');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const title = isResetFlow ? 'OTP Verification' : 'Verification Code';
@@ -70,11 +126,15 @@ export default function VerifyOtp() {
         <AuthHeader onBack={() => router.back()} style={styles.header} />
         <AuthTitleBlock title={title} description={description} />
 
-        <OtpInput length={OTP_LENGTH} value={code} onChange={setCode} />
+        <OtpInput length={OTP_LENGTH} value={code} onChange={setCode} error={!!error} />
+
+        {!!error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
 
         <Text style={[styles.resend, { color: palette.gray[200] }]}>
           Don&apos;t receive the verification code?{' '}
-          <Text style={[styles.resendLink, { color: palette.primary[400] }]} onPress={handleResend}>
+          <Text
+            style={[styles.resendLink, { color: palette.primary[400] }]}
+            onPress={resending ? undefined : handleResend}>
             Resend Code
           </Text>
         </Text>
@@ -84,6 +144,7 @@ export default function VerifyOtp() {
           titleStyle={sharedButton.primaryTitle}
           style={sharedButton.primary}
           onPress={handleVerify}
+          isLoading={submitting}
           disabled={!isComplete}
         />
       </View>

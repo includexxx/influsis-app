@@ -122,7 +122,7 @@ cleaned-up checkbox version before generating the project overview.
 - [ ] 19. **Real authentication + route guarding** - replace client-side-only
       auth validation with real backend auth
       (`../backend/docs/Implementations/`); block logged-out users from reaching
-      the `(main)` and `(details)` route groups. Split into 19a-19e.
+      the `(main)` and `(details)` route groups. Split into 19a-19f.
   - [x] 19a. **Auth API client + token store** - typed `fetch` wrapper for the
         `/api/v1` response envelope and error codes, AsyncStorage-backed token
         persistence, and `services/auth.service.ts` (login, register, OTP,
@@ -137,10 +137,16 @@ cleaned-up checkbox version before generating the project overview.
         `POST /auth/login` (+ the MFA-code branch), Sign Up calls
         `POST /auth/register` then auto-`login`; `sessionAuthenticated` on
         success, envelope-driven inline errors. No OTP step (that is 19e).
-  - [ ] 19e. **Wire OTP verification + password reset** - `VerifyOtp`
-        (6-digit), `ForgotPassword`, `ResetPassword` call the real OTP
-        endpoints. Blocked until the backend fixes registration-OTP issuance
-        and `channel=email` delivery.
+  - [x] 19e. **Wire password reset** - `ForgotPassword`, `VerifyOtp` (reset
+        branch, 4-digit), `ResetPassword` call `POST /auth/otp/request`
+        (`purpose=password_reset`, `channel=email`) -> `POST /auth/otp/verify`
+        -> `POST /auth/reset-password`; envelope-driven inline errors. Email
+        OTP delivery confirmed working.
+  - [ ] 19f. **OTP-gate registration** - Sign Up sends a `registration` OTP and
+        `VerifyOtp`'s signup branch goes live before profile-verification.
+        Blocked on a recorded decision for cross-repo Open Question #2
+        (phone-first + OTP vs. email + password) and confirmed backend
+        registration-OTP issuance.
 - [ ] 20. **Product API service layer** - generalize the 19a HTTP client for
       authenticated product resources: list/pagination helpers, shared error
       surfacing, and the per-resource `services/*.service.ts` modules
