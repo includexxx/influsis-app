@@ -55,7 +55,7 @@ Good:
 - [ ] 2. **Validation result** - run checks and show pass/fail status for a skill
 - [ ] 3. **Directory listing** - browse and filter published skills
 - [ ] 4. **Deployment readiness** - configure Render or Vercel and verify the
-  production build
+     production build
 
 Avoid:
 
@@ -76,60 +76,73 @@ cleaned-up checkbox version before generating the project overview.
 ## Shipped (UI-complete against mock data)
 
 - [x] 1. **Onboarding + auth flow** - intro carousel, sign-in/sign-up, OTP
-  verification, forgot/reset password (`docs/screen/auth/`)
+     verification, forgot/reset password (`docs/screen/auth/`)
 - [x] 2. **Profile verification wizard** - post-signup steps for date of
-  birth, categories, social media, languages, bio, username
-  (`docs/screen/profile-verification/`)
+     birth, categories, social media, languages, bio, username
+     (`docs/screen/profile-verification/`)
 - [x] 3. **Main app shell** - post-login Tabs group: Home, Order, Create Gig,
-  Message, Profile (`docs/screen/main/`)
+     Message, Profile (`docs/screen/main/`)
 - [x] 4. **Home feed** - campaign/gig/creator/business discovery feed
-  (`docs/screen/home/`)
+     (`docs/screen/home/`)
 - [x] 5. **Notifications** - notifications list (`docs/screen/notifications/`)
 - [x] 6. **Search** - campaign search (`docs/screen/search/`)
 - [x] 7. **Live campaigns** - a creator's ongoing campaigns
-  (`docs/screen/live-campaign/`)
+     (`docs/screen/live-campaign/`)
 - [x] 8. **Campaigns list + details** - all of a creator's campaigns and a
-  single campaign's full detail view (`docs/screen/campaigns/`,
-  `docs/screen/campaign-details/`)
+     single campaign's full detail view (`docs/screen/campaigns/`,
+     `docs/screen/campaign-details/`)
 - [x] 9. **Apply to campaign** - application form plus a creator's own
-  applications/invitations list (`docs/screen/apply-campaign/`)
+     applications/invitations list (`docs/screen/apply-campaign/`)
 - [x] 10. **Businesses directory + details** - business logo directory and a
-  single business's full profile (`docs/screen/businesses/`,
-  `docs/screen/business-details/`)
+      single business's full profile (`docs/screen/businesses/`,
+      `docs/screen/business-details/`)
 - [x] 11. **Top gigs + top creators** - ranked directories
-  (`docs/screen/top-gigs/`, `docs/screen/top-creators/`)
+      (`docs/screen/top-gigs/`, `docs/screen/top-creators/`)
 - [x] 12. **Gig details + creator profile** - single gig detail view and a
-  single creator's full profile (`docs/screen/gig-details/`,
-  `docs/screen/creator-profile/`)
+      single creator's full profile (`docs/screen/gig-details/`,
+      `docs/screen/creator-profile/`)
 - [x] 13. **Create gig wizard** - 3-step gig publishing flow: basics, pricing,
-  preview (`docs/screen/create-gig/`)
+      preview (`docs/screen/create-gig/`)
 - [x] 14. **Order lifecycle** - order list (4 status tabs), order details,
-  delivery submission, delivered confirmation (`docs/screen/orders/`,
-  `docs/screen/order-details/`, `docs/screen/order-deliver/`)
+      delivery submission, delivered confirmation (`docs/screen/orders/`,
+      `docs/screen/order-details/`, `docs/screen/order-deliver/`)
 - [x] 15. **Messaging** - conversation list and single-chat detail
-  (`docs/screen/message/`)
+      (`docs/screen/message/`)
 - [x] 16. **Profile / account settings** - settings menu, edit profile,
-  security settings, change password, privacy policy, help center
-  (`docs/screen/profile/`)
+      security settings, change password, privacy policy, help center
+      (`docs/screen/profile/`)
 - [x] 17. **Balance + transactions** - earnings summary and full transfer
-  history (`docs/screen/balance/`, `docs/screen/transactions/`)
+      history (`docs/screen/balance/`, `docs/screen/transactions/`)
 - [x] 18. **Withdrawals** - bank transfer branch and mobile banking/bKash
-  branch, sharing amount -> review -> success steps
-  (`docs/screen/withdraw-bank/`, `docs/screen/mobile-banking/`)
+      branch, sharing amount -> review -> success steps
+      (`docs/screen/withdraw-bank/`, `docs/screen/mobile-banking/`)
 
 ## Not yet built
 
 - [ ] 19. **Real authentication + route guarding** - replace client-side-only
-  auth validation with a real auth provider; block logged-out users from
-  reaching the `(main)` tabs
-- [ ] 20. **Backend API service layer** - stand up a real API client under
-  `services/`, replace the hardcoded fake user service
-  (`services/user.service.ts`), add token storage and error handling
+      auth validation with real backend auth
+      (`../backend/docs/Implementations/`); block logged-out users from reaching
+      the `(main)` and `(details)` route groups. Split into 19a-19d.
+  - [x] 19a. **Auth API client + token store** - typed `fetch` wrapper for the
+        `/api/v1` response envelope and error codes, AsyncStorage-backed token
+        persistence, and `services/auth.service.ts` (login, register, OTP,
+        refresh, logout, `/auth/me`). No UI or navigation change.
+  - [ ] 19b. **Auth session state + launch rehydrate** - replace the
+        `loggedIn`/`user` app-slice with real tokens plus `/auth/me`, rehydrate
+        and refresh on app launch, and a logout thunk.
+  - [ ] 19c. **Route guarding** - `_layout` guards on `(auth)`, `(main)`, and
+        `(details)`, and fix `app/index.tsx` first-run vs authenticated routing.
+  - [ ] 19d. **Wire auth screens to the backend** - Sign In (+ MFA-required
+        branch), Sign Up, Verify OTP, Forgot/Reset Password, and Profile logout
+        call the real endpoints with envelope-driven inline errors.
+- [ ] 20. **Product API service layer** - generalize the 19a HTTP client for
+      authenticated product resources: list/pagination helpers, shared error
+      surfacing, and the per-resource `services/*.service.ts` modules
 - [ ] 21. **Wire product screens to real data** - replace `data/*.ts` mock
-  fixtures with live API calls for campaigns, gigs, orders, messages,
-  notifications, balance/transactions, one screen group at a time
+      fixtures with live API calls for campaigns, gigs, orders, messages,
+      notifications, balance/transactions, one screen group at a time
 - [ ] 22. **App identity rebrand** - finish bundle identifiers/package names
-  still referencing the source boilerplate (`react-native-boilerplate`,
-  `com.watarumaeda.*`) and point `API_URL` at a real environment
+      still referencing the source boilerplate (`react-native-boilerplate`,
+      `com.watarumaeda.*`) and point `API_URL` at a real environment
 - [ ] 23. **Push notifications + deep linking**
 - [ ] 24. **Analytics + crash reporting**
