@@ -130,7 +130,7 @@ cleaned-up checkbox version before generating the project overview.
   - [x] 19b. **Auth session state + launch rehydrate** - replace the
         `loggedIn`/`user` app-slice with real tokens plus `/auth/me`, rehydrate
         and refresh on app launch, and a logout thunk.
-  - [ ] 19c. **Route guarding** - `_layout` guards on `(auth)`, `(main)`, and
+  - [x] 19c. **Route guarding** - `_layout` guards on `(auth)`, `(main)`, and
         `(details)`, and fix `app/index.tsx` first-run vs authenticated routing.
         Depends on 19d (needs real sessions).
   - [x] 19d. **Wire Sign In + Sign Up to the backend** - Sign In calls

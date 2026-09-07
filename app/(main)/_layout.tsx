@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
-import { Tabs, router } from 'expo-router';
+import { Redirect, Tabs, router } from 'expo-router';
 import { useTheme } from '@/hooks';
+import { useAppSlice } from '@/slices';
+import { authRedirect } from '@/utils/authGate';
 import TabBarIcon from '@/components/layouts/TabBarIcon';
 import TabBarLabel from '@/components/layouts/TabBarLabel';
 
@@ -31,6 +33,11 @@ const tabBarShadow =
 // the tab bar mounted underneath - see docs/screen/create-gig/README.md.
 export default function MainLayout() {
   const { colors } = useTheme();
+  const { checked, loggedIn } = useAppSlice();
+
+  if (!checked) return null;
+  const to = authRedirect('main', { loggedIn });
+  if (to) return <Redirect href={to} />;
 
   return (
     <Tabs
