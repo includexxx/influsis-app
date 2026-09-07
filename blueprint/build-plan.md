@@ -127,7 +127,7 @@ cleaned-up checkbox version before generating the project overview.
         `/api/v1` response envelope and error codes, AsyncStorage-backed token
         persistence, and `services/auth.service.ts` (login, register, OTP,
         refresh, logout, `/auth/me`). No UI or navigation change.
-  - [ ] 19b. **Auth session state + launch rehydrate** - replace the
+  - [x] 19b. **Auth session state + launch rehydrate** - replace the
         `loggedIn`/`user` app-slice with real tokens plus `/auth/me`, rehydrate
         and refresh on app launch, and a logout thunk.
   - [ ] 19c. **Route guarding** - `_layout` guards on `(auth)`, `(main)`, and

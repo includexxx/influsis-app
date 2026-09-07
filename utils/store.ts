@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, ThunkAction, UnknownAction } from '@reduxjs/toolkit';
 import app from '@/slices/app.slice';
 import profileVerification from '@/slices/profileVerification.slice';
 import createGig from '@/slices/createGig.slice';
@@ -20,5 +20,6 @@ const store = configureStore({
 
 export type State = ReturnType<typeof store.getState>;
 export type Dispatch = typeof store.dispatch;
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, State, undefined, UnknownAction>;
 
 export default store;
