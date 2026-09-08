@@ -4,6 +4,7 @@ import {
   resetPasswordSchema,
   signInSchema,
   signUpSchema,
+  twoFactorSchema,
 } from './authSchemas';
 
 const validSignUp = {
@@ -91,5 +92,19 @@ describe('resetPasswordSchema', () => {
     if (!r.success) {
       expect(r.error.issues.some(i => i.path[0] === 'confirmPassword')).toBe(true);
     }
+  });
+});
+
+describe('twoFactorSchema', () => {
+  test('accepts exactly 6 digits', () => {
+    expect(twoFactorSchema.safeParse({ code: ' 123456 ' }).success).toBe(true);
+  });
+
+  test('rejects fewer than 6 digits', () => {
+    expect(twoFactorSchema.safeParse({ code: '12345' }).success).toBe(false);
+  });
+
+  test('rejects non-numeric input', () => {
+    expect(twoFactorSchema.safeParse({ code: '12345a' }).success).toBe(false);
   });
 });

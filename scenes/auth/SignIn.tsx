@@ -8,6 +8,7 @@ import { useAuthSlice } from '@/slices';
 import { useLoginMutation, setTokens } from '@/services';
 import { signInSchema, SignInValues } from '@/utils/authSchemas';
 import { applyApiError } from '@/utils/authFormErrors';
+import { setPendingPreAuthToken } from '@/utils/preAuthToken';
 import { layoutStyle, buttonStyle } from '@/styles';
 import Button from '@/components/elements/Button';
 import ControlledTextField from '@/components/elements/ControlledTextField';
@@ -55,9 +56,8 @@ export default function SignIn() {
       }).unwrap();
 
       if ('mfaRequired' in res) {
-        setError('root', {
-          message: 'Two-factor sign-in is not available in this version yet.',
-        });
+        setPendingPreAuthToken(res.preAuthToken);
+        router.push('/auth/verify-2fa');
         return;
       }
 

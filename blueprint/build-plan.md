@@ -126,7 +126,7 @@ cleaned-up checkbox version before generating the project overview.
 > email-and-password credentials, the creator's contact verified by a 4-digit
 > registration OTP, with an optional TOTP second factor at login.
 
-- [ ] 19. **Real creator authentication (server-wired)** - replace the
+- [x] 19. **Real creator authentication (server-wired)** - replace the
   client-side-only auth stubs with real `/auth/*` calls: an access/refresh
   token strategy, login, registration + OTP verification, password reset, a
   login second factor, and route guarding. Built on axios (with a refresh
@@ -155,6 +155,6 @@ cleaned-up checkbox version before generating the project overview.
     branch), and `ResetPassword` call `POST /auth/otp/request`,
     `POST /auth/otp/verify` (`purpose: password_reset`), and
     `POST /auth/reset-password`.
-  - [ ] 19g. **Login second factor** - handle the
+  - [x] 19g. **Login second factor** - handle the
     `{ mfaRequired, preAuthToken }` login branch and add the TOTP step that
     calls `POST /auth/login/2fa/verify`.
