@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 jest.mock('@/utils/config', () => ({
   __esModule: true,
-  default: { apiUrl: 'https://api.test.example/', env: 'development' },
+  default: { apiUrl: 'https://api.test.example/api/v1', env: 'development' },
 }));
 
 import { ApiError, request } from './http';

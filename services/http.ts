@@ -1,7 +1,7 @@
 import config from '@/utils/config';
 import { ApiEnvelope, ApiErrorBody, ApiErrorCode } from '@/types';
 
-const baseUrl = `${(config.apiUrl ?? '').replace(/\/+$/, '')}/api/v1`;
+const baseUrl = config.apiUrl || 'http://localhost:3001/api/v1';
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 

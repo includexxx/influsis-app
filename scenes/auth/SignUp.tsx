@@ -109,9 +109,7 @@ export default function SignUp() {
       return;
 
     setSubmitting(true);
-    const result = await dispatch(
-      signUp({ email: trimmedEmail, phone: trimmedPhone, password }),
-    );
+    const result = await dispatch(signUp({ email: trimmedEmail, phone: trimmedPhone, password }));
     setSubmitting(false);
 
     if (result.status === 'ok') {

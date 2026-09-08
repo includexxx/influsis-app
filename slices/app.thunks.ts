@@ -150,9 +150,11 @@ export function signUp(input: {
   return async dispatch => {
     try {
       const email = input.email.trim();
-      await register({ roleKey: 'creator', email, password: input.password });
-
+      const regs = await register({ roleKey: 'creator', email, password: input.password });
+      console.log({ regs });
       const result = await login({ identifier: email, password: input.password });
+      console.log({ result });
+
       if (result.status === 'mfa') {
         return {
           status: 'error',
