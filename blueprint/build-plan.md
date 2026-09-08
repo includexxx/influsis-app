@@ -141,7 +141,7 @@ cleaned-up checkbox version before generating the project overview.
     Query API with a typed endpoint per Group A/B auth route, an `auth.slice`
     holding session status/account, store wiring, and a launch rehydrate that
     replaces the fake `getUserAsync`.
-  - [ ] 19c. **Route guarding** - a pure `authGate` helper plus `(auth)` /
+  - [x] 19c. **Route guarding** - a pure `authGate` helper plus `(auth)` /
     `(main)` / `(details)` layout guards and session-based `app/index.tsx`
     routing.
   - [ ] 19d. **Sign In + Sign Up wired** - zod schemas driven by

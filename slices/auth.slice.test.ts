@@ -9,6 +9,7 @@ import authReducer, {
   restoreSession,
   sessionEnded,
   sessionEstablished,
+  signOut,
 } from './auth.slice';
 
 const account: AuthAccount = {
@@ -155,5 +156,25 @@ describe('restoreSession', () => {
 
     expect(store.getState().auth.status).toBe('unauthenticated');
     expect(await getTokens()).toEqual(storedTokens);
+  });
+});
+
+describe('signOut', () => {
+  test('ends the session and nulls the account from an authenticated state', async () => {
+    const store = makeStore();
+    store.dispatch(sessionEstablished(account));
+
+    await store.dispatch(signOut());
+
+    expect(store.getState().auth).toEqual({ status: 'unauthenticated', account: null });
+  });
+
+  test('wipes the token store', async () => {
+    await setTokens(storedTokens);
+    const store = makeStore();
+
+    await store.dispatch(signOut());
+
+    expect(await getTokens()).toBeNull();
   });
 });

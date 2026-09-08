@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTheme, useDataPersist, DataPersistKeys } from '@/hooks';
-import { useAppSlice } from '@/slices';
+import { useAppSlice, useAuthSlice } from '@/slices';
 import { getShadowStyle, palette } from '@/theme';
 import { layoutStyle, accountStyle } from '@/styles';
 import CircleAvatar from '@/components/elements/CircleAvatar';
@@ -45,7 +45,8 @@ const styles = StyleSheet.create({
 // specified.
 export default function Profile() {
   const { colors, isDark } = useTheme();
-  const { user, dispatch, setLoggedIn, setUser } = useAppSlice();
+  const { user, dispatch, setUser } = useAppSlice();
+  const { signOut } = useAuthSlice();
   const { removePersistData } = useDataPersist();
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
@@ -65,7 +66,7 @@ export default function Profile() {
     setIsLogoutConfirmOpen(false);
     removePersistData(DataPersistKeys.USER);
     dispatch(setUser(undefined));
-    dispatch(setLoggedIn(false));
+    dispatch(signOut());
     router.replace('/auth/sign-in');
   }
 

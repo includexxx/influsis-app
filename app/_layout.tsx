@@ -3,15 +3,14 @@ import * as SplashScreen from 'expo-splash-screen';
 import { loadImages, loadFonts } from '@/theme';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useAppSlice, useAuthSlice } from '@/slices';
+import { useAuthSlice } from '@/slices';
 import Provider from '@/providers';
 
 // keep the splash screen visible while complete fetching resources
 SplashScreen.preventAutoHideAsync();
 
 function Router() {
-  const { dispatch, setLoggedIn } = useAppSlice();
-  const { restoreSession } = useAuthSlice();
+  const { dispatch, restoreSession } = useAuthSlice();
 
   /**
    * preload assets, then rehydrate the session from the token store
@@ -21,11 +20,7 @@ function Router() {
     (async () => {
       try {
         await Promise.all([loadImages(), loadFonts()]).catch(() => {});
-        const account = await dispatch(restoreSession())
-          .unwrap()
-          .catch(() => null);
-        // bridge to app.slice.checked until 19c routes on auth.slice directly
-        dispatch(setLoggedIn(!!account));
+        await dispatch(restoreSession());
       } finally {
         SplashScreen.hideAsync();
       }

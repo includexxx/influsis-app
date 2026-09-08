@@ -72,10 +72,22 @@ const slice = createSlice({
 
 export const { sessionEstablished, sessionEnded, accountUpdated } = slice.actions;
 
+/**
+ * Explicit user logout. Ends the Redux session and drops cached authApi data
+ * synchronously (so a caller can navigate immediately against a consistent
+ * `unauthenticated` status), then wipes the stored token pair. A later leaf
+ * adds `POST /auth/logout` before `clearTokens()`.
+ */
+export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
+  dispatch(sessionEnded());
+  dispatch(authApi.util.resetApiState());
+  await clearTokens();
+});
+
 export function useAuthSlice() {
   const dispatch = useDispatch<Dispatch>();
   const state = useSelector(({ auth }: State) => auth);
-  return { dispatch, ...state, ...slice.actions, restoreSession };
+  return { dispatch, ...state, ...slice.actions, restoreSession, signOut };
 }
 
 export default slice.reducer;

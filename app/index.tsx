@@ -1,10 +1,10 @@
 import { Redirect } from 'expo-router';
-import { useAppSlice } from '@/slices';
+import { useAuthSlice } from '@/slices';
 
 export default function Index() {
-  const { checked } = useAppSlice();
+  const { status } = useAuthSlice();
 
-  if (!checked) return null;
+  if (status === 'restoring') return null;
 
-  return <Redirect href="/onboarding" />;
+  return <Redirect href={status === 'authenticated' ? '/home' : '/onboarding'} />;
 }
