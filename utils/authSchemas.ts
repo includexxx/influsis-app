@@ -7,7 +7,6 @@ export const signInSchema = z.object({
 
 export const signUpSchema = z
   .object({
-    fullName: z.string().trim().min(1, 'Full name is required'),
     email: z.string().trim().email('Enter a valid email'),
     phone: z.string().trim().min(1, 'Phone number is required'),
     // Backend RegisterDto minimum; the old mock allowed 6.

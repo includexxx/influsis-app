@@ -78,7 +78,7 @@ export default function SignIn() {
       <ScrollView
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Sign In" onBack={() => router.back()} style={styles.header} />
+        <AuthHeader title="Sign In" onBack={() => router.push('/auth')} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
           <ControlledTextField
             control={control}

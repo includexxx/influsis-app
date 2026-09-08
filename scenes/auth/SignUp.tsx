@@ -76,7 +76,7 @@ export default function SignUp() {
     formState: { errors, isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: '', email: '', phone: '', password: '', confirmPassword: '' },
+    defaultValues: { email: '', phone: '', password: '', confirmPassword: '' },
   });
 
   async function onSubmit(values: SignUpValues) {
@@ -95,14 +95,8 @@ export default function SignUp() {
       <ScrollView
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Sign Up" onBack={() => router.back()} style={styles.header} />
+        <AuthHeader title="Sign Up" onBack={() => router.push('/auth')} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
-            control={control}
-            name="fullName"
-            label="Full Name"
-            placeholder="Gazi Delowar"
-          />
           <ControlledTextField
             control={control}
             name="email"

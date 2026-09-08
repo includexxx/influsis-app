@@ -8,7 +8,6 @@ import {
 } from './authSchemas';
 
 const validSignUp = {
-  fullName: 'Test Creator',
   email: 'creator@influsis.test',
   phone: '1521000000',
   password: 'password1',
@@ -54,7 +53,6 @@ describe('signUpSchema', () => {
   });
 
   test('rejects an empty full name and phone', () => {
-    expect(signUpSchema.safeParse({ ...validSignUp, fullName: '  ' }).success).toBe(false);
     expect(signUpSchema.safeParse({ ...validSignUp, phone: '' }).success).toBe(false);
   });
 });
