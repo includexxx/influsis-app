@@ -7,6 +7,7 @@ import { useAuthSlice } from '@/slices';
 import { useVerifyOtpMutation, useRequestOtpMutation, setTokens } from '@/services';
 import { SessionTokenPair } from '@/types';
 import { otpVerifyErrorMessage, otpRequestErrorMessage } from '@/utils/otpErrors';
+import { setPendingResetToken } from '@/utils/resetToken';
 import { layoutStyle, buttonStyle as sharedButton } from '@/styles';
 import Button from '@/components/elements/Button';
 import AuthHeader from '@/components/elements/AuthHeader';
@@ -57,8 +58,11 @@ export default function VerifyOtp() {
   const [notice, setNotice] = useState<string>();
   const sessionRef = useRef<SessionTokenPair | null>(null);
 
-  const missingEmail = !isResetFlow && !email;
-  const displayError = missingEmail ? 'Something went wrong. Start sign-up again.' : error;
+  const missingEmail = !email;
+  const missingEmailMessage = isResetFlow
+    ? 'Something went wrong. Start the password reset again.'
+    : 'Something went wrong. Start sign-up again.';
+  const displayError = missingEmail ? missingEmailMessage : error;
   const isComplete = code.length === OTP_LENGTH;
 
   function handleCodeChange(next: string) {
@@ -82,18 +86,33 @@ export default function VerifyOtp() {
   async function handleVerify() {
     if (!isComplete || isVerifying) return;
 
-    if (isResetFlow) {
-      router.replace({ pathname: '/auth/reset-password', params: { email } });
-      return;
-    }
-
     if (!email) {
-      setError('Something went wrong. Start sign-up again.');
+      setError(missingEmailMessage);
       return;
     }
 
     setError(undefined);
     setNotice(undefined);
+
+    if (isResetFlow) {
+      try {
+        const res = await verifyOtp({
+          destination: email,
+          purpose: 'password_reset',
+          code,
+        }).unwrap();
+        if (!('resetToken' in res)) {
+          setError('Something went wrong. Please try again.');
+          return;
+        }
+        setPendingResetToken(res.resetToken);
+        router.replace({ pathname: '/auth/reset-password', params: { email } });
+      } catch (err) {
+        setError(otpVerifyErrorMessage(err));
+      }
+      return;
+    }
+
     try {
       const res = await verifyOtp({ destination: email, purpose: 'registration', code }).unwrap();
       if (!('token' in res)) {
@@ -108,15 +127,12 @@ export default function VerifyOtp() {
   }
 
   async function handleResend() {
-    if (isResetFlow) {
-      setCode('');
-      return;
-    }
     if (!email || isRequesting) return;
 
+    const purpose = isResetFlow ? 'password_reset' : 'registration';
     setError(undefined);
     try {
-      await requestOtp({ destination: email, channel: 'email', purpose: 'registration' }).unwrap();
+      await requestOtp({ destination: email, channel: 'email', purpose }).unwrap();
       setCode('');
       setNotice('A new code is on its way.');
     } catch (err) {

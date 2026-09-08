@@ -1,5 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
-import { signInSchema, signUpSchema } from './authSchemas';
+import {
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  signInSchema,
+  signUpSchema,
+} from './authSchemas';
 
 const validSignUp = {
   fullName: 'Test Creator',
@@ -50,5 +55,41 @@ describe('signUpSchema', () => {
   test('rejects an empty full name and phone', () => {
     expect(signUpSchema.safeParse({ ...validSignUp, fullName: '  ' }).success).toBe(false);
     expect(signUpSchema.safeParse({ ...validSignUp, phone: '' }).success).toBe(false);
+  });
+});
+
+describe('forgotPasswordSchema', () => {
+  test('accepts a valid email', () => {
+    expect(forgotPasswordSchema.safeParse({ email: ' a@b.co ' }).success).toBe(true);
+  });
+
+  test('rejects an invalid email', () => {
+    expect(forgotPasswordSchema.safeParse({ email: 'nope' }).success).toBe(false);
+  });
+});
+
+describe('resetPasswordSchema', () => {
+  test('accepts matching 8+ char passwords', () => {
+    expect(
+      resetPasswordSchema.safeParse({ newPassword: 'password1', confirmPassword: 'password1' })
+        .success,
+    ).toBe(true);
+  });
+
+  test('rejects a password shorter than 8', () => {
+    expect(
+      resetPasswordSchema.safeParse({ newPassword: 'short', confirmPassword: 'short' }).success,
+    ).toBe(false);
+  });
+
+  test('rejects a mismatch on the confirmPassword path', () => {
+    const r = resetPasswordSchema.safeParse({
+      newPassword: 'password1',
+      confirmPassword: 'password2',
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some(i => i.path[0] === 'confirmPassword')).toBe(true);
+    }
   });
 });

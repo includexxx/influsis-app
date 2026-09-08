@@ -151,7 +151,7 @@ cleaned-up checkbox version before generating the project overview.
   - [x] 19e. **Registration OTP** - the `VerifyOtp` signup branch calls
     `POST /auth/otp/verify` (`purpose: registration`) for the token pair and
     creates the session; "Resend Code" calls `POST /auth/otp/request`.
-  - [ ] 19f. **Password reset wired** - `ForgotPassword`, `VerifyOtp` (reset
+  - [x] 19f. **Password reset wired** - `ForgotPassword`, `VerifyOtp` (reset
     branch), and `ResetPassword` call `POST /auth/otp/request`,
     `POST /auth/otp/verify` (`purpose: password_reset`), and
     `POST /auth/reset-password`.
