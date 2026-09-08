@@ -202,9 +202,9 @@ This app currently has **zero backend integration** — see
 task; when a task is purely UI/mock-data work, this app's own
 `blueprint/context/project-overview.md` and `data/*.ts` types are usually
 enough. Load `platform-context/api-contracts/` and `domain-model.md` only
-when the task is actually about wiring real backend calls (build-plan items
-19-21) or when you need to know the target shape a mock should eventually
-match.
+when the task is actually about wiring real backend calls (the
+backend-integration build-plan items) or when you need to know the target
+shape a mock should eventually match.
 
 ## Anti-Hallucination Rules
 

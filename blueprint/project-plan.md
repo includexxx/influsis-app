@@ -41,15 +41,10 @@ build plan for the full checklist):
 - Profile/account settings (edit profile, security, change password, privacy
   policy, help center)
 
-Still needed before this is a real product rather than a UI shell (not yet
-built - see Section 6 for the confirmed next priority):
-
-- Real backend API (currently no API client or endpoints exist)
-- Real authentication with route guarding (currently client-side validation
-  only; logged-out users can reach the main app)
-- Replace the hardcoded fake user service with real user data
-- App identity cleanup (bundle identifiers/package names still reference the
-  source boilerplate)
+Still needed before this is a real product rather than a UI shell: the
+backend-integration roadmap (real API, real auth with route guarding,
+replacing the fake user service and `data/*.ts` mocks with live data, app
+identity cleanup) is being written manually in `build-plan.md`.
 
 ## 4. Data - What are we storing?
 
@@ -83,8 +78,8 @@ backed by a real API and database:
   (`.github/workflows/test.yml`) and publish an EAS preview channel
   (`.github/workflows/preview.yml`)
 
-> TODO (confirm): no backend/API stack is chosen yet. Section 6's next priority
-> is standing up a real API and auth provider; the specific service (custom
+> TODO (confirm): no backend/API stack is chosen yet. The next priority is
+> standing up a real API and auth provider; the specific service (custom
 > backend, BaaS, etc.) is still open.
 
 ## 6. Monetize - How will this make money?

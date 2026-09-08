@@ -60,21 +60,16 @@ for the not-yet-built backend):
 18. **Withdrawals** - bank transfer branch and mobile banking/bKash branch,
     sharing amount -> review -> success steps.
 
-Not yet built (next up, in order; numbers match `build-plan.md`):
-
-- (19) **Real authentication + route guarding**
-- (20) **Backend API service layer** (replaces the hardcoded fake user service)
-- (21) **Wire product screens to real data** (replaces `data/*.ts` mocks)
-- (22) **App identity rebrand** (bundle identifiers, `API_URL`)
-- (23) **Push notifications + deep linking**
-- (24) **Analytics + crash reporting**
+Not yet built: the backend-integration roadmap (real auth, API service layer,
+wiring screens to live data, and beyond) is being written manually in
+`build-plan.md`. Until then every screen runs on `data/*.ts` mock fixtures.
 
 ## Data model
 
 No backend exists yet - today's screens run on typed mock fixtures
 (`data/*.ts` + `types/*.ts`) with UI-specific fields (pre-formatted price/date
 strings, local image assets). The models below are the logical shape those
-screens imply for the real API (feature 20); field names follow the existing
+screens imply for the real API; field names follow the existing
 mock types where they'll carry over directly.
 
 ### User
@@ -163,7 +158,8 @@ mock types where they'll carry over directly.
 - **EAS Build / EAS Update / EAS Hosting** - native builds, OTA, web hosting
 - **dotenvx** - per-environment config (`.env.dev`, `.env.prod.example`)
 
-> TODO: backend/auth provider not yet chosen (feature 19/20 blocker).
+> TODO: backend/auth provider not yet chosen (blocks the real-auth and
+> API-service-layer work).
 
 ## Monetization
 
@@ -205,7 +201,7 @@ Main routes (`app/`, Expo Router groups):
 
 ## Open questions
 
-- Backend/auth provider choice (custom API, BaaS, etc.) - blocks features
-  19-21.
+- Backend/auth provider choice (custom API, BaaS, etc.) - blocks all
+  backend-integration work.
 - Exact commission structure (rate, who it's deducted from).
 - Production/staging API endpoints and hosting target.
