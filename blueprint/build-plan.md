@@ -148,7 +148,7 @@ cleaned-up checkbox version before generating the project overview.
     react-hook-form, `POST /auth/login` and `POST /auth/register`
     (`roleKey: 'creator'`), with envelope `code` and per-field `errors` surfaced
     inline.
-  - [ ] 19e. **Registration OTP** - the `VerifyOtp` signup branch calls
+  - [x] 19e. **Registration OTP** - the `VerifyOtp` signup branch calls
     `POST /auth/otp/verify` (`purpose: registration`) for the token pair and
     creates the session; "Resend Code" calls `POST /auth/otp/request`.
   - [ ] 19f. **Password reset wired** - `ForgotPassword`, `VerifyOtp` (reset

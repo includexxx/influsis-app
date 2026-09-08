@@ -164,6 +164,29 @@ describe('authApi', () => {
     });
   });
 
+  test('verifyOtp posts to /auth/otp/verify with skipAuth and unwraps the token pair', async () => {
+    const store = makeStore();
+    adapter.mockImplementation(c =>
+      ok(c, envelope({ token: 'a', refreshToken: 'r', tokenExpires: 1, user: account })),
+    );
+
+    const data = await store
+      .dispatch(
+        authApi.endpoints.verifyOtp.initiate({
+          destination: 'c@influsis.test',
+          purpose: 'registration',
+          code: '1234',
+        }),
+      )
+      .unwrap();
+
+    expect(data).toMatchObject({ token: 'a', user: { id: 'u-1' } });
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/auth/otp/verify');
+    expect(call.skipAuth).toBe(true);
+    expect(call.headers.Authorization).toBeUndefined();
+  });
+
   test('a success:false body becomes a result.error that is an ApiError with the server code', async () => {
     const store = makeStore();
     adapter.mockImplementation(c => ok(c, errorBody('AUTH_INVALID_CREDENTIALS', 401), 401));
