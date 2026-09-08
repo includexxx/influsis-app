@@ -144,7 +144,7 @@ cleaned-up checkbox version before generating the project overview.
   - [x] 19c. **Route guarding** - a pure `authGate` helper plus `(auth)` /
     `(main)` / `(details)` layout guards and session-based `app/index.tsx`
     routing.
-  - [ ] 19d. **Sign In + Sign Up wired** - zod schemas driven by
+  - [x] 19d. **Sign In + Sign Up wired** - zod schemas driven by
     react-hook-form, `POST /auth/login` and `POST /auth/register`
     (`roleKey: 'creator'`), with envelope `code` and per-field `errors` surfaced
     inline.

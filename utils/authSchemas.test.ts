@@ -1,0 +1,54 @@
+import { describe, expect, test } from '@jest/globals';
+import { signInSchema, signUpSchema } from './authSchemas';
+
+const validSignUp = {
+  fullName: 'Test Creator',
+  email: 'creator@influsis.test',
+  phone: '1521000000',
+  password: 'password1',
+  confirmPassword: 'password1',
+};
+
+describe('signInSchema', () => {
+  test('accepts a valid email and password', () => {
+    expect(signInSchema.safeParse({ identifier: ' a@b.co ', password: 'x' }).success).toBe(true);
+  });
+
+  test('rejects an invalid email', () => {
+    const r = signInSchema.safeParse({ identifier: 'not-an-email', password: 'x' });
+    expect(r.success).toBe(false);
+  });
+
+  test('rejects an empty password', () => {
+    const r = signInSchema.safeParse({ identifier: 'a@b.co', password: '' });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe('signUpSchema', () => {
+  test('accepts a fully valid form', () => {
+    expect(signUpSchema.safeParse(validSignUp).success).toBe(true);
+  });
+
+  test('rejects a password shorter than 8', () => {
+    const r = signUpSchema.safeParse({
+      ...validSignUp,
+      password: 'short',
+      confirmPassword: 'short',
+    });
+    expect(r.success).toBe(false);
+  });
+
+  test('rejects a confirmPassword that does not match', () => {
+    const r = signUpSchema.safeParse({ ...validSignUp, confirmPassword: 'password2' });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some(i => i.path[0] === 'confirmPassword')).toBe(true);
+    }
+  });
+
+  test('rejects an empty full name and phone', () => {
+    expect(signUpSchema.safeParse({ ...validSignUp, fullName: '  ' }).success).toBe(false);
+    expect(signUpSchema.safeParse({ ...validSignUp, phone: '' }).success).toBe(false);
+  });
+});

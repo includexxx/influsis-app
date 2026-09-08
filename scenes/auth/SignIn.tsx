@@ -1,18 +1,17 @@
-import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@/hooks';
+import { useAuthSlice } from '@/slices';
+import { useLoginMutation, setTokens } from '@/services';
+import { signInSchema, SignInValues } from '@/utils/authSchemas';
+import { applyApiError } from '@/utils/authFormErrors';
 import { layoutStyle, buttonStyle } from '@/styles';
 import Button from '@/components/elements/Button';
-import TextField from '@/components/elements/TextField';
+import ControlledTextField from '@/components/elements/ControlledTextField';
 import AuthHeader from '@/components/elements/AuthHeader';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// No real auth backend exists yet (see docs/PRD.md Epic 2/3) - this is a
-// deliberately simple client-side stand-in so the invalid-email and
-// wrong-password states from Figma are still reachable and demonstrable.
-const MIN_PASSWORD_LENGTH = 6;
 
 const styles = StyleSheet.create({
   header: {
@@ -24,26 +23,54 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 8,
   },
+  formError: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+  },
 });
 
 export default function SignIn() {
   const { colors, palette } = useTheme();
+  const { dispatch, sessionEstablished } = useAuthSlice();
+  const [login, { isLoading }] = useLoginMutation();
 
-  const [email, setEmail] = useState('test@example.com');
-  const [password, setPassword] = useState('pass1234');
-  const [emailError, setEmailError] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { identifier: '', password: '' },
+  });
 
-  function handleSubmit() {
-    const isEmailValid = EMAIL_REGEX.test(email.trim());
-    const isPasswordValid = password.length >= MIN_PASSWORD_LENGTH;
+  async function onSubmit(values: SignInValues) {
+    clearErrors('root');
+    try {
+      const res = await login({
+        identifier: values.identifier.trim(),
+        password: values.password,
+      }).unwrap();
 
-    setEmailError(isEmailValid ? undefined : 'Invalid email');
-    setPasswordError(isEmailValid && !isPasswordValid ? 'Wrong password' : undefined);
+      if ('mfaRequired' in res) {
+        setError('root', {
+          message: 'Two-factor sign-in is not available in this version yet.',
+        });
+        return;
+      }
 
-    if (!isEmailValid || !isPasswordValid) return;
-
-    router.replace('/home');
+      await setTokens({
+        token: res.token,
+        refreshToken: res.refreshToken,
+        tokenExpires: res.tokenExpires,
+      });
+      dispatch(sessionEstablished(res.user));
+      router.replace('/home');
+    } catch (err) {
+      applyApiError(err, setError, ['identifier', 'password']);
+    }
   }
 
   return (
@@ -53,29 +80,21 @@ export default function SignIn() {
         showsVerticalScrollIndicator={false}>
         <AuthHeader title="Sign In" onBack={() => router.back()} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
-          <TextField
+          <ControlledTextField
+            control={control}
+            name="identifier"
             label="Email"
             placeholder="you@example.com"
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              if (emailError) setEmailError(undefined);
-            }}
-            error={emailError}
             autoCapitalize="none"
             keyboardType="email-address"
             testID="sign-in-email"
           />
           <View>
-            <TextField
+            <ControlledTextField
+              control={control}
+              name="password"
               label="Password"
               placeholder="Password"
-              value={password}
-              onChangeText={text => {
-                setPassword(text);
-                if (passwordError) setPasswordError(undefined);
-              }}
-              error={passwordError}
               secureTextEntry
               testID="sign-in-password"
             />
@@ -85,11 +104,15 @@ export default function SignIn() {
               Forgot password?
             </Text>
           </View>
+          {errors.root?.message ? (
+            <Text style={[styles.formError, { color: colors.error }]}>{errors.root.message}</Text>
+          ) : null}
           <Button
             title="Sign in"
             titleStyle={buttonStyle.primaryTitle}
             style={buttonStyle.primary}
-            onPress={handleSubmit}
+            isLoading={isLoading || isSubmitting}
+            onPress={handleSubmit(onSubmit)}
           />
         </View>
       </ScrollView>
