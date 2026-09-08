@@ -7,30 +7,6 @@
 > finding is `open` or `fixed`, then archives resolved findings with the work
 > and resets this file.
 
-### F-01 [P2] fixed - redux-logger prints auth tokens in every non-dev build
-
-**File:** utils/store.ts:24-31
-**Found:** 2026-09-08 by /audit (scope: feat/server-auth delta cab4989..HEAD; lens: security)
-**Why it matters:** The middleware ternary is `config.env === Env.dev ? base : base.concat(logger)`,
-so `redux-logger` is attached for staging and production and skipped only in
-development (the check reads inverted). Before this branch that logged benign
-app state. 19b-19g route every login, OTP verify, 2FA verify, and silent token
-refresh through `authApi` actions whose fulfilled payload is the
-`{ token, refreshToken, tokenExpires, user }` pair, so a staging or production
-build now `console.log`s the access and refresh tokens on every auth event.
-On a device those land in `adb logcat` / Console.app and in any log-capture SDK
-added later. `serializableCheck` was correctly relaxed for `authApi`, but the
-logger was not.
-**Suggested fix:** Flip the condition so the logger is dev-only
-(`config.env === Env.dev ? base.concat(logger) : base`), or drop `redux-logger`
-entirely. If a prod action log is genuinely wanted, add an action/state
-sanitizer that redacts `authApi` payloads.
-**Resolution:** Fixed on `fix/logger-dev-only-and-auth-docs` (step 1). Ternary
-in `utils/store.ts:32` flipped to `config.env === Env.dev ? base.concat(logger)
-: base`; `redux-logger` now runs only in development. `serializableCheck`,
-`authApi.middleware` order, and `devTools` unchanged. `tsc` / 284 tests / lint
-green. Awaiting `/audit` re-review to close.
-
 ### F-02 [P2] open - Six auth screens ship with no behavioral verification
 
 **File:** scenes/auth/VerifyOtp.tsx:74-127
@@ -54,23 +30,33 @@ and cover at least the OTP -> profile-verification transition and the
 missing-token guards on `ResetPassword` / `VerifyTwoFactor`.
 **Resolution:**
 
-### F-03 [P3] fixed - Docs still reference the removed loggedIn / setLoggedIn state
+### F-04 [P3] fixed - Residual auth inaccuracies in docs/PRD.md
 
-**File:** docs/PRD.md:65
-**Found:** 2026-09-08 by /audit (scope: feat/server-auth delta cab4989..HEAD; lens: quality)
-**Why it matters:** 19c deleted `checked`, `loggedIn`, and `setLoggedIn` from
-`app.slice`, but `docs/PRD.md` (lines 65, 73) and
-`docs/screen/profile/README.md` (line 78) still describe auth state as a single
-`app` slice with `loggedIn` and a logout that calls `setLoggedIn(false)`. A
-reader onboarding from these docs will look for state that no longer exists.
-**Suggested fix:** Update those three lines to describe `auth.slice`
-(`status` / `account`), `restoreSession`, and the `signOut` thunk.
-**Resolution:** Fixed on `fix/logger-dev-only-and-auth-docs` (step 2). Eight
-lines reconciled: `docs/PRD.md` (app bootstrap, state management, startup
-failure, auth HTTP layer, auth flow + route guarding, backend) plus
-`docs/screen/auth/README.md:47` (`app/index.tsx` routes on `auth.slice.status`)
-and `docs/screen/profile/README.md:78` (logout uses `signOut()`). `rg
-"loggedIn|setLoggedIn" docs/` now clean. Not touched (forward-looking roadmap,
-not false present-tense claims): `docs/PRD.md` lines ~102, ~110, ~144 still list
-"replace fake `getUserAsync`" as pending epic work. Awaiting `/audit`
-re-review to close.
+**File:** docs/PRD.md:72
+**Found:** 2026-09-08 by /audit (scope: current, merged fix `69d73c9`; lens: quality)
+**Why it matters:** The F-03 fix rewrote the PRD's auth section for accuracy but
+left small inaccuracies:
+
+- Line 72 (new "Auth HTTP layer" bullet) says `http.ts` + `authApi.ts` "wire the
+  seven `/auth/*` endpoints". `authApi.ts` defines eight
+  (`register`, `login`, `login/2fa/verify`, `otp/request`, `otp/verify`,
+  `reset-password`, `me`, `logout`) and `http.ts` adds `/auth/refresh`, so nine
+  distinct paths (or seven if you count only the ones a screen or `restoreSession`
+  actively calls, leaving `logout` and `refresh` as plumbing). The number should
+  be exact or dropped.
+- Lines ~102 / ~110 / ~144 still frame the auth service layer as unstarted:
+  epic E3 "replace fake `getUserAsync`", FR-1 "Scaffolded, currently always
+  'logs in'", and an unchecked "Fake user service replaced with a real API
+  client" roadmap box. 19a-19g delivered most of that.
+**Suggested fix:** Make line 72 exact ("eight `/auth/*` endpoints" or "the
+`/auth/*` endpoints") and update the three roadmap/requirement lines to reflect
+that the API service layer and route-based auth state now exist (the live
+backend is the remaining gap).
+**Resolution:** Fixed on `fix/prd-auth-status-accuracy` (step 1). `docs/PRD.md`:
+line 72 count dropped ("wire the `/auth/*` endpoints"); a status line added
+under the 4.1 epics table noting E2/E3 are largely built by 19a-19g with a live
+backend the remaining gap (table rows untouched to avoid a reflow); FR-1 and
+FR-3 parentheticals rewritten to the real `restoreSession` / `authGate` /
+`GET /auth/me` status; the two completed Success Criteria checkboxes ticked.
+`prettier --check docs/PRD.md` clean, stale-phrase greps clean, no code touched
+(284 tests still green). Awaiting `/audit` re-review to close.

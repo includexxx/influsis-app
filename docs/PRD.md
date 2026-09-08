@@ -69,7 +69,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 ### 2.2 What is placeholder / not real yet
 
 - **Main app screens**: Order, Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
-- **Auth HTTP layer**: `services/http.ts` and `services/authApi.ts` wire the seven `/auth/*` endpoints (axios client, envelope unwrap, `ApiError`, bearer-token interceptor, one-shot 401 refresh), but `API_URL` points at a placeholder so no real round trip completes yet.
+- **Auth HTTP layer**: `services/http.ts` and `services/authApi.ts` wire the `/auth/*` endpoints (axios client, envelope unwrap, `ApiError`, bearer-token interceptor, one-shot 401 refresh), but `API_URL` points at a placeholder so no real round trip completes yet.
 - **Auth**: The sign-in/sign-up/OTP/2FA/forgot-reset screens (`docs/screen/auth/`) use react-hook-form + zod validation and drive `auth.slice.status` through `authApi`; `authGate` guards `(auth)`, `(main)`, and `(details)`, so the tabs are no longer reachable while signed out. What is still missing is a live backend to authenticate against.
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.
 - **Backend**: No running server. The `/auth/*` contracts are typed and consumed (`types/auth.ts`, `types/api.ts`); every other domain (campaigns, gigs, orders, wallet, messaging) is still `data/*.ts` fixtures.
@@ -105,11 +105,13 @@ The product scope of Influsis (target users, core features, monetization) is **n
 | E6  | Push notifications & deep linking                                                  | E2          |
 | E7  | Analytics and crash reporting                                                      | —           |
 
+E2 and E3 are largely built by the 19a-19g auth epic (auth screens, session slice, HTTP client with `ApiError` handling and token refresh, token storage, route guarding); a live backend is the remaining gap.
+
 ### 4.2 Functional requirements that already have scaffolding
 
-- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Scaffolded — currently always "logs in".)_
+- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Working: routes on `auth.slice.status` via `restoreSession` + `authGate`; live backend still pending.)_
 - **FR-2 Theme**: All screens must render correctly in light and dark mode. _(Working pattern established.)_
-- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working with fake data.)_
+- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working against the real token store and `GET /auth/me`; a transient offline failure currently signs the user out rather than restoring from cache.)_
 - **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. _(Working.)_
 
 ## 5. Non-Functional Requirements
@@ -141,7 +143,7 @@ The product scope of Influsis (target users, core features, monetization) is **n
 ## 8. Success Criteria for Exiting Foundation Stage
 
 - [ ] App identity (name, slug, bundle IDs, icons, splash) rebranded to Influsis
-- [ ] Fake user service replaced with a real API client and error handling
-- [ ] Real auth flow with route guarding (logged-out users cannot reach main tabs)
+- [x] Fake user service replaced with a real API client and error handling
+- [x] Real auth flow with route guarding (logged-out users cannot reach main tabs)
 - [ ] At least one real product screen replacing the demo Home/Details screens
 - [ ] Environment files pointing to real dev/staging endpoints

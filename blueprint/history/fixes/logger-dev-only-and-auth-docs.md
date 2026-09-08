@@ -96,3 +96,47 @@ there), and the Jest suites (they build their own stores and do not read
   `utils/authGate.ts`, `app/index.tsx`, and `scenes/main/Profile.tsx`; every
   claim matches. `npm run lint` and `npm test` stay green (docs-only, so no
   behavior change).
+
+## Findings
+
+Resolved findings from this fix, closed by the `/audit` re-review of merged
+commit `69d73c9` (2026-09-08). Archived here at the next `/complete` because the
+re-review landed after this fix had already merged.
+
+### logger-dev-only-and-auth-docs/F-01 [P2] closed - redux-logger prints auth tokens in every non-dev build
+
+**File:** utils/store.ts:24-31
+**Found:** 2026-09-08 by /audit (scope: feat/server-auth delta cab4989..HEAD; lens: security)
+**Why it matters:** The middleware ternary read `config.env === Env.dev ? base : base.concat(logger)`,
+so `redux-logger` attached for staging and production and was skipped only in
+development. 19b-19g route every login, OTP verify, 2FA verify, and silent token
+refresh through `authApi` actions whose fulfilled payload carries the
+`{ token, refreshToken, tokenExpires, user }` pair, so a staging or production
+build `console.log`ged the access and refresh tokens on every auth event.
+**Suggested fix:** Flip the condition so the logger is dev-only, or drop
+`redux-logger` entirely.
+**Resolution:** Fixed here (step 1): `utils/store.ts` ternary flipped to
+`config.env === Env.dev ? base.concat(logger) : base`. `serializableCheck`,
+`authApi.middleware` order, and `devTools` unchanged.
+**Closed** 2026-09-08 by /audit (scope: current, merged fix `69d73c9`; all
+lenses). In staging/production the logger is not attached, so `authApi` fulfilled
+actions and their token payloads are no longer logged; `authApi.middleware` stays
+always attached. Dev now runs `redux-logger` (the intended use of a dev-only
+tool). Original defect gone, no new defect introduced.
+
+### logger-dev-only-and-auth-docs/F-03 [P3] closed - Docs referenced the removed loggedIn / setLoggedIn state
+
+**File:** docs/PRD.md:65
+**Found:** 2026-09-08 by /audit (scope: feat/server-auth delta cab4989..HEAD; lens: quality)
+**Why it matters:** 19c deleted `checked`, `loggedIn`, and `setLoggedIn` from
+`app.slice` and added route guarding; `docs/PRD.md` and
+`docs/screen/profile/README.md` still described auth state as a single `app`
+slice with `loggedIn` and a logout that called `setLoggedIn(false)`.
+**Suggested fix:** Update those lines to describe `auth.slice` (`status` /
+`account`), `restoreSession`, and the `signOut` thunk.
+**Resolution:** Fixed here (step 2): eight lines reconciled across `docs/PRD.md`,
+`docs/screen/auth/README.md:47`, and `docs/screen/profile/README.md:78`.
+**Closed** 2026-09-08 by /audit (scope: current, merged fix `69d73c9`; all
+lenses). All eight rewritten lines verified against source; `rg
+"loggedIn|setLoggedIn" docs/` clean. One residual imprecision spun out as F-04
+(tracked separately); the original defect is fully gone.
