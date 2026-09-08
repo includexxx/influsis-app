@@ -53,7 +53,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.1 What works today
 
-- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides (`app/_layout.tsx`).
+- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; `restoreSession` rehydrates the auth session from the token store (confirmed with `GET /auth/me`), then the splash hides (`app/_layout.tsx`).
 - **Navigation** (Expo Router v6, file-based) — see the Screen Specs above for the full flow; at a glance:
   ```
   /onboarding → /auth/* (sign-in/sign-up/OTP/forgot-reset password)
@@ -62,17 +62,17 @@ This document records (a) what the app does today, (b) the technical foundation 
   ```
   The original boilerplate's Drawer + demo Home/Profile/Details tabs were removed; `(main)` is a fresh Tabs-only shell (no drawer) matching the real Figma tab bar design. See `docs/design-system.md` "App shell reset".
 - **Theming**: Automatic light/dark mode via `useColorScheme`, centralized color palette (`theme/colors.ts`), font and image loaders.
-- **State management**: Redux Toolkit with a single `app` slice (`checked`, `loggedIn`, `user`) exposed through a `useAppSlice` convenience hook.
-- **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys.
-- **Offline fallback**: If the startup fetch fails, the user is restored from persistent storage.
+- **State management**: Redux Toolkit slices behind convenience hooks (`useAppSlice`, `useAuthSlice`, and others). The auth session (`status`, `account`) lives in `auth.slice`; the `app` slice now holds only the mock `user`.
+- **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys; the token pair persists under its own `TOKENS` key via `services/tokenStore.ts`.
+- **Startup failure**: if `GET /auth/me` fails, `restoreSession` resolves to `unauthenticated`. The stored token pair is dropped only on a definitive 401/403, so a transient failure still lets a later launch retry.
 
 ### 2.2 What is placeholder / not real yet
 
 - **Main app screens**: Order, Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
-- **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
-- **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
+- **Auth HTTP layer**: `services/http.ts` and `services/authApi.ts` wire the seven `/auth/*` endpoints (axios client, envelope unwrap, `ApiError`, bearer-token interceptor, one-shot 401 refresh), but `API_URL` points at a placeholder so no real round trip completes yet.
+- **Auth**: The sign-in/sign-up/OTP/2FA/forgot-reset screens (`docs/screen/auth/`) use react-hook-form + zod validation and drive `auth.slice.status` through `authApi`; `authGate` guards `(auth)`, `(main)`, and `(details)`, so the tabs are no longer reachable while signed out. What is still missing is a live backend to authenticate against.
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.
-- **Backend**: No API client, no endpoints, no data models beyond a minimal `User { name, email }` type.
+- **Backend**: No running server. The `/auth/*` contracts are typed and consumed (`types/auth.ts`, `types/api.ts`); every other domain (campaigns, gigs, orders, wallet, messaging) is still `data/*.ts` fixtures.
 
 ## 3. Technical Foundation (inherited, keep)
 

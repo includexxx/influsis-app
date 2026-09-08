@@ -29,7 +29,7 @@ const store = configureStore({
         ignoredPaths: [authApi.reducerPath],
       },
     }).concat(authApi.middleware);
-    return config.env === Env.dev ? base : base.concat(logger);
+    return config.env === Env.dev ? base.concat(logger) : base;
   },
   devTools: config.env === Env.dev,
 });
