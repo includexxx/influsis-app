@@ -137,7 +137,7 @@ cleaned-up checkbox version before generating the project overview.
     store, a request interceptor (attach the access token) and a response
     interceptor (one-shot refresh on 401, single-flight, persist the rotated
     pair atomically). New modules only, no screen/redux/bootstrap change.
-  - [ ] 19b. **RTK Query auth API + session slice** - an `axiosBaseQuery` RTK
+  - [x] 19b. **RTK Query auth API + session slice** - an `axiosBaseQuery` RTK
     Query API with a typed endpoint per Group A/B auth route, an `auth.slice`
     holding session status/account, store wiring, and a launch rehydrate that
     replaces the fake `getUserAsync`.
