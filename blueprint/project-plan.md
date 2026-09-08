@@ -44,7 +44,11 @@ build plan for the full checklist):
 Still needed before this is a real product rather than a UI shell: the
 backend-integration roadmap (real API, real auth with route guarding,
 replacing the fake user service and `data/*.ts` mocks with live data, app
-identity cleanup) is being written manually in `build-plan.md`.
+identity cleanup) is being written manually in `build-plan.md`. The backend
+now exists (NestJS API at `../backend`, contracts in
+`../platform-context/api-contracts/`), and the active slice is build-plan
+item 19: real creator authentication (email + password, registration OTP,
+optional TOTP second factor, token refresh, route guarding).
 
 ## 4. Data - What are we storing?
 
@@ -67,7 +71,13 @@ backed by a real API and database:
 - **Language**: TypeScript 5.9, strict mode
 - **Routing**: Expo Router v6, file-based (`app/`), route files delegate to
   scene components (`scenes/`)
-- **State**: Redux Toolkit + react-redux (`slices/`), `useAppSlice` convention
+- **State**: Redux Toolkit + react-redux (`slices/`), `useAppSlice` convention;
+  RTK Query for server state and cache (auth endpoints as of feature 19)
+- **HTTP**: axios instance under `services/`, with request/response
+  interceptors for the bearer token and one-shot 401 refresh (feature 19)
+- **Forms**: react-hook-form + zod (via `@hookform/resolvers`) for validation
+  and error handling on the auth screens (feature 19); older screens still use
+  local field state
 - **Local persistence**: AsyncStorage via a typed `useDataPersist` hook
 - **Styling**: `StyleSheet.create`, per-screen style modules under `styles/`,
   design tokens from `theme/` (colors, fonts, spacing, radius, shadows)
@@ -78,9 +88,13 @@ backed by a real API and database:
   (`.github/workflows/test.yml`) and publish an EAS preview channel
   (`.github/workflows/preview.yml`)
 
-> TODO (confirm): no backend/API stack is chosen yet. The next priority is
-> standing up a real API and auth provider; the specific service (custom
-> backend, BaaS, etc.) is still open.
+Backend: the Influsis NestJS API (`../backend`), consumed read-only through the
+contracts in `../platform-context/api-contracts/`. This repo never invents an
+endpoint, field, role, or permission. Auth is a custom JWT scheme (access +
+one-shot-rotating refresh); there is no third-party auth provider.
+
+> TODO (confirm): production and staging API base URLs. `.env.dev`'s `API_URL`
+> currently points at a local backend instance.
 
 ## 6. Monetize - How will this make money?
 
@@ -115,4 +129,5 @@ before improvising new UI patterns.
   yet (see `/ci`)
 
 > TODO (confirm): production/staging backend endpoints and hosting are not yet
-> defined - `API_URL` still defaults to a placeholder.
+> defined - `.env.dev`'s `API_URL` points at a local backend, and
+> `app.config.ts` still defaults to a placeholder when unset.

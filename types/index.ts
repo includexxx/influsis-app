@@ -1,4 +1,6 @@
 export * from './env';
+export * from './api';
+export * from './auth';
 export * from './user';
 export * from './campaign';
 export * from './gig';

@@ -115,3 +115,46 @@ cleaned-up checkbox version before generating the project overview.
 - [x] 18. **Withdrawals** - bank transfer branch and mobile banking/bKash
   branch, sharing amount -> review -> success steps
   (`docs/screen/withdraw-bank/`, `docs/screen/mobile-banking/`)
+
+## Backend integration
+
+> Written manually. The mobile app is **creator-only** - `business` sign-up and
+> login are not supported here (`roleKey: 'creator'` is hard-coded on register).
+> The backend is the NestJS API at `../backend`; contracts live in
+> `../platform-context/api-contracts/` and `API_URL` in `.env.dev` points at a
+> local instance. Auth model per `platform-context/open-questions.md` #2:
+> email-and-password credentials, the creator's contact verified by a 4-digit
+> registration OTP, with an optional TOTP second factor at login.
+
+- [ ] 19. **Real creator authentication (server-wired)** - replace the
+  client-side-only auth stubs with real `/auth/*` calls: an access/refresh
+  token strategy, login, registration + OTP verification, password reset, a
+  login second factor, and route guarding. Built on axios (with a refresh
+  interceptor), Redux Toolkit + RTK Query, and react-hook-form + zod for the
+  forms.
+  - [x] 19a. **Auth HTTP foundation** - an axios instance for `/api/v1`, response
+    envelope handling with a `code`-based `ApiError`, an AsyncStorage token
+    store, a request interceptor (attach the access token) and a response
+    interceptor (one-shot refresh on 401, single-flight, persist the rotated
+    pair atomically). New modules only, no screen/redux/bootstrap change.
+  - [ ] 19b. **RTK Query auth API + session slice** - an `axiosBaseQuery` RTK
+    Query API with a typed endpoint per Group A/B auth route, an `auth.slice`
+    holding session status/account, store wiring, and a launch rehydrate that
+    replaces the fake `getUserAsync`.
+  - [ ] 19c. **Route guarding** - a pure `authGate` helper plus `(auth)` /
+    `(main)` / `(details)` layout guards and session-based `app/index.tsx`
+    routing.
+  - [ ] 19d. **Sign In + Sign Up wired** - zod schemas driven by
+    react-hook-form, `POST /auth/login` and `POST /auth/register`
+    (`roleKey: 'creator'`), with envelope `code` and per-field `errors` surfaced
+    inline.
+  - [ ] 19e. **Registration OTP** - the `VerifyOtp` signup branch calls
+    `POST /auth/otp/verify` (`purpose: registration`) for the token pair and
+    creates the session; "Resend Code" calls `POST /auth/otp/request`.
+  - [ ] 19f. **Password reset wired** - `ForgotPassword`, `VerifyOtp` (reset
+    branch), and `ResetPassword` call `POST /auth/otp/request`,
+    `POST /auth/otp/verify` (`purpose: password_reset`), and
+    `POST /auth/reset-password`.
+  - [ ] 19g. **Login second factor** - handle the
+    `{ mfaRequired, preAuthToken }` login branch and add the TOTP step that
+    calls `POST /auth/login/2fa/verify`.

@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash d2e450eee81356a952d458a363e6b45d9d6b009e207c7f6f9869794ea72569d5 -->
+<!-- blueprint:source-hash 0e997960cfcd0611ae292d4657d791ccc64916f06f806f3c056a9560b1cf5e40 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -60,9 +60,12 @@ for the not-yet-built backend):
 18. **Withdrawals** - bank transfer branch and mobile banking/bKash branch,
     sharing amount -> review -> success steps.
 
-Not yet built: the backend-integration roadmap (real auth, API service layer,
-wiring screens to live data, and beyond) is being written manually in
-`build-plan.md`. Until then every screen runs on `data/*.ts` mock fixtures.
+Not yet built: the backend-integration roadmap (`build-plan.md` items 19+).
+Item 19 (real creator authentication) is the active slice: the backend NestJS
+API at `../backend` now exists, and 19a-19g wire the `/auth/*` endpoints
+(login, registration OTP, password reset, TOTP second factor, token refresh,
+route guarding). Every product screen still runs on `data/*.ts` mock fixtures
+until later items.
 
 ## Data model
 
@@ -150,7 +153,12 @@ mock types where they'll carry over directly.
 - **TypeScript 5.9 (strict)** - all app code
 - **Expo Router v6** - file-based routing; route files re-export scene
   components
-- **Redux Toolkit + react-redux** - global state (`slices/`)
+- **Redux Toolkit + react-redux** - global state (`slices/`); **RTK Query**
+  for server state and cache (auth endpoints, feature 19)
+- **axios** - HTTP client under `services/`, with interceptors for the bearer
+  token and one-shot 401 refresh (feature 19)
+- **react-hook-form + zod** (`@hookform/resolvers`) - form validation and
+  error handling on the auth screens (feature 19)
 - **AsyncStorage** (via `useDataPersist`) - local persistence
 - **StyleSheet + `theme/` tokens** - styling, light/dark mode
 - **Jest (`jest-expo`) + React Native Testing Library** - unit/component
@@ -158,8 +166,12 @@ mock types where they'll carry over directly.
 - **EAS Build / EAS Update / EAS Hosting** - native builds, OTA, web hosting
 - **dotenvx** - per-environment config (`.env.dev`, `.env.prod.example`)
 
-> TODO: backend/auth provider not yet chosen (blocks the real-auth and
-> API-service-layer work).
+Backend: the Influsis NestJS API (`../backend`), consumed read-only via
+`../platform-context/api-contracts/`. Auth is a custom JWT scheme (access +
+one-shot-rotating refresh), no third-party provider.
+
+> TODO: production/staging API base URLs (`.env.dev` points at a local
+> backend).
 
 ## Monetization
 
@@ -201,7 +213,7 @@ Main routes (`app/`, Expo Router groups):
 
 ## Open questions
 
-- Backend/auth provider choice (custom API, BaaS, etc.) - blocks all
-  backend-integration work.
 - Exact commission structure (rate, who it's deducted from).
 - Production/staging API endpoints and hosting target.
+- Cross-repo `platform-context/open-questions.md` #1 (gig marketplace entity
+  model) still blocks wiring the Create Gig wizard to a real endpoint.
