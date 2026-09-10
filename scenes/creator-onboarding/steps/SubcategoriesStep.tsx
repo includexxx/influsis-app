@@ -43,12 +43,13 @@ const styles = StyleSheet.create({
 const categoryLabel = (value: string) =>
   CONTENT_CATEGORY_OPTIONS.find(option => option.value === value)?.label ?? value;
 
-// Step 4 of the creator onboarding wizard - Subcategories (build-plan 20h
-// split it out of the old combined Content Categories step, now step 3). One
-// checklist per category picked on step 3; each non-"Others" category needs
-// >= 1 subcategory before `Next` enables. The "Others" category contributes a
-// free-text subcategory (its value later joins both the category and
-// subcategory lists at payload assembly).
+// Step 5 of the creator onboarding wizard - Subcategories (build-plan 20h
+// split it out of the old combined Content Categories step, now step 4;
+// build-plan 21 shifted both down one for the Bio step). One checklist per
+// category picked on step 4; each non-"Others" category needs >= 1 subcategory
+// before `Next` enables. The "Others" category contributes a free-text
+// subcategory (its value later joins both the category and subcategory lists
+// at payload assembly).
 export default function SubcategoriesStep() {
   const { colors } = useTheme();
   const { contentCategories, dispatch, saveSubcategories } = useCreatorOnboardingSlice();
@@ -101,7 +102,7 @@ export default function SubcategoriesStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={4}
+          step={5}
           totalSteps={totalSteps}
           title="Pick your subcategories"
           description="Choose at least one under each category you selected"

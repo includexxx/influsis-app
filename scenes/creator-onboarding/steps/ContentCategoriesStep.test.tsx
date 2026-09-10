@@ -8,7 +8,7 @@ import ContentCategoriesStep from './ContentCategoriesStep';
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(3));
+  store.dispatch(goToStep(4));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -21,11 +21,11 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<ContentCategoriesStep />', () => {
-  test('renders "3 of 9", Next disabled, and no subcategory checklist', () => {
+  test('renders "4 of 10", Next disabled, and no subcategory checklist', () => {
     renderStep();
-    expect(screen.getByText('3 of 9')).toBeTruthy();
+    expect(screen.getByText('4 of 10')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
-    // Subcategories moved to their own step 4.
+    // Subcategories moved to their own step 5.
     expect(screen.queryByText('Singing')).toBeNull();
   });
 
@@ -62,7 +62,7 @@ describe('<ContentCategoriesStep />', () => {
     expect(nextDisabled()).toBe(true);
   });
 
-  test('a valid submit stores the picks with empty subcategories and advances to step 4', async () => {
+  test('a valid submit stores the picks with empty subcategories and advances to step 5', async () => {
     const store = renderStep();
 
     fireEvent.press(screen.getByTestId('onboarding-category-music'));
@@ -70,18 +70,18 @@ describe('<ContentCategoriesStep />', () => {
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(4));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(5));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(3);
+    expect(state.completedSteps).toContain(4);
     expect(state.contentCategories).toEqual({
       categories: [{ value: 'music', subcategories: [] }],
       categoryOthersText: '',
     });
   });
 
-  test('the header Back returns to step 2', async () => {
+  test('the header Back returns to step 3', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(2));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(3));
   });
 });

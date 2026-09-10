@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 import reducer, {
   ONBOARDING_TOTAL_STEPS,
   saveBasics,
+  saveBio,
   saveLocation,
   saveCategories,
   saveSubcategories,
@@ -67,6 +68,7 @@ describe('creatorOnboarding slice', () => {
       completedSteps: [],
       completed: false,
       basics: undefined,
+      bio: undefined,
       location: undefined,
       contentCategories: undefined,
       languages: undefined,
@@ -85,11 +87,16 @@ describe('creatorOnboarding slice', () => {
     expect(reducer(initial, saveBasics(basics)).basics).toEqual(basics);
   });
 
-  test('saveLocation stores the Step 2 values', () => {
+  test('saveBio stores the Step 2 bio string', () => {
+    const bio = 'Nano creator making honest skincare reviews in Dhaka.';
+    expect(reducer(initial, saveBio(bio)).bio).toBe(bio);
+  });
+
+  test('saveLocation stores the Step 3 values', () => {
     expect(reducer(initial, saveLocation(location)).location).toEqual(location);
   });
 
-  test('saveCategories stores the step 3 picks and preserves any step 4 Others text', () => {
+  test('saveCategories stores the step 4 picks and preserves any step 5 Others text', () => {
     const afterCategories = reducer(
       initial,
       saveCategories({
@@ -104,7 +111,7 @@ describe('creatorOnboarding slice', () => {
     });
   });
 
-  test('saveSubcategories stores the step 4 picks and preserves the step 3 category name', () => {
+  test('saveSubcategories stores the step 5 picks and preserves the step 4 category name', () => {
     const afterCategories = reducer(
       initial,
       saveCategories({
@@ -126,7 +133,7 @@ describe('creatorOnboarding slice', () => {
     });
   });
 
-  test('saveLanguages and saveDeliverables store the Step 5 / 6 values', () => {
+  test('saveLanguages and saveDeliverables store the Step 6 / 7 values', () => {
     expect(reducer(initial, saveLanguages(languages)).languages).toEqual(languages);
     expect(reducer(initial, saveDeliverables(deliverables)).deliverables).toEqual(deliverables);
   });
@@ -147,11 +154,11 @@ describe('creatorOnboarding slice', () => {
     expect(cleared.portfolio).toEqual([]);
   });
 
-  test('saveHandle stores the Step 9 handle', () => {
+  test('saveHandle stores the Step 10 handle', () => {
     expect(reducer(initial, saveHandle('ayesha_rahman')).handle).toBe('ayesha_rahman');
   });
 
-  test('completeOnboarding sets completed and marks step 9 done', () => {
+  test('completeOnboarding sets completed and marks step 10 done', () => {
     const done = reducer(initial, completeOnboarding());
     expect(done.completed).toBe(true);
     expect(done.completedSteps).toContain(ONBOARDING_TOTAL_STEPS);
@@ -183,6 +190,7 @@ describe('creatorOnboarding slice', () => {
   test('reset returns the initial state', () => {
     const actions = [
       saveBasics(basics),
+      saveBio('A short but complete creator bio for the reset test.'),
       saveLocation(location),
       saveCategories(contentCategories),
       saveSubcategories(contentCategories),

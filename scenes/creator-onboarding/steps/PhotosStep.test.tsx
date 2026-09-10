@@ -26,7 +26,7 @@ beforeEach(() => {
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(7));
+  store.dispatch(goToStep(8));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -39,9 +39,9 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<PhotosStep />', () => {
-  test('renders "7 of 9" with Next enabled (the step is optional)', () => {
+  test('renders "8 of 10" with Next enabled (the step is optional)', () => {
     renderStep();
-    expect(screen.getByText('7 of 9')).toBeTruthy();
+    expect(screen.getByText('8 of 10')).toBeTruthy();
     expect(nextDisabled()).toBe(false);
   });
 
@@ -61,16 +61,16 @@ describe('<PhotosStep />', () => {
     await waitFor(() => expect(screen.queryByTestId('onboarding-profile-photo-remove')).toBeNull());
   });
 
-  test('submitting with a picked photo stores the descriptor and advances to step 8', async () => {
+  test('submitting with a picked photo stores the descriptor and advances to step 9', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByTestId('onboarding-profile-photo'));
     await screen.findByTestId('onboarding-profile-photo-remove');
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(8));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(9));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(7);
+    expect(state.completedSteps).toContain(8);
     expect(state.profilePhoto).toEqual(asset);
     expect(state.coverPhoto).toBeUndefined();
   });
@@ -79,15 +79,15 @@ describe('<PhotosStep />', () => {
     const store = renderStep();
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(8));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(9));
     const state = store.getState().creatorOnboarding;
     expect(state.profilePhoto).toBeUndefined();
     expect(state.coverPhoto).toBeUndefined();
   });
 
-  test('the header Back returns to step 6', async () => {
+  test('the header Back returns to step 7', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(6));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(7));
   });
 });

@@ -28,7 +28,7 @@ const mockRequest = request as jest.MockedFunction<typeof request>;
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(9));
+  store.dispatch(goToStep(10));
   store.dispatch(
     saveBasics({
       name: 'Ayesha Rahman',
@@ -68,9 +68,9 @@ afterEach(() => {
 });
 
 describe('<UsernameStep />', () => {
-  test('renders "9 of 9" with Finish disabled', () => {
+  test('renders "10 of 10" with Finish disabled', () => {
     renderStep();
-    expect(screen.getByText('9 of 9')).toBeTruthy();
+    expect(screen.getByText('10 of 10')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
   });
 
@@ -135,16 +135,16 @@ describe('<UsernameStep />', () => {
     const state = store.getState().creatorOnboarding;
     expect(state.handle).toBe('ayesha_rahman');
     expect(state.completed).toBe(true);
-    expect(state.completedSteps).toContain(9);
+    expect(state.completedSteps).toContain(10);
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith('[creator-onboarding] submission', expect.any(Object));
     logSpy.mockRestore();
   });
 
-  test('the header Back returns to step 8', async () => {
+  test('the header Back returns to step 9', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
     await settle(0);
-    expect(store.getState().creatorOnboarding.currentStep).toBe(8);
+    expect(store.getState().creatorOnboarding.currentStep).toBe(9);
   });
 });

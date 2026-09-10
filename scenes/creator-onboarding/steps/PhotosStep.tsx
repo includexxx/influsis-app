@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// Step 7 of the creator onboarding wizard - Profile + cover photo
-// (requirements §3 Screens 6-7, one screen; step 7 since build-plan 20h split
-// Categories/Subcategories). Both images are optional, so
+// Step 8 of the creator onboarding wizard - Profile + cover photo
+// (requirements §3 Screens 6-7, one screen; step 8 after build-plan 20h split
+// Categories/Subcategories and 21 added the Bio step). Both images are optional, so
 // `Next` is always enabled; each drives the discovery card and adds
 // verification credibility. Picked images are stored as
 // `{ uri, mimeType, fileName }` descriptors for the 20g FormData assembly.
@@ -60,7 +60,7 @@ export default function PhotosStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={7}
+          step={8}
           totalSteps={totalSteps}
           title="Add your photos"
           description="Your profile and cover photo power your discovery card and build trust with businesses"

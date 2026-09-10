@@ -15,9 +15,9 @@ import SelectableRow from '@/components/elements/SelectableRow';
 import ControlledTextField from '@/components/elements/ControlledTextField';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
-// Step 5 of the creator onboarding wizard - Languages (requirements §3 Screen
-// 4; step 5 since build-plan 20h split Categories/Subcategories). Multi-select
-// from six presets, minimum one. Selecting "Others" reveals a
+// Step 6 of the creator onboarding wizard - Languages (requirements §3 Screen
+// 4; step 6 after build-plan 20h split Categories/Subcategories and 21 added
+// the Bio step). Multi-select from six presets, minimum one. Selecting "Others" reveals a
 // free-text row; its trimmed value is stored alongside the presets. `Next`
 // stays greyed until the schema passes.
 export default function LanguagesStep() {
@@ -60,7 +60,7 @@ export default function LanguagesStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={5}
+          step={6}
           totalSteps={totalSteps}
           title="What languages are you fluent in?"
           description="Businesses match creators by the languages they speak"

@@ -13,13 +13,13 @@ import {
   SubcategoriesStepValues,
 } from '@/utils/onboardingSchemas';
 
-// The creator onboarding wizard is one screen, nine steps
-// (build-plan 20h split the old combined Content Categories screen into a
-// Categories step and a Subcategories step). Unlike the retired
-// profile-verification wizard and the Create Gig wizard - both a route per
-// step - the step here is just `currentStep` in this slice, so Back/forward
-// restores each step's saved answer for free.
-export const ONBOARDING_TOTAL_STEPS = 9;
+// The creator onboarding wizard is one screen, ten steps (build-plan 20h split
+// Content Categories into Categories + Subcategories; build-plan 21 added the
+// Bio step at position 2). Unlike the retired profile-verification wizard and
+// the Create Gig wizard - both a route per step - the step here is just
+// `currentStep` in this slice, so Back/forward restores each step's saved
+// answer for free.
+export const ONBOARDING_TOTAL_STEPS = 10;
 
 export interface CreatorOnboardingState {
   /** 1..ONBOARDING_TOTAL_STEPS. */
@@ -30,6 +30,7 @@ export interface CreatorOnboardingState {
   completed: boolean;
   // Per-step drafts.
   basics?: BasicInformationValues;
+  bio?: string;
   location?: LocationValues;
   contentCategories?: ContentCategoriesDraft;
   languages?: MultiSelectValues;
@@ -45,6 +46,7 @@ const initialState: CreatorOnboardingState = {
   completedSteps: [],
   completed: false,
   basics: undefined,
+  bio: undefined,
   location: undefined,
   contentCategories: undefined,
   languages: undefined,
@@ -69,6 +71,10 @@ const slice = createSlice({
       { payload }: PayloadAction<BasicInformationValues>,
     ) => {
       state.basics = payload;
+    },
+    // Step 2 - the creator's trimmed public bio (build-plan 21).
+    saveBio: (state: CreatorOnboardingState, { payload }: PayloadAction<string>) => {
+      state.bio = payload;
     },
     saveLocation: (state: CreatorOnboardingState, { payload }: PayloadAction<LocationValues>) => {
       state.location = payload;
@@ -143,6 +149,7 @@ const slice = createSlice({
 
 export const {
   saveBasics,
+  saveBio,
   saveLocation,
   saveCategories,
   saveSubcategories,

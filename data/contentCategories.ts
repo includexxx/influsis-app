@@ -1,6 +1,7 @@
-// Content taxonomy for the creator onboarding Content Categories (step 3) and
-// Subcategories (step 4) steps (build-plan 20c, split into two steps by
-// build-plan 20h; creator-onboarding-requirements.md §3 Screen 3). The eight
+// Content taxonomy for the creator onboarding Content Categories (step 4) and
+// Subcategories (step 5) steps (build-plan 20c, split into two steps by
+// build-plan 20h, shifted down one by 21's Bio step;
+// creator-onboarding-requirements.md §3 Screens 4-5). The eight
 // categories reuse `data/gigCategories.ts`'s values so a creator's onboarding
 // categories and their gig categories share one taxonomy, plus `others` for
 // the free-text branch. Subcategory `value`s are the requirements-doc labels
@@ -14,7 +15,7 @@ export interface ContentCategoryOption {
 }
 
 // The `Others` category takes a free-text "Please specify" category name on
-// step 3 and a free-text subcategory name on step 4; both fold back in as a
+// step 4 and a free-text subcategory name on step 5; both fold back in as a
 // category and a subcategory at payload-assembly time (build-plan 20g/20h).
 export const OTHERS_CATEGORY_VALUE = 'others';
 

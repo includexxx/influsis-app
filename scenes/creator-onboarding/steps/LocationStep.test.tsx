@@ -33,7 +33,7 @@ import LocationStep from './LocationStep';
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(2));
+  store.dispatch(goToStep(3));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -58,9 +58,9 @@ async function pickDhakaDhaka() {
 }
 
 describe('<LocationStep />', () => {
-  test('renders "2 of 9"; Next and City start disabled', () => {
+  test('renders "3 of 10"; Next and City start disabled', () => {
     renderStep();
-    expect(screen.getByText('2 of 9')).toBeTruthy();
+    expect(screen.getByText('3 of 10')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
     expect(fieldDisabled('onboarding-city')).toBe(true);
     expect(fieldDisabled('onboarding-country')).toBe(true);
@@ -74,15 +74,15 @@ describe('<LocationStep />', () => {
     expect(nextDisabled()).toBe(true); // city not picked yet
   });
 
-  test('a full Division + City selection stores location and advances to step 3', async () => {
+  test('a full Division + City selection stores location and advances to step 4', async () => {
     const store = renderStep();
     await pickDhakaDhaka();
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(3));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(4));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(2);
+    expect(state.completedSteps).toContain(3);
     expect(state.location).toMatchObject({
       country: 'bangladesh',
       division: 'dhaka',
@@ -100,9 +100,9 @@ describe('<LocationStep />', () => {
     await waitFor(() => expect(nextDisabled()).toBe(true));
   });
 
-  test('the header Back returns to step 1', async () => {
+  test('the header Back returns to step 2', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(1));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(2));
   });
 });

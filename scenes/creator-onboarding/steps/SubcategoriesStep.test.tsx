@@ -10,7 +10,7 @@ import SubcategoriesStep from './SubcategoriesStep';
 function renderStep(categories: CategoriesStepValues['categories'], categoryOthersText = '') {
   const store = configureStore({ reducer: { creatorOnboarding } });
   store.dispatch(saveCategories({ categories, categoryOthersText }));
-  store.dispatch(goToStep(4));
+  store.dispatch(goToStep(5));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -23,9 +23,9 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<SubcategoriesStep />', () => {
-  test('renders "4 of 9" and a checklist for each picked category, Next disabled', () => {
+  test('renders "5 of 10" and a checklist for each picked category, Next disabled', () => {
     renderStep([{ value: 'music', subcategories: [] }]);
-    expect(screen.getByText('4 of 9')).toBeTruthy();
+    expect(screen.getByText('5 of 10')).toBeTruthy();
     expect(screen.getByText('Music')).toBeTruthy();
     expect(screen.getByText('Singing')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
@@ -53,7 +53,7 @@ describe('<SubcategoriesStep />', () => {
     await waitFor(() => expect(nextDisabled()).toBe(false));
   });
 
-  test('a valid submit stores the subcategories and advances to step 5', async () => {
+  test('a valid submit stores the subcategories and advances to step 6', async () => {
     const store = renderStep([{ value: 'music', subcategories: [] }]);
 
     fireEvent.press(screen.getByTestId('onboarding-subcategory-music-singing'));
@@ -61,23 +61,23 @@ describe('<SubcategoriesStep />', () => {
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(5));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(6));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(4);
+    expect(state.completedSteps).toContain(5);
     expect(state.contentCategories?.categories).toEqual([
       { value: 'music', subcategories: ['singing'] },
     ]);
   });
 
-  test('the header Back returns to step 3', async () => {
+  test('the header Back returns to step 4', async () => {
     const store = renderStep([{ value: 'music', subcategories: [] }]);
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(3));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(4));
   });
 
   test('shows a go-back message and keeps Next disabled with no categories', () => {
     const store = configureStore({ reducer: { creatorOnboarding } });
-    store.dispatch(goToStep(4));
+    store.dispatch(goToStep(5));
     const wrapper = ({ children }: { children: ReactNode }) => (
       <Provider store={store}>{children}</Provider>
     );

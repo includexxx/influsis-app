@@ -40,6 +40,7 @@ export interface OnboardingSubmission {
 export function buildOnboardingSubmission(state: CreatorOnboardingState): OnboardingSubmission {
   const {
     basics,
+    bio,
     location,
     contentCategories,
     languages,
@@ -62,6 +63,7 @@ export function buildOnboardingSubmission(state: CreatorOnboardingState): Onboar
   appendText('name', basics?.name);
   appendText('gender', basics?.gender);
   appendText('dateOfBirth', basics?.dateOfBirth);
+  appendText('bio', bio);
   appendText('country', location?.country);
   appendText('division', location?.division);
   appendText('city', location?.city);

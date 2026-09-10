@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// Step 8 of the creator onboarding wizard - Portfolio (requirements §3
-// "Portfolio"; step 8 since build-plan 20h split Categories/Subcategories).
-// A repeatable, entirely optional list: an empty list passes
+// Step 9 of the creator onboarding wizard - Portfolio (requirements §3
+// "Portfolio"; step 9 after build-plan 20h split Categories/Subcategories and
+// 21 added the Bio step). A repeatable, entirely optional list: an empty list passes
 // the schema so `Next` is enabled, but a blank/malformed link on an added
 // card blocks `Next` until it is fixed or removed. Duplicate links warn but
 // never block. Persisted to the draft on submit for the 20g FormData step.
@@ -109,7 +109,7 @@ export default function PortfolioStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={8}
+          step={9}
           totalSteps={totalSteps}
           title="Show your best work"
           description="Add a few links to content you're proud of - optional, but it helps you stand out"

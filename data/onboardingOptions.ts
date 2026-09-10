@@ -1,7 +1,7 @@
-// Fixed option sets for the creator onboarding Languages (step 5) and
-// Deliverables (step 6) multi-selects (build-plan 20d; steps shifted by
-// build-plan 20h, which split Categories/Subcategories into two steps;
-// creator-onboarding-requirements.md §3 Screens 4-5). Values are written out
+// Fixed option sets for the creator onboarding Languages (step 6) and
+// Deliverables (step 7) multi-selects (build-plan 20d; step numbers shifted by
+// build-plan 20h split of Categories/Subcategories and 21's Bio step;
+// creator-onboarding-requirements.md §3 Screens 6-7). Values are written out
 // literally so they stay stable against a future backend contract.
 
 export interface OnboardingOption {

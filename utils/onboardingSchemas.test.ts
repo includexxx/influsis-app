@@ -2,6 +2,9 @@ import { describe, expect, test } from '@jest/globals';
 import {
   ageInYears,
   basicInformationSchema,
+  BIO_MAX_LENGTH,
+  BIO_MIN_LENGTH,
+  bioStepSchema,
   categoriesStepSchema,
   subcategoriesStepSchema,
   deliverablesSchema,
@@ -92,6 +95,30 @@ describe('basicInformationSchema', () => {
   });
 });
 
+describe('bioStepSchema', () => {
+  test('rejects an empty or whitespace-only bio', () => {
+    expect(bioStepSchema.safeParse({ bio: '' }).success).toBe(false);
+    expect(bioStepSchema.safeParse({ bio: '   '.repeat(10) }).success).toBe(false);
+  });
+
+  test(`rejects a bio shorter than ${BIO_MIN_LENGTH} trimmed characters`, () => {
+    expect(bioStepSchema.safeParse({ bio: 'a'.repeat(BIO_MIN_LENGTH - 1) }).success).toBe(false);
+    expect(bioStepSchema.safeParse({ bio: `  ${'a'.repeat(BIO_MIN_LENGTH - 1)}  ` }).success).toBe(
+      false,
+    );
+  });
+
+  test(`accepts a bio between ${BIO_MIN_LENGTH} and ${BIO_MAX_LENGTH} characters and trims it`, () => {
+    const r = bioStepSchema.safeParse({ bio: `  ${'a'.repeat(BIO_MIN_LENGTH)}  ` });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.bio).toBe('a'.repeat(BIO_MIN_LENGTH));
+  });
+
+  test(`rejects a bio longer than ${BIO_MAX_LENGTH} characters`, () => {
+    expect(bioStepSchema.safeParse({ bio: 'a'.repeat(BIO_MAX_LENGTH + 1) }).success).toBe(false);
+  });
+});
+
 describe('locationSchema', () => {
   const validLocation = {
     country: 'bangladesh' as const,
@@ -134,14 +161,14 @@ describe('locationSchema', () => {
   });
 });
 
-describe('categoriesStepSchema (step 3)', () => {
+describe('categoriesStepSchema (step 4)', () => {
   test('rejects an empty category selection', () => {
     expect(categoriesStepSchema.safeParse({ categories: [], categoryOthersText: '' }).success).toBe(
       false,
     );
   });
 
-  test('accepts categories without any subcategories (those are step 4)', () => {
+  test('accepts categories without any subcategories (those are step 5)', () => {
     const r = categoriesStepSchema.safeParse({
       categories: [
         { value: 'music', subcategories: [] },
@@ -177,7 +204,7 @@ describe('categoriesStepSchema (step 3)', () => {
   });
 });
 
-describe('subcategoriesStepSchema (step 4)', () => {
+describe('subcategoriesStepSchema (step 5)', () => {
   test('rejects a selected category with no subcategory', () => {
     const r = subcategoriesStepSchema.safeParse({
       categories: [{ value: 'music', subcategories: [] }],

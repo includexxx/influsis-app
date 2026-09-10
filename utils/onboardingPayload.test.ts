@@ -7,6 +7,7 @@ const fullState: CreatorOnboardingState = {
   completedSteps: [1, 2, 3, 4, 5, 6, 7],
   completed: false,
   basics: { name: 'Ayesha Rahman', gender: 'female', dateOfBirth: '2001-04-12T00:00:00.000Z' },
+  bio: 'Skincare creator in Dhaka sharing honest, budget-friendly routines.',
   location: { country: 'bangladesh', division: 'dhaka', city: 'Dhaka', zip: '1207' },
   contentCategories: {
     categories: [
@@ -53,6 +54,7 @@ describe('buildOnboardingSubmission', () => {
       name: 'Ayesha Rahman',
       gender: 'female',
       dateOfBirth: '2001-04-12T00:00:00.000Z',
+      bio: 'Skincare creator in Dhaka sharing honest, budget-friendly routines.',
       country: 'bangladesh',
       division: 'dhaka',
       city: 'Dhaka',

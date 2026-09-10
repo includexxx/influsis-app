@@ -53,9 +53,9 @@ const STATUS_COPY: Record<Exclude<HandleAvailabilityState, 'idle'>, string> = {
   error: "Couldn't check right now",
 };
 
-// Step 9 of the creator onboarding wizard - Username + Finish
-// (creator-onboarding-requirements.md §3 "Username"; step 9 since build-plan
-// 20h split Categories/Subcategories). An `@`-prefixed handle
+// Step 10 of the creator onboarding wizard - Username + Finish
+// (creator-onboarding-requirements.md §3 "Username"; step 10 after build-plan
+// 20h split Categories/Subcategories and 21 added the Bio step). An `@`-prefixed handle
 // with client-side format rules, a debounced live availability check against
 // the one public endpoint this app calls, auto-suggested alternatives when a
 // handle is taken, and a Finish CTA that assembles + logs the submission
@@ -132,7 +132,7 @@ export default function UsernameStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={9}
+          step={10}
           totalSteps={totalSteps}
           title="Claim your username"
           description="This is your public handle - platform.com/@you. It doesn't change if you rename your profile later."

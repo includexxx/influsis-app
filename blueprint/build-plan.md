@@ -245,8 +245,17 @@ cleaned-up checkbox version before generating the project overview.
         screen. **No network submit** - the post-submit behaviour is specified in
         a later item.
     - [x] 20h. **Split the Category and Subcategory screen into two steps** -
-        step 3 picks content categories only; a new step 4 picks subcategories
-        per selected category (min one each). Every later step shifts down by
-        one, so the wizard is nine steps. Both screens keep the "Others" option:
-        picking it opens a free-text input that is added as a custom category
-        (step 3) and a custom subcategory (step 4).
+          step 3 picks content categories only; a new step 4 picks subcategories
+          per selected category (min one each). Every later step shifts down by
+          one, so the wizard is nine steps. Both screens keep the "Others" option:
+          picking it opens a free-text input that is added as a custom category
+          (step 3) and a custom subcategory (step 4).
+
+## Creator bio step
+
+- [x] 21. **Creator bio onboarding step** - a new step 2 (between Basic
+      Information and Location) with a multi-line text field for the creator's
+      public bio: required, 20-300 characters, with a live "N characters left"
+      counter under the input. Location..Username shift down one, so the wizard
+      becomes ten steps. Bio flows into the Finish payload; no submit endpoint
+      yet.

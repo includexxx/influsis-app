@@ -21,22 +21,23 @@ This flow feeds directly into:
 ## 2. Screen-by-Screen Flow
 
 > Build-plan 20h split the old combined "Content Category" screen into two
-> steps (Categories, then Subcategories), so the flow is nine screens and the
-> later screens shifted down by one.
+> steps (Categories, then Subcategories); build-plan 21 added the Bio step at
+> position 2. The flow is now ten screens.
 
 | #   | Screen            | Fields                                           | Mandatory?                |
 | --- | ----------------- | ------------------------------------------------ | ------------------------- |
 | 1   | Basic Information | Name, Gender, Date of Birth                      | Yes                       |
-| 2   | Location          | Country, State/Division, City, Zip/Postal Code   | Yes (Zip optional)        |
-| 3   | Content Category  | Category (multi-select)                          | Yes (min 1)               |
-| 4   | Subcategories     | Subcategory per selected category                | Yes (min 1 per category)  |
-| 5   | Languages         | English, Spanish, French, Russian, Hindi, Others | Yes (min 1)               |
-| 6   | Deliverables      | Deliverable types offered (multi-select)         | Yes (min 1)               |
-| 7   | Profile Picture   | Upload photo                                     | Recommended, skippable    |
-| 8   | Portfolio         | Multiple content links + thumbnails              | Optional, strongly nudged |
-| 9   | Username          | Unique handle (`@username`)                      | Yes — final step          |
+| 2   | Bio               | Short public bio (multi-line text)               | Yes (20-300 chars)        |
+| 3   | Location          | Country, State/Division, City, Zip/Postal Code   | Yes (Zip optional)        |
+| 4   | Content Category  | Category (multi-select)                          | Yes (min 1)               |
+| 5   | Subcategories     | Subcategory per selected category                | Yes (min 1 per category)  |
+| 6   | Languages         | English, Spanish, French, Russian, Hindi, Others | Yes (min 1)               |
+| 7   | Deliverables      | Deliverable types offered (multi-select)         | Yes (min 1)               |
+| 8   | Profile Picture   | Upload photo                                     | Recommended, skippable    |
+| 9   | Portfolio         | Multiple content links + thumbnails              | Optional, strongly nudged |
+| 10  | Username          | Unique handle (`@username`)                      | Yes — final step          |
 
-Progress indicator: `X of 9` at top of each screen, matching existing design pattern (pink progress bar, `Next` CTA).
+Progress indicator: `X of 10` at top of each screen, matching existing design pattern (pink progress bar, `Next` CTA).
 
 ---
 
@@ -57,7 +58,24 @@ Progress indicator: `X of 9` at top of each screen, matching existing design pat
 
 ---
 
-### Screen 2 — Location
+### Screen 2 — Bio
+
+> Build-plan 21. Shown on the public creator profile and the discovery card.
+
+**Fields:**
+
+- Bio (multi-line text input)
+
+**Rules:**
+
+- Required: 20-300 characters after trimming; `Next` stays greyed until valid.
+- Hard `maxLength` of 300 on the input; a live "N characters left" counter sits
+  directly below the field and updates as the user types.
+- Plain text only — no formatting, links, or @mentions.
+
+---
+
+### Screen 3 — Location
 
 You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboarding\components\steps\business-basics-step.tsx for Locations screen implements
 
@@ -75,10 +93,10 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 ---
 
-### Screen 3 — Content Categories
+### Screen 4 — Content Categories
 
 > Build-plan 20h split this into two screens: pick categories here, pick
-> subcategories on Screen 4.
+> subcategories on Screen 5.
 
 **Fields:**
 
@@ -88,15 +106,15 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 - Multi-select of the eight categories; at least one required before `Next` enables.
 - Selecting "Others" reveals a free-text "Please specify" input for a custom category name.
-- Deselecting a category drops it (and any subcategories it had picked up on Screen 4).
+- Deselecting a category drops it (and any subcategories it had picked up on Screen 5).
 
 ---
 
-### Screen 4 — Subcategories
+### Screen 5 — Subcategories
 
 **Fields:**
 
-- Subcategories (multi-select) — one checklist per category picked on Screen 3
+- Subcategories (multi-select) — one checklist per category picked on Screen 4
 
 **Suggested Subcategory Set:**
 
@@ -113,7 +131,7 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 **UX Behavior:**
 
-- One subcategory checklist per category picked on Screen 3.
+- One subcategory checklist per category picked on Screen 4.
 - At least 1 subcategory required per selected category before `Next` enables.
 - The "Others" category shows a free-text "Please specify" subcategory field instead of a checklist.
 
@@ -121,7 +139,7 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 ---
 
-### Screen 5 — Languages
+### Screen 6 — Languages
 
 **Fields:**
 
@@ -134,7 +152,7 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 ---
 
-### Screen 6 — Deliverables
+### Screen 7 — Deliverables
 
 **Fields:**
 
@@ -149,7 +167,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 7 — Profile Picture
+### Screen 8 — Profile Picture
 
 **Fields:**
 
@@ -161,7 +179,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 7 — Cover Picture (same step)
+### Screen 8 — Cover Picture (same step)
 
 **Fields:**
 
@@ -173,7 +191,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 8 — Portfolio (step 8 in the wizard)
+### Screen 9 — Portfolio (step 9 in the wizard)
 
 **Fields (repeatable entry):**
 
@@ -204,7 +222,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 9 — Username (Final Screen)
+### Screen 10 — Username (Final Screen)
 
 **Fields:**
 
@@ -293,15 +311,15 @@ None.
 ## 4. Deferred / Explicitly Removed From This Flow
 
 - **Social media account connection (OAuth)** — removed from onboarding per latest decision. ⚠️ **Open dependency risk:** follower count, engagement rate, and social-ownership verification were originally meant to be sourced here. These now have no other capture point defined. Needs a decision: move to a post-onboarding "Connect Accounts" prompt in the main app, or accept manual/self-reported follower count elsewhere. This also affects **Performance Reporting** (Epic E9) and **Creator Verification** (Admin Manual §9.1.4), both of which assume a connected social account.
-- **Rate range per deliverable** — removed from Screen 5; not collected at onboarding. Can be added later via profile settings or left for Rate Intelligence to infer from transaction data.
+- **Rate range per deliverable** — removed from the Deliverables screen; not collected at onboarding. Can be added later via profile settings or left for Rate Intelligence to infer from transaction data.
 
 ---
 
 ## 5. Design Guidelines
 
-- Follow existing visual pattern: pink progress bar (top), step counter (`X of 9`, top-right), pink primary CTA button (bottom, full-width), light gray placeholder text, white background, rounded input fields.
+- Follow existing visual pattern: pink progress bar (top), step counter (`X of 10`, top-right), pink primary CTA button (bottom, full-width), light gray placeholder text, white background, rounded input fields.
 - Every screen retains a short one-line supporting subtext under the headline (consistent with existing screens' explanatory copy, e.g., "Businesses seek creators within age ranges for campaign").
-- `Next` button stays disabled (greyed) until that screen's mandatory fields are valid — consistent with current Screen 5 (Languages) greyed-Next behavior shown in existing designs.
+- `Next` button stays disabled (greyed) until that screen's mandatory fields are valid — consistent with current Screen 6 (Languages) greyed-Next behavior shown in existing designs.
 - Back navigation available on all screens except Screen 1.
 - Progress bar must reflect 8 total steps once implemented (existing designs show 5 — needs updating across all screens).
 

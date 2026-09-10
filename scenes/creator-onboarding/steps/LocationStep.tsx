@@ -13,8 +13,9 @@ import ControlledTextField from '@/components/elements/ControlledTextField';
 import OptionSheet from '@/components/elements/OptionSheet';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
-// Step 2 of the creator onboarding wizard - Location (requirements §3 Screen
-// 2). Country is locked to Bangladesh for V1; City is a hard filter in Search
+// Step 3 of the creator onboarding wizard - Location (requirements §3 Screen
+// 2; step 3 since build-plan 21 added the Bio step at position 2). Country is
+// locked to Bangladesh for V1; City is a hard filter in Search
 // & Discovery so it is always a picked value from the chosen Division's
 // district list. `Next` stays greyed until the schema passes.
 export default function LocationStep() {
@@ -62,7 +63,7 @@ export default function LocationStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={2}
+          step={3}
           totalSteps={totalSteps}
           title="Where are you based?"
           description="Your city is used to match you with campaigns near you"

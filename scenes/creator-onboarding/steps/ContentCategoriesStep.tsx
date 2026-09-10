@@ -15,12 +15,13 @@ import SelectableRow from '@/components/elements/SelectableRow';
 import ControlledTextField from '@/components/elements/ControlledTextField';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
-// Step 3 of the creator onboarding wizard - Content Categories (build-plan
-// 20h split subcategory selection into its own step 4). Multi-select of the
-// eight categories only; "Others" reveals a free-text "Please specify" field
-// whose value later becomes both a custom category and a custom subcategory.
-// Subcategories are chosen on the next step. Deselecting a category drops its
-// entry (and any subcategories it had picked up on step 4).
+// Step 4 of the creator onboarding wizard - Content Categories (build-plan
+// 20h split subcategory selection into its own step 5; build-plan 21 shifted
+// both down one for the Bio step). Multi-select of the eight categories only;
+// "Others" reveals a free-text "Please specify" field whose value later
+// becomes both a custom category and a custom subcategory. Subcategories are
+// chosen on the next step. Deselecting a category drops its entry (and any
+// subcategories it had picked up on step 5).
 export default function ContentCategoriesStep() {
   const { contentCategories, dispatch, saveCategories } = useCreatorOnboardingSlice();
   const { totalSteps, saveAndContinue, back } = useCreatorOnboardingStep();
@@ -71,7 +72,7 @@ export default function ContentCategoriesStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={3}
+          step={4}
           totalSteps={totalSteps}
           title="What content do you create?"
           description="Pick the categories that fit your work"

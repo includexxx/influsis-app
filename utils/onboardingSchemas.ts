@@ -54,7 +54,23 @@ export const basicInformationSchema = z.object({
 
 export type BasicInformationValues = z.infer<typeof basicInformationSchema>;
 
-// Onboarding Step 2 - Location (requirements §3 Screen 2). Country is locked
+// Onboarding Step 2 - Bio (build-plan 21). A required public bio, 20-300
+// characters after trimming. `BIO_MAX_LENGTH` doubles as the hard `maxLength`
+// on the input; the on-screen counter shows the remaining raw characters.
+export const BIO_MIN_LENGTH = 20;
+export const BIO_MAX_LENGTH = 300;
+
+export const bioStepSchema = z.object({
+  bio: z
+    .string()
+    .trim()
+    .min(BIO_MIN_LENGTH, `Write at least ${BIO_MIN_LENGTH} characters`)
+    .max(BIO_MAX_LENGTH, `Keep it under ${BIO_MAX_LENGTH} characters`),
+});
+
+export type BioStepValues = z.infer<typeof bioStepSchema>;
+
+// Onboarding Step 3 - Location (requirements §3 Screen 2). Country is locked
 // to Bangladesh for V1; the shape stays country-generic so a US launch adds
 // a data table and a `division` value set, not new fields. `city` is a hard
 // filter in Search & Discovery, so the refine rejects anything that is not
@@ -81,19 +97,19 @@ export type LocationValues = z.infer<typeof locationSchema>;
 // repository-native limit, applied to the trimmed value.
 export const OTHERS_TEXT_MAX_LENGTH = 60;
 
-// Onboarding steps 3 and 4 - Content Categories, then Subcategories
+// Onboarding steps 4 and 5 - Content Categories, then Subcategories
 // (build-plan 20h split the old combined Screen 3 into two consecutive
 // steps). `categories` is stored in selection order, not sorted; each entry
-// keeps its `subcategories` array so step 3 can carry step 4's picks through
-// a Back navigation untouched.
+// keeps its `subcategories` array so the categories step can carry the
+// subcategories step's picks through a Back navigation untouched.
 const categoryEntrySchema = z.object({
   value: z.string(),
   subcategories: z.array(z.string()),
 });
 
-// Step 3 - Content Categories. Multi-select of the eight categories only;
+// Step 4 - Content Categories. Multi-select of the eight categories only;
 // selecting `others` requires a non-empty "Please specify" category name.
-// Subcategories are chosen on step 4.
+// Subcategories are chosen on step 5.
 export const categoriesStepSchema = z
   .object({
     categories: z.array(categoryEntrySchema).min(1, 'Select at least one category'),
@@ -112,7 +128,7 @@ export const categoriesStepSchema = z
 
 export type CategoriesStepValues = z.infer<typeof categoriesStepSchema>;
 
-// Step 4 - Subcategories. Every non-`others` category picked on step 3 needs
+// Step 5 - Subcategories. Every non-`others` category picked on step 4 needs
 // at least one subcategory; the `others` category contributes a free-text
 // "Please specify" subcategory instead of a checklist.
 export const subcategoriesStepSchema = z
@@ -143,10 +159,10 @@ export const subcategoriesStepSchema = z
 
 export type SubcategoriesStepValues = z.infer<typeof subcategoriesStepSchema>;
 
-// The merged step 3 + step 4 draft held in the `creatorOnboarding` slice.
+// The merged step 4 + step 5 draft held in the `creatorOnboarding` slice.
 export type ContentCategoriesDraft = CategoriesStepValues & SubcategoriesStepValues;
 
-// Onboarding Steps 4 (Languages) and 5 (Deliverables) are the same multi-select
+// Onboarding Steps 6 (Languages) and 7 (Deliverables) are the same multi-select
 // control over different fixed option sets (requirements §3 Screens 4-5). Both
 // require at least one pick; Languages additionally reveals a free-text row when
 // `others` is selected and needs its trimmed value.
@@ -172,7 +188,7 @@ function multiSelectSchema({ noun, withOther }: { noun: string; withOther: boole
 export const languagesSchema = multiSelectSchema({ noun: 'language', withOther: true });
 export const deliverablesSchema = multiSelectSchema({ noun: 'deliverable', withOther: false });
 
-// Onboarding Step 6 - Profile + cover photo (requirements §3 Screens 6-7).
+// Onboarding Step 8 - Profile + cover photo (requirements §3 Screens 6-7).
 // Both images are optional. A picked image is kept as this descriptor, taken
 // straight from `ImagePicker.ImagePickerAsset`, so 20g can drop it into
 // `FormData`. `mimeType` / `fileName` are optional because the picker does not
@@ -192,7 +208,7 @@ export const photosSchema = z.object({
 
 export type PhotosValues = z.infer<typeof photosSchema>;
 
-// Onboarding Step 7 - Portfolio (requirements §3 "Portfolio"). An optional
+// Onboarding Step 9 - Portfolio (requirements §3 "Portfolio"). An optional
 // list of entry cards; an empty list is valid, but a present entry must carry
 // a well-formed link. `id` is a `nanoid()` list/FormData key with no persisted
 // meaning yet. Duplicate links are a non-blocking warning handled in the scene,
@@ -211,7 +227,7 @@ export const portfolioFormSchema = z.object({
 export type PortfolioEntry = z.infer<typeof portfolioEntrySchema>;
 export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;
 
-// Onboarding Step 8 - Username (creator-onboarding-requirements.md §3
+// Onboarding Step 10 - Username (creator-onboarding-requirements.md §3
 // "Username"). The handle is stored bare (no `@`) and lower-cased. The client
 // format mirrors the backend's public availability check: 3-20 characters of
 // lowercase letters, digits, `.` and `_`, and no leading/trailing `.` or `_`.
