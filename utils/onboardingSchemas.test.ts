@@ -2,7 +2,8 @@ import { describe, expect, test } from '@jest/globals';
 import {
   ageInYears,
   basicInformationSchema,
-  contentCategoriesSchema,
+  categoriesStepSchema,
+  subcategoriesStepSchema,
   deliverablesSchema,
   handleSchema,
   languagesSchema,
@@ -133,15 +134,52 @@ describe('locationSchema', () => {
   });
 });
 
-describe('contentCategoriesSchema', () => {
+describe('categoriesStepSchema (step 3)', () => {
   test('rejects an empty category selection', () => {
-    expect(contentCategoriesSchema.safeParse({ categories: [], othersText: '' }).success).toBe(
+    expect(categoriesStepSchema.safeParse({ categories: [], categoryOthersText: '' }).success).toBe(
       false,
     );
   });
 
+  test('accepts categories without any subcategories (those are step 4)', () => {
+    const r = categoriesStepSchema.safeParse({
+      categories: [
+        { value: 'music', subcategories: [] },
+        { value: 'travel', subcategories: [] },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  test('rejects an Others selection with blank or whitespace text', () => {
+    expect(
+      categoriesStepSchema.safeParse({
+        categories: [{ value: 'others', subcategories: [] }],
+        categoryOthersText: '   ',
+      }).success,
+    ).toBe(false);
+  });
+
+  test('accepts an Others selection once specify text is given', () => {
+    const r = categoriesStepSchema.safeParse({
+      categories: [{ value: 'others', subcategories: [] }],
+      categoryOthersText: 'Gardening',
+    });
+    expect(r.success).toBe(true);
+  });
+
+  test('rejects category specify text longer than the max length', () => {
+    const r = categoriesStepSchema.safeParse({
+      categories: [{ value: 'others', subcategories: [] }],
+      categoryOthersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
+    });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe('subcategoriesStepSchema (step 4)', () => {
   test('rejects a selected category with no subcategory', () => {
-    const r = contentCategoriesSchema.safeParse({
+    const r = subcategoriesStepSchema.safeParse({
       categories: [{ value: 'music', subcategories: [] }],
     });
     expect(r.success).toBe(false);
@@ -151,7 +189,7 @@ describe('contentCategoriesSchema', () => {
   });
 
   test('accepts two categories that each have a subcategory', () => {
-    const r = contentCategoriesSchema.safeParse({
+    const r = subcategoriesStepSchema.safeParse({
       categories: [
         { value: 'music', subcategories: ['singing'] },
         { value: 'travel', subcategories: ['budget-travel', 'adventure-trekking'] },
@@ -160,27 +198,27 @@ describe('contentCategoriesSchema', () => {
     expect(r.success).toBe(true);
   });
 
-  test('rejects an Others selection with blank or whitespace text', () => {
-    expect(
-      contentCategoriesSchema.safeParse({
-        categories: [{ value: 'others', subcategories: [] }],
-        othersText: '   ',
-      }).success,
-    ).toBe(false);
-  });
-
-  test('accepts an Others selection once specify text is given', () => {
-    const r = contentCategoriesSchema.safeParse({
+  test('the Others category needs a non-empty subcategory specify text, not a checklist', () => {
+    const blank = subcategoriesStepSchema.safeParse({
       categories: [{ value: 'others', subcategories: [] }],
-      othersText: 'Gardening',
+      subcategoryOthersText: '  ',
     });
-    expect(r.success).toBe(true);
+    expect(blank.success).toBe(false);
+    if (!blank.success) {
+      expect(blank.error.issues[0].path).toEqual(['subcategoryOthersText']);
+    }
+    expect(
+      subcategoriesStepSchema.safeParse({
+        categories: [{ value: 'others', subcategories: [] }],
+        subcategoryOthersText: 'Balcony gardening',
+      }).success,
+    ).toBe(true);
   });
 
-  test('rejects specify text longer than the max length', () => {
-    const r = contentCategoriesSchema.safeParse({
+  test('rejects subcategory specify text longer than the max length', () => {
+    const r = subcategoriesStepSchema.safeParse({
       categories: [{ value: 'others', subcategories: [] }],
-      othersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
+      subcategoryOthersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
     });
     expect(r.success).toBe(false);
   });

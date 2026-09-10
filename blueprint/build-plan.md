@@ -244,3 +244,9 @@ cleaned-up checkbox version before generating the project overview.
         portfolio thumbnail files), `console.log`s it, and lands on the completion
         screen. **No network submit** - the post-submit behaviour is specified in
         a later item.
+    - [x] 20h. **Split the Category and Subcategory screen into two steps** -
+        step 3 picks content categories only; a new step 4 picks subcategories
+        per selected category (min one each). Every later step shifts down by
+        one, so the wizard is nine steps. Both screens keep the "Others" option:
+        picking it opens a free-text input that is added as a custom category
+        (step 3) and a custom subcategory (step 4).

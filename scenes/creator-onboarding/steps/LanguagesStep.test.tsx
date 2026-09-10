@@ -8,7 +8,7 @@ import LanguagesStep from './LanguagesStep';
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(4));
+  store.dispatch(goToStep(5));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -21,9 +21,9 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<LanguagesStep />', () => {
-  test('renders "4 of 8" and Next starts disabled', () => {
+  test('renders "5 of 9" and Next starts disabled', () => {
     renderStep();
-    expect(screen.getByText('4 of 8')).toBeTruthy();
+    expect(screen.getByText('5 of 9')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
   });
 
@@ -61,22 +61,22 @@ describe('<LanguagesStep />', () => {
     expect(nextDisabled()).toBe(true);
   });
 
-  test('a valid submit stores the selection and advances to step 5', async () => {
+  test('a valid submit stores the selection and advances to step 6', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByTestId('onboarding-language-english'));
     await waitFor(() => expect(nextDisabled()).toBe(false));
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(5));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(6));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(4);
+    expect(state.completedSteps).toContain(5);
     expect(state.languages).toEqual({ selected: ['english'], othersText: '' });
   });
 
-  test('the header Back returns to step 3', async () => {
+  test('the header Back returns to step 4', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(3));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(4));
   });
 });

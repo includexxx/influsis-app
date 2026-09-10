@@ -13,7 +13,8 @@ const fullState: CreatorOnboardingState = {
       { value: 'music', subcategories: ['singing'] },
       { value: 'travel', subcategories: ['adventure-trekking'] },
     ],
-    othersText: '',
+    categoryOthersText: '',
+    subcategoryOthersText: '',
   },
   languages: { selected: ['english', 'bengali'], othersText: '' },
   deliverables: { selected: ['reel', 'story'], othersText: '' },
@@ -85,6 +86,18 @@ describe('buildOnboardingSubmission', () => {
     expect(summary.photoCount).toBe(0);
     expect(summary.portfolioCount).toBe(0);
     expect(summary.portfolioThumbnailCount).toBe(0);
+  });
+
+  test('folds the "Others" category free text into the category and its subcategory', () => {
+    const { summary } = buildOnboardingSubmission({
+      ...minimalState,
+      contentCategories: {
+        categories: [{ value: 'others', subcategories: [] }],
+        categoryOthersText: 'Gardening',
+        subcategoryOthersText: 'Balcony gardening',
+      },
+    });
+    expect(summary.categories).toEqual(['Gardening']);
   });
 
   test('formData is a FormData carrying the handle', () => {

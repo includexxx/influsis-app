@@ -1,4 +1,5 @@
 import { CreatorOnboardingState } from '@/slices/creatorOnboarding.slice';
+import { OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
 import { PickedImageAsset } from './onboardingSchemas';
 
 // Assembles the finished creator onboarding draft into a multipart
@@ -67,7 +68,17 @@ export function buildOnboardingSubmission(state: CreatorOnboardingState): Onboar
   appendText('zip', location?.zip);
   appendText('handle', handle);
 
-  const categories = contentCategories?.categories ?? [];
+  // The "Others" category carries its name as free text (build-plan 20h):
+  // fold it back in as both the category value and its lone subcategory.
+  const categoryOther = contentCategories?.categoryOthersText?.trim();
+  const subcategoryOther = contentCategories?.subcategoryOthersText?.trim() || categoryOther;
+  const categories = (contentCategories?.categories ?? []).map(entry => {
+    if (entry.value !== OTHERS_CATEGORY_VALUE) return entry;
+    return {
+      value: categoryOther || entry.value,
+      subcategories: subcategoryOther ? [subcategoryOther] : entry.subcategories,
+    };
+  });
   const languageList = languages?.selected ?? [];
   const deliverableList = deliverables?.selected ?? [];
   const portfolioEntries = (portfolio ?? []).map(entry => ({

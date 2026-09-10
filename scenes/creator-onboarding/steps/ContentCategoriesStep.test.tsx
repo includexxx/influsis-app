@@ -21,51 +21,27 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<ContentCategoriesStep />', () => {
-  test('renders "3 of 8" and Next starts disabled', () => {
+  test('renders "3 of 9", Next disabled, and no subcategory checklist', () => {
     renderStep();
-    expect(screen.getByText('3 of 8')).toBeTruthy();
+    expect(screen.getByText('3 of 9')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
+    // Subcategories moved to their own step 4.
+    expect(screen.queryByText('Singing')).toBeNull();
   });
 
-  test('selecting a category reveals its subcategories but keeps Next disabled', async () => {
+  test('selecting one category enables Next', async () => {
     renderStep();
-    fireEvent.press(screen.getByTestId('onboarding-category-music-checkbox'));
-
-    expect(await screen.findByText('Singing')).toBeTruthy();
-    expect(nextDisabled()).toBe(true);
-  });
-
-  test('picking one subcategory per selected category enables and re-disables Next', async () => {
-    renderStep();
-
-    fireEvent.press(screen.getByTestId('onboarding-category-music-checkbox'));
-    fireEvent.press(await screen.findByTestId('onboarding-category-music-sub-singing'));
+    fireEvent.press(screen.getByTestId('onboarding-category-music'));
     await waitFor(() => expect(nextDisabled()).toBe(false));
 
-    // A second category with no subcategory blocks Next again.
-    fireEvent.press(screen.getByTestId('onboarding-category-travel-checkbox'));
+    fireEvent.press(screen.getByTestId('onboarding-category-music'));
     await waitFor(() => expect(nextDisabled()).toBe(true));
-
-    fireEvent.press(await screen.findByTestId('onboarding-category-travel-sub-budget-travel'));
-    await waitFor(() => expect(nextDisabled()).toBe(false));
   });
 
-  test('deselecting a category drops its subcategories and unblocks Next', async () => {
+  test('the Others branch needs specify text before Next enables', async () => {
     renderStep();
+    fireEvent.press(screen.getByTestId('onboarding-category-others'));
 
-    fireEvent.press(screen.getByTestId('onboarding-category-music-checkbox'));
-    fireEvent.press(await screen.findByTestId('onboarding-category-music-sub-singing'));
-    fireEvent.press(screen.getByTestId('onboarding-category-travel-checkbox'));
-    await waitFor(() => expect(nextDisabled()).toBe(true));
-
-    fireEvent.press(screen.getByTestId('onboarding-category-travel-checkbox'));
-    await waitFor(() => expect(nextDisabled()).toBe(false));
-  });
-
-  test('the Others branch enables Next once specify text is entered', async () => {
-    renderStep();
-
-    fireEvent.press(screen.getByTestId('onboarding-category-others-checkbox'));
     const input = await screen.findByTestId('onboarding-category-others-text');
     expect(nextDisabled()).toBe(true);
 
@@ -73,11 +49,23 @@ describe('<ContentCategoriesStep />', () => {
     await waitFor(() => expect(nextDisabled()).toBe(false));
   });
 
-  test('a valid submit stores the selection and advances to step 4', async () => {
+  test('deselecting Others hides and clears its specify field', async () => {
+    renderStep();
+    fireEvent.press(screen.getByTestId('onboarding-category-others'));
+    fireEvent.changeText(await screen.findByTestId('onboarding-category-others-text'), 'Gardening');
+    await waitFor(() => expect(nextDisabled()).toBe(false));
+
+    fireEvent.press(screen.getByTestId('onboarding-category-others'));
+    await waitFor(() => expect(screen.queryByTestId('onboarding-category-others-text')).toBeNull());
+
+    fireEvent.press(screen.getByTestId('onboarding-category-others'));
+    expect(nextDisabled()).toBe(true);
+  });
+
+  test('a valid submit stores the picks with empty subcategories and advances to step 4', async () => {
     const store = renderStep();
 
-    fireEvent.press(screen.getByTestId('onboarding-category-music-checkbox'));
-    fireEvent.press(await screen.findByTestId('onboarding-category-music-sub-singing'));
+    fireEvent.press(screen.getByTestId('onboarding-category-music'));
     await waitFor(() => expect(nextDisabled()).toBe(false));
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
@@ -86,8 +74,8 @@ describe('<ContentCategoriesStep />', () => {
     const state = store.getState().creatorOnboarding;
     expect(state.completedSteps).toContain(3);
     expect(state.contentCategories).toEqual({
-      categories: [{ value: 'music', subcategories: ['singing'] }],
-      othersText: '',
+      categories: [{ value: 'music', subcategories: [] }],
+      categoryOthersText: '',
     });
   });
 

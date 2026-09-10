@@ -1,5 +1,6 @@
-// Fixed option sets for the creator onboarding Languages (step 4) and
-// Deliverables (step 5) multi-selects (build-plan 20d,
+// Fixed option sets for the creator onboarding Languages (step 5) and
+// Deliverables (step 6) multi-selects (build-plan 20d; steps shifted by
+// build-plan 20h, which split Categories/Subcategories into two steps;
 // creator-onboarding-requirements.md §3 Screens 4-5). Values are written out
 // literally so they stay stable against a future backend contract.
 

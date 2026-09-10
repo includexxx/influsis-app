@@ -8,7 +8,7 @@ import DeliverablesStep from './DeliverablesStep';
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(5));
+  store.dispatch(goToStep(6));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -21,9 +21,9 @@ function nextDisabled(): boolean | undefined {
 }
 
 describe('<DeliverablesStep />', () => {
-  test('renders "5 of 8" and Next starts disabled', () => {
+  test('renders "6 of 9" and Next starts disabled', () => {
     renderStep();
-    expect(screen.getByText('5 of 8')).toBeTruthy();
+    expect(screen.getByText('6 of 9')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
     expect(screen.queryByTestId('onboarding-deliverable-others')).toBeNull();
   });
@@ -37,7 +37,7 @@ describe('<DeliverablesStep />', () => {
     await waitFor(() => expect(nextDisabled()).toBe(true));
   });
 
-  test('a valid submit stores the selection and advances to step 6', async () => {
+  test('a valid submit stores the selection and advances to step 7', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByTestId('onboarding-deliverable-reel'));
     fireEvent.press(screen.getByTestId('onboarding-deliverable-story'));
@@ -45,15 +45,15 @@ describe('<DeliverablesStep />', () => {
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(6));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(7));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(5);
+    expect(state.completedSteps).toContain(6);
     expect(state.deliverables).toEqual({ selected: ['reel', 'story'], othersText: '' });
   });
 
-  test('the header Back returns to step 4', async () => {
+  test('the header Back returns to step 5', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(4));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(5));
   });
 });

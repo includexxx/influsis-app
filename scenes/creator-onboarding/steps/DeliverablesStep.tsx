@@ -10,8 +10,9 @@ import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import SelectableRow from '@/components/elements/SelectableRow';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
-// Step 5 of the creator onboarding wizard - Deliverables (requirements §3
-// Screen 5). Multi-select from six content types, minimum one. Same control as
+// Step 6 of the creator onboarding wizard - Deliverables (requirements §3
+// Screen 5; step 6 since build-plan 20h split Categories/Subcategories).
+// Multi-select from six content types, minimum one. Same control as
 // the Languages step, no "Others". `Next` stays greyed until the schema passes.
 export default function DeliverablesStep() {
   const { deliverables, dispatch, saveDeliverables } = useCreatorOnboardingSlice();
@@ -49,7 +50,7 @@ export default function DeliverablesStep() {
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
         <ProfileStepHeader
-          step={5}
+          step={6}
           totalSteps={totalSteps}
           title="What can you deliver?"
           description="Choose the content types you offer for campaigns"

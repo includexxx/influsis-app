@@ -81,34 +81,48 @@ export type LocationValues = z.infer<typeof locationSchema>;
 // repository-native limit, applied to the trimmed value.
 export const OTHERS_TEXT_MAX_LENGTH = 60;
 
-// Onboarding Step 3 - Content Categories (requirements §3 Screen 3). Each
-// selected non-`others` category needs at least one subcategory before `Next`
-// enables; selecting `others` instead requires a non-empty "Please specify"
-// string. `categories` is stored in selection order, not sorted.
-export const contentCategoriesSchema = z
+// Onboarding steps 3 and 4 - Content Categories, then Subcategories
+// (build-plan 20h split the old combined Screen 3 into two consecutive
+// steps). `categories` is stored in selection order, not sorted; each entry
+// keeps its `subcategories` array so step 3 can carry step 4's picks through
+// a Back navigation untouched.
+const categoryEntrySchema = z.object({
+  value: z.string(),
+  subcategories: z.array(z.string()),
+});
+
+// Step 3 - Content Categories. Multi-select of the eight categories only;
+// selecting `others` requires a non-empty "Please specify" category name.
+// Subcategories are chosen on step 4.
+export const categoriesStepSchema = z
   .object({
-    categories: z
-      .array(
-        z.object({
-          value: z.string(),
-          subcategories: z.array(z.string()),
-        }),
-      )
-      .min(1, 'Select at least one category'),
-    othersText: z.string().trim().max(OTHERS_TEXT_MAX_LENGTH).optional(),
+    categories: z.array(categoryEntrySchema).min(1, 'Select at least one category'),
+    categoryOthersText: z.string().trim().max(OTHERS_TEXT_MAX_LENGTH).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasOthers = data.categories.some(entry => entry.value === OTHERS_CATEGORY_VALUE);
+    if (hasOthers && !data.categoryOthersText?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['categoryOthersText'],
+        message: 'Tell us what you create',
+      });
+    }
+  });
+
+export type CategoriesStepValues = z.infer<typeof categoriesStepSchema>;
+
+// Step 4 - Subcategories. Every non-`others` category picked on step 3 needs
+// at least one subcategory; the `others` category contributes a free-text
+// "Please specify" subcategory instead of a checklist.
+export const subcategoriesStepSchema = z
+  .object({
+    categories: z.array(categoryEntrySchema).min(1),
+    subcategoryOthersText: z.string().trim().max(OTHERS_TEXT_MAX_LENGTH).optional(),
   })
   .superRefine((data, ctx) => {
     data.categories.forEach((entry, index) => {
-      if (entry.value === OTHERS_CATEGORY_VALUE) {
-        if (!data.othersText || data.othersText.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['othersText'],
-            message: 'Tell us what you create',
-          });
-        }
-        return;
-      }
+      if (entry.value === OTHERS_CATEGORY_VALUE) return;
       if (entry.subcategories.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -117,9 +131,20 @@ export const contentCategoriesSchema = z
         });
       }
     });
+    const hasOthers = data.categories.some(entry => entry.value === OTHERS_CATEGORY_VALUE);
+    if (hasOthers && !data.subcategoryOthersText?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['subcategoryOthersText'],
+        message: 'Add a subcategory for "Others"',
+      });
+    }
   });
 
-export type ContentCategoriesValues = z.infer<typeof contentCategoriesSchema>;
+export type SubcategoriesStepValues = z.infer<typeof subcategoriesStepSchema>;
+
+// The merged step 3 + step 4 draft held in the `creatorOnboarding` slice.
+export type ContentCategoriesDraft = CategoriesStepValues & SubcategoriesStepValues;
 
 // Onboarding Steps 4 (Languages) and 5 (Deliverables) are the same multi-select
 // control over different fixed option sets (requirements §3 Screens 4-5). Both

@@ -58,9 +58,9 @@ async function pickDhakaDhaka() {
 }
 
 describe('<LocationStep />', () => {
-  test('renders "2 of 8"; Next and City start disabled', () => {
+  test('renders "2 of 9"; Next and City start disabled', () => {
     renderStep();
-    expect(screen.getByText('2 of 8')).toBeTruthy();
+    expect(screen.getByText('2 of 9')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
     expect(fieldDisabled('onboarding-city')).toBe(true);
     expect(fieldDisabled('onboarding-country')).toBe(true);

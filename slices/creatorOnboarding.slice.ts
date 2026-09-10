@@ -3,20 +3,23 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { State, Dispatch } from '@/utils/store';
 import {
   BasicInformationValues,
-  ContentCategoriesValues,
+  CategoriesStepValues,
+  ContentCategoriesDraft,
   LocationValues,
   MultiSelectValues,
   PhotosValues,
   PickedImageAsset,
   PortfolioEntry,
+  SubcategoriesStepValues,
 } from '@/utils/onboardingSchemas';
 
-// The creator onboarding wizard is one screen, eight steps
-// (creator-onboarding-requirements.md §2). Unlike the retired
+// The creator onboarding wizard is one screen, nine steps
+// (build-plan 20h split the old combined Content Categories screen into a
+// Categories step and a Subcategories step). Unlike the retired
 // profile-verification wizard and the Create Gig wizard - both a route per
 // step - the step here is just `currentStep` in this slice, so Back/forward
 // restores each step's saved answer for free.
-export const ONBOARDING_TOTAL_STEPS = 8;
+export const ONBOARDING_TOTAL_STEPS = 9;
 
 export interface CreatorOnboardingState {
   /** 1..ONBOARDING_TOTAL_STEPS. */
@@ -28,7 +31,7 @@ export interface CreatorOnboardingState {
   // Per-step drafts.
   basics?: BasicInformationValues;
   location?: LocationValues;
-  contentCategories?: ContentCategoriesValues;
+  contentCategories?: ContentCategoriesDraft;
   languages?: MultiSelectValues;
   deliverables?: MultiSelectValues;
   profilePhoto?: PickedImageAsset;
@@ -70,11 +73,31 @@ const slice = createSlice({
     saveLocation: (state: CreatorOnboardingState, { payload }: PayloadAction<LocationValues>) => {
       state.location = payload;
     },
-    saveContentCategories: (
+    // Step 3 - stores the picked categories (each new entry with an empty
+    // `subcategories`) and the custom category name. An entry that survives a
+    // Back-and-resubmit keeps the subcategories it was given on step 4,
+    // because the step 3 form seeds `categories` straight from this draft.
+    saveCategories: (
       state: CreatorOnboardingState,
-      { payload }: PayloadAction<ContentCategoriesValues>,
+      { payload }: PayloadAction<CategoriesStepValues>,
     ) => {
-      state.contentCategories = payload;
+      state.contentCategories = {
+        categories: payload.categories,
+        categoryOthersText: payload.categoryOthersText,
+        subcategoryOthersText: state.contentCategories?.subcategoryOthersText,
+      };
+    },
+    // Step 4 - stores the per-category subcategory picks and the custom
+    // subcategory name, preserving the step 3 category name.
+    saveSubcategories: (
+      state: CreatorOnboardingState,
+      { payload }: PayloadAction<SubcategoriesStepValues>,
+    ) => {
+      state.contentCategories = {
+        categories: payload.categories,
+        categoryOthersText: state.contentCategories?.categoryOthersText,
+        subcategoryOthersText: payload.subcategoryOthersText,
+      };
     },
     saveLanguages: (
       state: CreatorOnboardingState,
@@ -121,7 +144,8 @@ const slice = createSlice({
 export const {
   saveBasics,
   saveLocation,
-  saveContentCategories,
+  saveCategories,
+  saveSubcategories,
   saveLanguages,
   saveDeliverables,
   savePhotos,

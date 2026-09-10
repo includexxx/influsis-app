@@ -13,7 +13,7 @@ jest.mock('expo-image-picker', () => ({
 
 function renderStep() {
   const store = configureStore({ reducer: { creatorOnboarding } });
-  store.dispatch(goToStep(7));
+  store.dispatch(goToStep(8));
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
@@ -31,9 +31,9 @@ function platformSelected(cardIndex: number, platform: string): boolean | undefi
 }
 
 describe('<PortfolioStep />', () => {
-  test('renders "7 of 8" with the zero-entry nudge and Next enabled', () => {
+  test('renders "8 of 9" with the zero-entry nudge and Next enabled', () => {
     renderStep();
-    expect(screen.getByText('7 of 8')).toBeTruthy();
+    expect(screen.getByText('8 of 9')).toBeTruthy();
     expect(screen.getByText(/Adding at least one sample/)).toBeTruthy();
     expect(nextDisabled()).toBe(false);
   });
@@ -92,7 +92,7 @@ describe('<PortfolioStep />', () => {
     await waitFor(() => expect(screen.queryByTestId('onboarding-portfolio-0')).toBeNull());
   });
 
-  test('a valid submit stores the entries and advances to step 8', async () => {
+  test('a valid submit stores the entries and advances to step 9', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByTestId('onboarding-portfolio-add'));
     fireEvent.changeText(
@@ -103,15 +103,15 @@ describe('<PortfolioStep />', () => {
 
     fireEvent.press(screen.getByTestId('onboarding-next'));
 
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(8));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(9));
     const state = store.getState().creatorOnboarding;
-    expect(state.completedSteps).toContain(7);
+    expect(state.completedSteps).toContain(8);
     expect(state.portfolio).toMatchObject([{ url: 'instagram.com/p/abc', platform: 'instagram' }]);
   });
 
-  test('the header Back returns to step 6', async () => {
+  test('the header Back returns to step 7', async () => {
     const store = renderStep();
     fireEvent.press(screen.getByLabelText('Go back'));
-    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(6));
+    await waitFor(() => expect(store.getState().creatorOnboarding.currentStep).toBe(7));
   });
 });

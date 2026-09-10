@@ -20,18 +20,23 @@ This flow feeds directly into:
 
 ## 2. Screen-by-Screen Flow
 
-| #   | Screen            | Fields                                               | Mandatory?                |
-| --- | ----------------- | ---------------------------------------------------- | ------------------------- |
-| 1   | Basic Information | Name, Gender, Date of Birth                          | Yes                       |
-| 2   | Location          | Country, State/Division, City, Zip/Postal Code       | Yes (Zip optional)        |
-| 3   | Content Category  | Category (multi-select) → Subcategory (per category) | Yes                       |
-| 4   | Languages         | English, Spanish, French, Russian, Hindi, Others     | Yes (min 1)               |
-| 5   | Deliverables      | Deliverable types offered (multi-select)             | Yes (min 1)               |
-| 6   | Profile Picture   | Upload photo                                         | Recommended, skippable    |
-| 7   | Portfolio         | Multiple content links + thumbnails                  | Optional, strongly nudged |
-| 8   | Username          | Unique handle (`@username`)                          | Yes — final step          |
+> Build-plan 20h split the old combined "Content Category" screen into two
+> steps (Categories, then Subcategories), so the flow is nine screens and the
+> later screens shifted down by one.
 
-Progress indicator: `X of 8` at top of each screen, matching existing design pattern (pink progress bar, `Next` CTA).
+| #   | Screen            | Fields                                           | Mandatory?                |
+| --- | ----------------- | ------------------------------------------------ | ------------------------- |
+| 1   | Basic Information | Name, Gender, Date of Birth                      | Yes                       |
+| 2   | Location          | Country, State/Division, City, Zip/Postal Code   | Yes (Zip optional)        |
+| 3   | Content Category  | Category (multi-select)                          | Yes (min 1)               |
+| 4   | Subcategories     | Subcategory per selected category                | Yes (min 1 per category)  |
+| 5   | Languages         | English, Spanish, French, Russian, Hindi, Others | Yes (min 1)               |
+| 6   | Deliverables      | Deliverable types offered (multi-select)         | Yes (min 1)               |
+| 7   | Profile Picture   | Upload photo                                     | Recommended, skippable    |
+| 8   | Portfolio         | Multiple content links + thumbnails              | Optional, strongly nudged |
+| 9   | Username          | Unique handle (`@username`)                      | Yes — final step          |
+
+Progress indicator: `X of 9` at top of each screen, matching existing design pattern (pink progress bar, `Next` CTA).
 
 ---
 
@@ -72,10 +77,26 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 ### Screen 3 — Content Categories
 
+> Build-plan 20h split this into two screens: pick categories here, pick
+> subcategories on Screen 4.
+
 **Fields:**
 
 - Categories (multi-select — existing: Education, Beauty & Lifestyle, Travel, Music, Gym & Body Building, Sports, Health, Others)
-- Subcategories (multi-select) - appears related filed when Categories selected
+
+**UX Behavior:**
+
+- Multi-select of the eight categories; at least one required before `Next` enables.
+- Selecting "Others" reveals a free-text "Please specify" input for a custom category name.
+- Deselecting a category drops it (and any subcategories it had picked up on Screen 4).
+
+---
+
+### Screen 4 — Subcategories
+
+**Fields:**
+
+- Subcategories (multi-select) — one checklist per category picked on Screen 3
 
 **Suggested Subcategory Set:**
 
@@ -92,16 +113,15 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 **UX Behavior:**
 
-- Selecting a category expands its subcategory list inline (accordion — click to open/close).
-- Multiple categories selected → each shows its own subcategory list independently.
-- Deselecting a category auto-clears its subcategory selections.
+- One subcategory checklist per category picked on Screen 3.
 - At least 1 subcategory required per selected category before `Next` enables.
+- The "Others" category shows a free-text "Please specify" subcategory field instead of a checklist.
 
 **Matching Note:** Category = hard filter (existing). Subcategory should be implemented as a **soft ranking boost**, not an additional hard filter — over-narrowing risks empty result sets while creator density is still low post-launch.
 
 ---
 
-### Screen 4 — Languages
+### Screen 5 — Languages
 
 **Fields:**
 
@@ -114,7 +134,7 @@ You can study this C:\Users\Auto PC 2\Documents\influsis\web\src\features\onboar
 
 ---
 
-### Screen 5 — Deliverables
+### Screen 6 — Deliverables
 
 **Fields:**
 
@@ -129,7 +149,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 6 — Profile Picture
+### Screen 7 — Profile Picture
 
 **Fields:**
 
@@ -141,7 +161,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 7 — Cover Picture
+### Screen 7 — Cover Picture (same step)
 
 **Fields:**
 
@@ -153,7 +173,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 8 — Portfolio
+### Screen 8 — Portfolio (step 8 in the wizard)
 
 **Fields (repeatable entry):**
 
@@ -184,7 +204,7 @@ _(Note: Rate range per deliverable was considered and explicitly removed from th
 
 ---
 
-### Screen 8 — Username (Final Screen)
+### Screen 9 — Username (Final Screen)
 
 **Fields:**
 
@@ -279,9 +299,9 @@ None.
 
 ## 5. Design Guidelines
 
-- Follow existing visual pattern: pink progress bar (top), step counter (`X of 8`, top-right), pink primary CTA button (bottom, full-width), light gray placeholder text, white background, rounded input fields.
+- Follow existing visual pattern: pink progress bar (top), step counter (`X of 9`, top-right), pink primary CTA button (bottom, full-width), light gray placeholder text, white background, rounded input fields.
 - Every screen retains a short one-line supporting subtext under the headline (consistent with existing screens' explanatory copy, e.g., "Businesses seek creators within age ranges for campaign").
-- `Next` button stays disabled (greyed) until that screen's mandatory fields are valid — consistent with current Screen 4 (Languages) greyed-Next behavior shown in existing designs.
+- `Next` button stays disabled (greyed) until that screen's mandatory fields are valid — consistent with current Screen 5 (Languages) greyed-Next behavior shown in existing designs.
 - Back navigation available on all screens except Screen 1.
 - Progress bar must reflect 8 total steps once implemented (existing designs show 5 — needs updating across all screens).
 

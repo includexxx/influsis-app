@@ -24,17 +24,17 @@ function renderShell(setup?: (dispatch: ReturnType<typeof configureStore>['dispa
 
 describe('<CreatorOnboarding />', () => {
   test('renders the active step while onboarding is in progress', () => {
-    renderShell(dispatch => dispatch(goToStep(8)));
-    expect(screen.getByText('8 of 8')).toBeTruthy();
+    renderShell(dispatch => dispatch(goToStep(9)));
+    expect(screen.getByText('9 of 9')).toBeTruthy();
     expect(screen.queryByText("You're all set")).toBeNull();
   });
 
   test('swaps the wizard for the completion screen once completed', () => {
     renderShell(dispatch => {
-      dispatch(goToStep(8));
+      dispatch(goToStep(9));
       dispatch(completeOnboarding());
     });
     expect(screen.getByText("You're all set")).toBeTruthy();
-    expect(screen.queryByText('8 of 8')).toBeNull();
+    expect(screen.queryByText('9 of 9')).toBeNull();
   });
 });

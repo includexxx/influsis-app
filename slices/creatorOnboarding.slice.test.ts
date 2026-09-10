@@ -3,7 +3,8 @@ import reducer, {
   ONBOARDING_TOTAL_STEPS,
   saveBasics,
   saveLocation,
-  saveContentCategories,
+  saveCategories,
+  saveSubcategories,
   saveLanguages,
   saveDeliverables,
   savePhotos,
@@ -17,7 +18,7 @@ import reducer, {
 } from './creatorOnboarding.slice';
 import {
   BasicInformationValues,
-  ContentCategoriesValues,
+  ContentCategoriesDraft,
   LocationValues,
   MultiSelectValues,
   PhotosValues,
@@ -39,9 +40,10 @@ const location: LocationValues = {
   zip: '1207',
 };
 
-const contentCategories: ContentCategoriesValues = {
+const contentCategories: ContentCategoriesDraft = {
   categories: [{ value: 'music', subcategories: ['singing', 'covers'] }],
-  othersText: '',
+  categoryOthersText: '',
+  subcategoryOthersText: '',
 };
 
 const languages: MultiSelectValues = { selected: ['english', 'others'], othersText: 'Bengali' };
@@ -87,13 +89,44 @@ describe('creatorOnboarding slice', () => {
     expect(reducer(initial, saveLocation(location)).location).toEqual(location);
   });
 
-  test('saveContentCategories stores the Step 3 values', () => {
-    expect(reducer(initial, saveContentCategories(contentCategories)).contentCategories).toEqual(
-      contentCategories,
+  test('saveCategories stores the step 3 picks and preserves any step 4 Others text', () => {
+    const afterCategories = reducer(
+      initial,
+      saveCategories({
+        categories: [{ value: 'music', subcategories: [] }],
+        categoryOthersText: '',
+      }),
     );
+    expect(afterCategories.contentCategories).toEqual({
+      categories: [{ value: 'music', subcategories: [] }],
+      categoryOthersText: '',
+      subcategoryOthersText: undefined,
+    });
   });
 
-  test('saveLanguages and saveDeliverables store the Step 4 / 5 values', () => {
+  test('saveSubcategories stores the step 4 picks and preserves the step 3 category name', () => {
+    const afterCategories = reducer(
+      initial,
+      saveCategories({
+        categories: [{ value: 'others', subcategories: [] }],
+        categoryOthersText: 'Gardening',
+      }),
+    );
+    const afterSubcategories = reducer(
+      afterCategories,
+      saveSubcategories({
+        categories: [{ value: 'others', subcategories: [] }],
+        subcategoryOthersText: 'Balcony gardening',
+      }),
+    );
+    expect(afterSubcategories.contentCategories).toEqual({
+      categories: [{ value: 'others', subcategories: [] }],
+      categoryOthersText: 'Gardening',
+      subcategoryOthersText: 'Balcony gardening',
+    });
+  });
+
+  test('saveLanguages and saveDeliverables store the Step 5 / 6 values', () => {
     expect(reducer(initial, saveLanguages(languages)).languages).toEqual(languages);
     expect(reducer(initial, saveDeliverables(deliverables)).deliverables).toEqual(deliverables);
   });
@@ -114,11 +147,11 @@ describe('creatorOnboarding slice', () => {
     expect(cleared.portfolio).toEqual([]);
   });
 
-  test('saveHandle stores the Step 8 handle', () => {
+  test('saveHandle stores the Step 9 handle', () => {
     expect(reducer(initial, saveHandle('ayesha_rahman')).handle).toBe('ayesha_rahman');
   });
 
-  test('completeOnboarding sets completed and marks step 8 done', () => {
+  test('completeOnboarding sets completed and marks step 9 done', () => {
     const done = reducer(initial, completeOnboarding());
     expect(done.completed).toBe(true);
     expect(done.completedSteps).toContain(ONBOARDING_TOTAL_STEPS);
@@ -151,7 +184,8 @@ describe('creatorOnboarding slice', () => {
     const actions = [
       saveBasics(basics),
       saveLocation(location),
-      saveContentCategories(contentCategories),
+      saveCategories(contentCategories),
+      saveSubcategories(contentCategories),
       saveLanguages(languages),
       saveDeliverables(deliverables),
       savePhotos(photos),

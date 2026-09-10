@@ -69,7 +69,7 @@ async function completeForm() {
 describe('<BasicInformationStep />', () => {
   test('shows the 1-of-8 progress and disables Next until the form is valid', async () => {
     renderStep();
-    expect(screen.getByText('1 of 8')).toBeTruthy();
+    expect(screen.getByText('1 of 9')).toBeTruthy();
     expect(nextDisabled()).toBe(true);
 
     await completeForm();
