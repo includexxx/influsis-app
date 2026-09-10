@@ -185,3 +185,31 @@ export const portfolioFormSchema = z.object({
 
 export type PortfolioEntry = z.infer<typeof portfolioEntrySchema>;
 export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;
+
+// Onboarding Step 8 - Username (creator-onboarding-requirements.md §3
+// "Username"). The handle is stored bare (no `@`) and lower-cased. The client
+// format mirrors the backend's public availability check: 3-20 characters of
+// lowercase letters, digits, `.` and `_`, and no leading/trailing `.` or `_`.
+// `GET /api/v1/handles/{handle}/availability` is the only real network call
+// this app makes.
+export const handleSchema = z
+  .string()
+  .min(3, 'Use 3-20 characters')
+  .max(20, 'Use 3-20 characters')
+  .regex(/^[a-z0-9._]+$/, 'Lowercase letters, numbers, . and _ only')
+  .refine(handle => !/^[._]|[._]$/.test(handle), {
+    message: "Can't start or end with . or _",
+  });
+
+export const usernameFormSchema = z.object({ handle: handleSchema });
+
+export type UsernameFormValues = z.infer<typeof usernameFormSchema>;
+
+// The unwrapped `data` of a 200 response from the handle availability
+// endpoint. Unavailability is an HTTP 200 with `available: false`, never an
+// error status; `reason` distinguishes a handle already claimed by a creator
+// from one on the reserved-word list.
+export type HandleAvailabilityData = {
+  available: boolean;
+  reason?: 'taken' | 'reserved';
+};

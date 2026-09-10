@@ -23,7 +23,9 @@ export interface CreatorOnboardingState {
   currentStep: number;
   /** Steps whose form has been saved; unique, unordered. */
   completedSteps: number[];
-  // Per-step drafts. 20g adds `handle`.
+  /** Set once Finish has assembled and logged the submission payload. */
+  completed: boolean;
+  // Per-step drafts.
   basics?: BasicInformationValues;
   location?: LocationValues;
   contentCategories?: ContentCategoriesValues;
@@ -32,11 +34,13 @@ export interface CreatorOnboardingState {
   profilePhoto?: PickedImageAsset;
   coverPhoto?: PickedImageAsset;
   portfolio?: PortfolioEntry[];
+  handle?: string;
 }
 
 const initialState: CreatorOnboardingState = {
   currentStep: 1,
   completedSteps: [],
+  completed: false,
   basics: undefined,
   location: undefined,
   contentCategories: undefined,
@@ -45,6 +49,7 @@ const initialState: CreatorOnboardingState = {
   profilePhoto: undefined,
   coverPhoto: undefined,
   portfolio: undefined,
+  handle: undefined,
 };
 
 function clampStep(step: number): number {
@@ -93,6 +98,15 @@ const slice = createSlice({
     ) => {
       state.portfolio = payload;
     },
+    saveHandle: (state: CreatorOnboardingState, { payload }: PayloadAction<string>) => {
+      state.handle = payload;
+    },
+    completeOnboarding: (state: CreatorOnboardingState) => {
+      state.completed = true;
+      if (!state.completedSteps.includes(ONBOARDING_TOTAL_STEPS)) {
+        state.completedSteps.push(ONBOARDING_TOTAL_STEPS);
+      }
+    },
     goToStep: (state: CreatorOnboardingState, { payload }: PayloadAction<number>) => {
       state.currentStep = clampStep(payload);
     },
@@ -112,6 +126,8 @@ export const {
   saveDeliverables,
   savePhotos,
   savePortfolio,
+  saveHandle,
+  completeOnboarding,
   goToStep,
   markStepComplete,
   reset,

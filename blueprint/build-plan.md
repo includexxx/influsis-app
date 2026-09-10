@@ -176,7 +176,7 @@ cleaned-up checkbox version before generating the project overview.
 > yet** - Finish `console.log`s the assembled onboarding state and stops. What
 > happens after submit is specified later.
 
-- [ ] 20. **Creator onboarding wizard** - the post-registration private flow
+- [x] 20. **Creator onboarding wizard** - the post-registration private flow
       that captures everything the matching engine, public profile, and
       verification queue need: basics, location, categories/subcategories,
       languages, deliverables, photos, portfolio, and a unique handle. Single
@@ -232,7 +232,7 @@ cleaned-up checkbox version before generating the project overview.
         inline validation for a malformed link, a non-blocking duplicate-link
         warning, and a soft nudge - never a block - when the user continues with
         zero entries.
-  - [ ] 20g. **Username step + finish** - `@`-prefixed handle input with
+  - [x] 20g. **Username step + finish** - `@`-prefixed handle input with
         debounced real-time availability against
         `GET /api/v1/handles/{handle}/availability` (public; `200` with
         `available: false` plus `reason: taken | reserved` is the not-available

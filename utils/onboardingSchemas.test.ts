@@ -4,6 +4,7 @@ import {
   basicInformationSchema,
   contentCategoriesSchema,
   deliverablesSchema,
+  handleSchema,
   languagesSchema,
   locationSchema,
   MINIMUM_CREATOR_AGE,
@@ -274,5 +275,31 @@ describe('portfolioFormSchema', () => {
     expect(
       portfolioFormSchema.safeParse({ entries: [{ ...entry, platform: 'facebook' }] }).success,
     ).toBe(false);
+  });
+});
+
+describe('handleSchema', () => {
+  test('accepts a well-formed handle', () => {
+    expect(handleSchema.safeParse('ayesha_rahman').success).toBe(true);
+    expect(handleSchema.safeParse('a.b.c').success).toBe(true);
+    expect(handleSchema.safeParse('abc').success).toBe(true);
+  });
+
+  test('rejects a handle shorter than 3 or longer than 20 characters', () => {
+    expect(handleSchema.safeParse('ab').success).toBe(false);
+    expect(handleSchema.safeParse('a'.repeat(21)).success).toBe(false);
+  });
+
+  test('rejects uppercase letters, spaces, and other symbols', () => {
+    expect(handleSchema.safeParse('Ayesha').success).toBe(false);
+    expect(handleSchema.safeParse('ab c').success).toBe(false);
+    expect(handleSchema.safeParse('ab-c').success).toBe(false);
+  });
+
+  test('rejects a leading or trailing . or _', () => {
+    expect(handleSchema.safeParse('_abc').success).toBe(false);
+    expect(handleSchema.safeParse('abc_').success).toBe(false);
+    expect(handleSchema.safeParse('.abc').success).toBe(false);
+    expect(handleSchema.safeParse('abc.').success).toBe(false);
   });
 });

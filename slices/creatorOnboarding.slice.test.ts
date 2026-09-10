@@ -8,6 +8,8 @@ import reducer, {
   saveDeliverables,
   savePhotos,
   savePortfolio,
+  saveHandle,
+  completeOnboarding,
   goToStep,
   markStepComplete,
   reset,
@@ -61,6 +63,7 @@ describe('creatorOnboarding slice', () => {
     const expected: CreatorOnboardingState = {
       currentStep: 1,
       completedSteps: [],
+      completed: false,
       basics: undefined,
       location: undefined,
       contentCategories: undefined,
@@ -69,8 +72,11 @@ describe('creatorOnboarding slice', () => {
       profilePhoto: undefined,
       coverPhoto: undefined,
       portfolio: undefined,
+      handle: undefined,
     };
     expect(initial).toEqual(expected);
+    expect(initial.handle).toBeUndefined();
+    expect(initial.completed).toBe(false);
   });
 
   test('saveBasics stores the Step 1 values', () => {
@@ -106,6 +112,25 @@ describe('creatorOnboarding slice', () => {
     expect(reducer(initial, savePortfolio(portfolio)).portfolio).toEqual(portfolio);
     const cleared = reducer(reducer(initial, savePortfolio(portfolio)), savePortfolio([]));
     expect(cleared.portfolio).toEqual([]);
+  });
+
+  test('saveHandle stores the Step 8 handle', () => {
+    expect(reducer(initial, saveHandle('ayesha_rahman')).handle).toBe('ayesha_rahman');
+  });
+
+  test('completeOnboarding sets completed and marks step 8 done', () => {
+    const done = reducer(initial, completeOnboarding());
+    expect(done.completed).toBe(true);
+    expect(done.completedSteps).toContain(ONBOARDING_TOTAL_STEPS);
+    // Idempotent - the step is not pushed twice.
+    expect(reducer(done, completeOnboarding()).completedSteps).toEqual([ONBOARDING_TOTAL_STEPS]);
+  });
+
+  test('reset clears the handle and the completed flag', () => {
+    const dirty = [saveHandle('ayesha_rahman'), completeOnboarding()].reduce(reducer, initial);
+    const cleared = reducer(dirty, reset());
+    expect(cleared.handle).toBeUndefined();
+    expect(cleared.completed).toBe(false);
   });
 
   test('goToStep clamps below 1 and above the last step', () => {

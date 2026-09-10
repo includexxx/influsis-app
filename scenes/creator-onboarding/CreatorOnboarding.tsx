@@ -10,13 +10,16 @@ import LanguagesStep from './steps/LanguagesStep';
 import DeliverablesStep from './steps/DeliverablesStep';
 import PhotosStep from './steps/PhotosStep';
 import PortfolioStep from './steps/PortfolioStep';
+import UsernameStep from './steps/UsernameStep';
 import PlaceholderStep from './steps/PlaceholderStep';
+import OnboardingComplete from './OnboardingComplete';
 
 // The private, post-registration creator onboarding wizard - one screen, the
-// active step chosen by `currentStep` in the `creatorOnboarding` slice.
-// Step 8 is a placeholder until 20g fills it in; each real step
-// owns its own header, form, and CTA row (the shell only owns the
-// themed background).
+// active step chosen by `currentStep` in the `creatorOnboarding` slice. Every
+// step 1-8 is now real; `PlaceholderStep` stays only as the unreachable
+// `?? PlaceholderStep` fallback. Each real step owns its own header, form,
+// and CTA row (the shell only owns the themed background). Once Finish sets
+// `completed`, the shell swaps the whole wizard for the completion screen.
 const STEP_COMPONENTS: Record<number, ComponentType> = {
   1: BasicInformationStep,
   2: LocationStep,
@@ -25,16 +28,17 @@ const STEP_COMPONENTS: Record<number, ComponentType> = {
   5: DeliverablesStep,
   6: PhotosStep,
   7: PortfolioStep,
+  8: UsernameStep,
 };
 
 export default function CreatorOnboarding() {
   const { colors } = useTheme();
-  const { currentStep } = useCreatorOnboardingSlice();
+  const { currentStep, completed } = useCreatorOnboardingSlice();
   const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <StepComponent />
+      {completed ? <OnboardingComplete /> : <StepComponent />}
     </SafeAreaView>
   );
 }

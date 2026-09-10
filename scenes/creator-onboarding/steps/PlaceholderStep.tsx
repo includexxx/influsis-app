@@ -4,14 +4,9 @@ import { layoutStyle, profileStepStyle } from '@/styles';
 import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
-// Provisional heading for the not-yet-built final step (requirements §2).
-// 20g replaces this with its own component and finalises its own copy.
-const STEP_META: Record<number, { title: string; description: string }> = {
-  8: {
-    title: 'Claim your username',
-    description: 'Your handle is the last step before your profile goes live',
-  },
-};
+// Every step 1-8 now has a real component; this stays only as the
+// unreachable `?? PlaceholderStep` fallback in `CreatorOnboarding`.
+const STEP_META: Record<number, { title: string; description: string }> = {};
 
 const styles = StyleSheet.create({
   note: {
