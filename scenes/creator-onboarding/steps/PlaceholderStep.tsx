@@ -5,13 +5,9 @@ import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
 // Provisional headings for the not-yet-built steps (requirements §2). Each
-// real step (20e-20g) replaces this with its own component and finalises
+// real step (20f-20g) replaces this with its own component and finalises
 // its own copy.
 const STEP_META: Record<number, { title: string; description: string }> = {
-  6: {
-    title: 'Add your photos',
-    description: 'A profile and cover photo help businesses discover you',
-  },
   7: {
     title: 'Show your best work',
     description: 'Add a few samples so businesses can see your style',

@@ -8,6 +8,7 @@ import {
   locationSchema,
   MINIMUM_CREATOR_AGE,
   OTHERS_TEXT_MAX_LENGTH,
+  photosSchema,
 } from './onboardingSchemas';
 
 // `basicInformationSchema` reads the real clock (its refine calls
@@ -218,5 +219,27 @@ describe('languagesSchema / deliverablesSchema', () => {
     expect(deliverablesSchema.safeParse({ selected: ['others'], othersText: '' }).success).toBe(
       true,
     );
+  });
+});
+
+describe('photosSchema', () => {
+  const photo = { uri: 'file:///p.jpg', mimeType: 'image/jpeg', fileName: 'p.jpg' };
+
+  test('accepts an empty object (both photos optional)', () => {
+    expect(photosSchema.safeParse({}).success).toBe(true);
+  });
+
+  test('accepts one photo, the other, or both', () => {
+    expect(photosSchema.safeParse({ profilePhoto: photo }).success).toBe(true);
+    expect(photosSchema.safeParse({ coverPhoto: photo }).success).toBe(true);
+    expect(photosSchema.safeParse({ profilePhoto: photo, coverPhoto: photo }).success).toBe(true);
+  });
+
+  test('accepts a photo without mimeType / fileName', () => {
+    expect(photosSchema.safeParse({ profilePhoto: { uri: 'file:///p.jpg' } }).success).toBe(true);
+  });
+
+  test('rejects a photo with a blank uri', () => {
+    expect(photosSchema.safeParse({ profilePhoto: { uri: '' } }).success).toBe(false);
   });
 });

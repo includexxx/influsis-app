@@ -219,7 +219,7 @@ cleaned-up checkbox version before generating the project overview.
         one) and deliverables multi-select (Photo Post, Reel, Video, Story, Blog,
         Live, minimum one). Two steps, one slice shape, built together because
         they are the same multi-select control with different option sets.
-  - [ ] 20e. **Profile + cover photo step** - single-image pickers for the
+  - [x] 20e. **Profile + cover photo step** - single-image pickers for the
         profile photo and the cover photo via `expo-image-picker` (reusing
         `components/elements/ImageUploader`), both recommended and skippable with
         UI copy explaining they drive the discovery card and verification

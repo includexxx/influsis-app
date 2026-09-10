@@ -6,6 +6,7 @@ import reducer, {
   saveContentCategories,
   saveLanguages,
   saveDeliverables,
+  savePhotos,
   goToStep,
   markStepComplete,
   reset,
@@ -16,6 +17,7 @@ import {
   ContentCategoriesValues,
   LocationValues,
   MultiSelectValues,
+  PhotosValues,
 } from '@/utils/onboardingSchemas';
 
 const initial = reducer(undefined, { type: '@@INIT' });
@@ -42,6 +44,11 @@ const languages: MultiSelectValues = { selected: ['english', 'others'], othersTe
 
 const deliverables: MultiSelectValues = { selected: ['reel', 'story'], othersText: '' };
 
+const photos: PhotosValues = {
+  profilePhoto: { uri: 'file:///profile.jpg', mimeType: 'image/jpeg', fileName: 'profile.jpg' },
+  coverPhoto: { uri: 'file:///cover.jpg', mimeType: 'image/jpeg', fileName: 'cover.jpg' },
+};
+
 describe('creatorOnboarding slice', () => {
   test('starts on step 1 with nothing completed or drafted', () => {
     const expected: CreatorOnboardingState = {
@@ -52,6 +59,8 @@ describe('creatorOnboarding slice', () => {
       contentCategories: undefined,
       languages: undefined,
       deliverables: undefined,
+      profilePhoto: undefined,
+      coverPhoto: undefined,
     };
     expect(initial).toEqual(expected);
   });
@@ -75,6 +84,16 @@ describe('creatorOnboarding slice', () => {
     expect(reducer(initial, saveDeliverables(deliverables)).deliverables).toEqual(deliverables);
   });
 
+  test('savePhotos stores both descriptors and savePhotos({}) clears them', () => {
+    const withPhotos = reducer(initial, savePhotos(photos));
+    expect(withPhotos.profilePhoto).toEqual(photos.profilePhoto);
+    expect(withPhotos.coverPhoto).toEqual(photos.coverPhoto);
+
+    const cleared = reducer(withPhotos, savePhotos({}));
+    expect(cleared.profilePhoto).toBeUndefined();
+    expect(cleared.coverPhoto).toBeUndefined();
+  });
+
   test('goToStep clamps below 1 and above the last step', () => {
     expect(reducer(initial, goToStep(0)).currentStep).toBe(1);
     expect(reducer(initial, goToStep(-3)).currentStep).toBe(1);
@@ -90,22 +109,17 @@ describe('creatorOnboarding slice', () => {
   });
 
   test('reset returns the initial state', () => {
-    const dirty = reducer(
-      reducer(
-        reducer(
-          reducer(
-            reducer(
-              reducer(reducer(initial, saveBasics(basics)), saveLocation(location)),
-              saveContentCategories(contentCategories),
-            ),
-            saveLanguages(languages),
-          ),
-          saveDeliverables(deliverables),
-        ),
-        goToStep(4),
-      ),
+    const actions = [
+      saveBasics(basics),
+      saveLocation(location),
+      saveContentCategories(contentCategories),
+      saveLanguages(languages),
+      saveDeliverables(deliverables),
+      savePhotos(photos),
+      goToStep(4),
       markStepComplete(1),
-    );
+    ];
+    const dirty = actions.reduce(reducer, initial);
     expect(reducer(dirty, reset())).toEqual(initial);
   });
 });

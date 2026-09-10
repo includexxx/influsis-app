@@ -6,6 +6,8 @@ import {
   ContentCategoriesValues,
   LocationValues,
   MultiSelectValues,
+  PhotosValues,
+  PickedImageAsset,
 } from '@/utils/onboardingSchemas';
 
 // The creator onboarding wizard is one screen, eight steps
@@ -20,13 +22,14 @@ export interface CreatorOnboardingState {
   currentStep: number;
   /** Steps whose form has been saved; unique, unordered. */
   completedSteps: number[];
-  // Per-step drafts. 20e+ add `profilePhoto`, `coverPhoto`, `portfolio`, and
-  // `handle`.
+  // Per-step drafts. 20f+ add `portfolio` and `handle`.
   basics?: BasicInformationValues;
   location?: LocationValues;
   contentCategories?: ContentCategoriesValues;
   languages?: MultiSelectValues;
   deliverables?: MultiSelectValues;
+  profilePhoto?: PickedImageAsset;
+  coverPhoto?: PickedImageAsset;
 }
 
 const initialState: CreatorOnboardingState = {
@@ -37,6 +40,8 @@ const initialState: CreatorOnboardingState = {
   contentCategories: undefined,
   languages: undefined,
   deliverables: undefined,
+  profilePhoto: undefined,
+  coverPhoto: undefined,
 };
 
 function clampStep(step: number): number {
@@ -75,6 +80,10 @@ const slice = createSlice({
     ) => {
       state.deliverables = payload;
     },
+    savePhotos: (state: CreatorOnboardingState, { payload }: PayloadAction<PhotosValues>) => {
+      state.profilePhoto = payload.profilePhoto;
+      state.coverPhoto = payload.coverPhoto;
+    },
     goToStep: (state: CreatorOnboardingState, { payload }: PayloadAction<number>) => {
       state.currentStep = clampStep(payload);
     },
@@ -92,6 +101,7 @@ export const {
   saveContentCategories,
   saveLanguages,
   saveDeliverables,
+  savePhotos,
   goToStep,
   markStepComplete,
   reset,

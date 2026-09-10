@@ -145,3 +145,23 @@ function multiSelectSchema({ noun, withOther }: { noun: string; withOther: boole
 
 export const languagesSchema = multiSelectSchema({ noun: 'language', withOther: true });
 export const deliverablesSchema = multiSelectSchema({ noun: 'deliverable', withOther: false });
+
+// Onboarding Step 6 - Profile + cover photo (requirements §3 Screens 6-7).
+// Both images are optional. A picked image is kept as this descriptor, taken
+// straight from `ImagePicker.ImagePickerAsset`, so 20g can drop it into
+// `FormData`. `mimeType` / `fileName` are optional because the picker does not
+// always populate them.
+export type PickedImageAsset = { uri: string; mimeType?: string; fileName?: string };
+
+export const pickedImageSchema = z.object({
+  uri: z.string().min(1),
+  mimeType: z.string().optional(),
+  fileName: z.string().optional(),
+});
+
+export const photosSchema = z.object({
+  profilePhoto: pickedImageSchema.optional(),
+  coverPhoto: pickedImageSchema.optional(),
+});
+
+export type PhotosValues = z.infer<typeof photosSchema>;
