@@ -158,3 +158,89 @@ cleaned-up checkbox version before generating the project overview.
   - [x] 19g. **Login second factor** - handle the
     `{ mfaRequired, preAuthToken }` login branch and add the TOTP step that
     calls `POST /auth/login/2fa/verify`.
+
+## Creator onboarding
+
+> Written manually from `creator-onboarding-requirements.md` (Creator Onboarding
+> — User Flow, Guidelines & Requirements, Draft v1). This **replaces** the
+> shipped profile-verification wizard (item 2), which captured too little for
+> the matching engine: no location, no subcategories, no deliverables, no
+> portfolio, no photos. The old `(auth)/profile-verification/*` routes and
+> `scenes/profile-verification/*` retire as part of item 20.
+>
+> Shape: **one private route** hosting a multi-step form, not eight routes.
+> react-hook-form per step (zod resolver, as in `utils/authSchemas.ts`),
+> Redux Toolkit for cross-step draft state, RTK Query for the one server call
+> the flow makes today (handle availability). Images are collected as local
+> URIs and assembled into `FormData` at Finish. **There is no submit endpoint
+> yet** - Finish `console.log`s the assembled onboarding state and stops. What
+> happens after submit is specified later.
+
+- [ ] 20. **Creator onboarding wizard** - the post-registration private flow
+  that captures everything the matching engine, public profile, and
+  verification queue need: basics, location, categories/subcategories,
+  languages, deliverables, photos, portfolio, and a unique handle. Single
+  screen, multi-step form; visual pattern (pink progress bar, `X of N`
+  counter, one-line subtext, full-width pink CTA, disabled-until-valid `Next`)
+  carried over from the profile-verification screens it replaces.
+  - [ ] 20a. **Onboarding shell + step machine** - one route
+    `app/(auth)/creator-onboarding.tsx` (the `(auth)/onboarding` segment is
+    already the pre-login intro carousel, so the name differs) over
+    `scenes/creator-onboarding/`, a `creatorOnboarding` slice holding
+    `currentStep` / `completedSteps` / per-step `draft`, and a
+    `useCreatorOnboardingStep` hook exposing `saveAndContinue` / `skip` /
+    `back`. Each step owns its own react-hook-form seeded from the saved draft,
+    so Back restores the previous answer. Gate it behind `authGate` the way
+    `profile-verification` is gated (authenticated only), point the
+    registration-OTP redirect in `scenes/auth/VerifyOtp.tsx` at it, and retire
+    the seven `(auth)/profile-verification` routes plus
+    `scenes/profile-verification/*`. `slices/profileVerification.slice.ts`
+    cannot simply be deleted - `scenes/main/EditProfile.tsx` reads its
+    `phoneNumber` / `phoneCountry` / `gender` / `country` / `dateOfBirth`
+    fields, so those move to a profile slice of their own. Ships with Step 1
+    (Basic Information: name, gender, date of birth) wired end to end to prove
+    the pattern, including the platform-minimum-age check on DOB.
+  - [ ] 20b. **Location step** - Country locked to Bangladesh for V1 (rendered,
+    disabled, no other option), Division and City as dependent selects, Zip
+    optional. Port the division/district tables and the country -> region ->
+    city cascade from `../web/src/data/locations/` (`bd-regions.ts`,
+    `bd-districts.ts`) into `data/locations.ts` so both apps agree on the
+    values; keep the schema country-generic so a US launch adds data, not
+    fields. City is a hard filter in Search & Discovery, so it must be a
+    picked value, never free text.
+  - [ ] 20c. **Content categories + subcategories** - multi-select categories
+    (the existing eight) where selecting one expands its subcategory list
+    inline as an accordion, each selected category needs at least one
+    subcategory before `Next` enables, deselecting a category clears its
+    subcategories, and "Others" takes a free-text specify value that becomes
+    both a category and a subcategory.
+  - [ ] 20d. **Languages + deliverables steps** - languages multi-select
+    (English, Spanish, French, Russian, Hindi, Others-with-free-text, minimum
+    one) and deliverables multi-select (Photo Post, Reel, Video, Story, Blog,
+    Live, minimum one). Two steps, one slice shape, built together because
+    they are the same multi-select control with different option sets.
+  - [ ] 20e. **Profile + cover photo step** - single-image pickers for the
+    profile photo and the cover photo via `expo-image-picker` (reusing
+    `components/elements/ImageUploader`), both recommended and skippable with
+    UI copy explaining they drive the discovery card and verification
+    credibility. Images are held as picked-asset descriptors (uri, mimeType,
+    fileName) so they can go straight into `FormData` later.
+  - [ ] 20f. **Portfolio step** - repeatable entry cards (content link,
+    platform tag auto-detected from the URL with a manual Instagram / YouTube
+    / TikTok / Others fallback, thumbnail with a manual image-upload fallback
+    when auto-fetch is unavailable), `+ Add Another` and per-entry delete,
+    inline validation for a malformed link, a non-blocking duplicate-link
+    warning, and a soft nudge - never a block - when the user continues with
+    zero entries.
+  - [ ] 20g. **Username step + finish** - `@`-prefixed handle input with
+    debounced real-time availability against
+    `GET /api/v1/handles/{handle}/availability` (public; `200` with
+    `available: false` plus `reason: taken | reserved` is the not-available
+    case, not an error status; `422` means the format check failed), a green
+    tick / red cross indicator, auto-suggested alternatives when taken, and
+    client-side format rules (lowercase letters, digits, underscore, period;
+    3-20 chars; no leading or trailing period/underscore). `Finish` assembles
+    the full onboarding payload as `FormData` (fields plus profile, cover, and
+    portfolio thumbnail files), `console.log`s it, and lands on the completion
+    screen. **No network submit** - the post-submit behaviour is specified in
+    a later item.
