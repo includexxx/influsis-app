@@ -65,4 +65,34 @@ describe('<CustomSelectField />', () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  test('when disabled, ignores the press and exposes a disabled state', () => {
+    const onPress = jest.fn();
+    render(
+      <CustomSelectField
+        placeholder="Select category"
+        options={options}
+        onPress={onPress}
+        disabled
+        testID="category-field"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('category-field'));
+
+    expect(onPress).not.toHaveBeenCalled();
+    expect(screen.getByTestId('category-field').props.accessibilityState?.disabled).toBe(true);
+  });
+
+  test('renders an inline error message', () => {
+    render(
+      <CustomSelectField
+        placeholder="Select category"
+        options={options}
+        onPress={jest.fn()}
+        error="Select a category"
+      />,
+    );
+    expect(screen.getByText('Select a category')).not.toBeNull();
+  });
 });

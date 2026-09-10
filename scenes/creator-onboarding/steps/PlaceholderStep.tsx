@@ -1,18 +1,13 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { Text, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
-import Button from '@/components/elements/Button';
+import { layoutStyle, profileStepStyle } from '@/styles';
 import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
 // Provisional headings for the not-yet-built steps (requirements §2). Each
-// real step (20b-20g) replaces this with its own component and finalises
+// real step (20c-20g) replaces this with its own component and finalises
 // its own copy.
 const STEP_META: Record<number, { title: string; description: string }> = {
-  2: {
-    title: 'Where are you based?',
-    description: 'Businesses match creators by location for local campaigns',
-  },
   3: {
     title: 'What content do you create?',
     description: 'Pick the categories and subcategories that fit your work',
@@ -52,29 +47,19 @@ export default function PlaceholderStep() {
   const meta = STEP_META[currentStep] ?? { title: 'Coming soon', description: '' };
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={currentStep}
-          totalSteps={totalSteps}
-          title={meta.title}
-          description={meta.description}
-          style={profileStepStyle.header}
-        />
-        <Text style={[styles.note, { color: palette.gray[300] }]}>This step is coming soon.</Text>
-      </ScrollView>
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Back"
-          titleStyle={[sharedButton.primaryTitle, { color: palette.primary[400] }]}
-          style={[sharedButton.primary, { backgroundColor: palette.primary[25] }]}
-          onPress={back}
-          testID="onboarding-placeholder-back"
-        />
-      </View>
-    </>
+    <ScrollView
+      style={layoutStyle.screen}
+      contentContainerStyle={layoutStyle.scrollContent}
+      showsVerticalScrollIndicator={false}>
+      <ProfileStepHeader
+        step={currentStep}
+        totalSteps={totalSteps}
+        title={meta.title}
+        description={meta.description}
+        onBack={back}
+        style={profileStepStyle.header}
+      />
+      <Text style={[styles.note, { color: palette.gray[300] }]}>This step is coming soon.</Text>
+    </ScrollView>
   );
 }

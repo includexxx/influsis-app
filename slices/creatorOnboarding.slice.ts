@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { State, Dispatch } from '@/utils/store';
-import { BasicInformationValues } from '@/utils/onboardingSchemas';
+import { BasicInformationValues, LocationValues } from '@/utils/onboardingSchemas';
 
 // The creator onboarding wizard is one screen, eight steps
 // (creator-onboarding-requirements.md §2). Unlike the retired
@@ -15,16 +15,17 @@ export interface CreatorOnboardingState {
   currentStep: number;
   /** Steps whose form has been saved; unique, unordered. */
   completedSteps: number[];
-  // Per-step drafts. Only Step 1 exists today; 20b+ add `location`,
-  // `categories`, `languages`, `deliverables`, `profilePhoto`, `coverPhoto`,
-  // `portfolio`, and `handle`.
+  // Per-step drafts. 20c+ add `categories`, `languages`, `deliverables`,
+  // `profilePhoto`, `coverPhoto`, `portfolio`, and `handle`.
   basics?: BasicInformationValues;
+  location?: LocationValues;
 }
 
 const initialState: CreatorOnboardingState = {
   currentStep: 1,
   completedSteps: [],
   basics: undefined,
+  location: undefined,
 };
 
 function clampStep(step: number): number {
@@ -42,6 +43,9 @@ const slice = createSlice({
     ) => {
       state.basics = payload;
     },
+    saveLocation: (state: CreatorOnboardingState, { payload }: PayloadAction<LocationValues>) => {
+      state.location = payload;
+    },
     goToStep: (state: CreatorOnboardingState, { payload }: PayloadAction<number>) => {
       state.currentStep = clampStep(payload);
     },
@@ -53,7 +57,7 @@ const slice = createSlice({
   },
 });
 
-export const { saveBasics, goToStep, markStepComplete, reset } = slice.actions;
+export const { saveBasics, saveLocation, goToStep, markStepComplete, reset } = slice.actions;
 
 export function useCreatorOnboardingSlice() {
   const dispatch = useDispatch<Dispatch>();

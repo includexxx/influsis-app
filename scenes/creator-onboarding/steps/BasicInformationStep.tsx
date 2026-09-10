@@ -52,12 +52,22 @@ export default function BasicInformationStep() {
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { isValid },
   } = useForm<BasicInformationValues>({
     resolver: zodResolver(basicInformationSchema),
     mode: 'onChange',
     defaultValues: basics ?? { name: '', gender: undefined, dateOfBirth: '' },
   });
+
+  // The two bottom sheets read/write through the form via watch + setValue so
+  // they can render as siblings of the ScrollView, not descendants of it -
+  // @gorhom/bottom-sheet positions against its parent and this project has no
+  // portal provider (see CustomSelectField's docblock; EditProfile does the
+  // same).
+  const gender = watch('gender');
+  const dateOfBirth = watch('dateOfBirth');
 
   function onSubmit(values: BasicInformationValues) {
     dispatch(saveBasics(values));
@@ -91,61 +101,34 @@ export default function BasicInformationStep() {
           <Controller
             control={control}
             name="gender"
-            render={({ field, fieldState }) => (
-              <View>
-                <TextField
-                  label="Gender"
-                  value={genderLabel(field.value)}
-                  placeholder="Select your gender"
-                  editable={false}
-                  onBlur={field.onBlur}
-                  onPress={() => setIsGenderOpen(true)}
-                  error={fieldState.error?.message}
-                  rightAdornment={
-                    <Image source={chevronDownIcon} style={styles.chevron} contentFit="contain" />
-                  }
-                  testID="onboarding-gender"
-                />
-                {isGenderOpen && (
-                  <OptionSheet
-                    options={GENDER_OPTIONS}
-                    value={field.value}
-                    onSelect={value => {
-                      field.onChange(value);
-                      setIsGenderOpen(false);
-                    }}
-                    onClose={() => setIsGenderOpen(false)}
-                  />
-                )}
-              </View>
+            render={({ fieldState }) => (
+              <TextField
+                label="Gender"
+                value={genderLabel(gender)}
+                placeholder="Select your gender"
+                editable={false}
+                onPress={() => setIsGenderOpen(true)}
+                error={fieldState.error?.message}
+                rightAdornment={
+                  <Image source={chevronDownIcon} style={styles.chevron} contentFit="contain" />
+                }
+                testID="onboarding-gender"
+              />
             )}
           />
 
           <Controller
             control={control}
             name="dateOfBirth"
-            render={({ field, fieldState }) => (
-              <>
-                <DateField
-                  label="Date of birth"
-                  value={field.value ? formatDate(field.value) : undefined}
-                  helperText="MM/DD/YYYY"
-                  error={fieldState.error?.message}
-                  onPress={() => setIsCalendarOpen(true)}
-                  testID="onboarding-dob"
-                />
-                {isCalendarOpen && (
-                  <CalendarPicker
-                    value={field.value ? new Date(field.value) : undefined}
-                    maxDate={new Date()}
-                    onSelect={date => {
-                      field.onChange(date.toISOString());
-                      setIsCalendarOpen(false);
-                    }}
-                    onClose={() => setIsCalendarOpen(false)}
-                  />
-                )}
-              </>
+            render={({ fieldState }) => (
+              <DateField
+                label="Date of birth"
+                value={dateOfBirth ? formatDate(dateOfBirth) : undefined}
+                helperText="MM/DD/YYYY"
+                error={fieldState.error?.message}
+                onPress={() => setIsCalendarOpen(true)}
+                testID="onboarding-dob"
+              />
             )}
           />
         </View>
@@ -161,6 +144,32 @@ export default function BasicInformationStep() {
           testID="onboarding-next"
         />
       </View>
+
+      {isGenderOpen && (
+        <OptionSheet
+          options={GENDER_OPTIONS}
+          value={gender}
+          onSelect={value => {
+            setValue('gender', value as BasicInformationValues['gender'], {
+              shouldValidate: true,
+            });
+            setIsGenderOpen(false);
+          }}
+          onClose={() => setIsGenderOpen(false)}
+        />
+      )}
+
+      {isCalendarOpen && (
+        <CalendarPicker
+          value={dateOfBirth ? new Date(dateOfBirth) : undefined}
+          maxDate={new Date()}
+          onSelect={date => {
+            setValue('dateOfBirth', date.toISOString(), { shouldValidate: true });
+            setIsCalendarOpen(false);
+          }}
+          onClose={() => setIsCalendarOpen(false)}
+        />
+      )}
     </>
   );
 }

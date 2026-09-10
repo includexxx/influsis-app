@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BD_DIVISION_VALUES, getCities } from '@/data/locations';
 
 // Youngest age a creator may be at sign-up. Product decision (Draft v1
 // §6 Q2 resolved to 14): a hard client-side block, since there is no
@@ -49,3 +50,25 @@ export const basicInformationSchema = z.object({
 });
 
 export type BasicInformationValues = z.infer<typeof basicInformationSchema>;
+
+// Onboarding Step 2 - Location (requirements §3 Screen 2). Country is locked
+// to Bangladesh for V1; the shape stays country-generic so a US launch adds
+// a data table and a `division` value set, not new fields. `city` is a hard
+// filter in Search & Discovery, so the refine rejects anything that is not
+// one of the chosen division's districts - a picked value, never free text.
+export const locationSchema = z
+  .object({
+    country: z.literal('bangladesh'),
+    division: z.enum(BD_DIVISION_VALUES, { message: 'Select your division' }),
+    city: z.string().min(1, 'Select your city'),
+    zip: z.string().trim().optional(),
+  })
+  .refine(
+    data => getCities(data.country, data.division).some(option => option.value === data.city),
+    {
+      path: ['city'],
+      message: 'Select your city',
+    },
+  );
+
+export type LocationValues = z.infer<typeof locationSchema>;

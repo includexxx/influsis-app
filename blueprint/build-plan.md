@@ -200,7 +200,7 @@ cleaned-up checkbox version before generating the project overview.
     fields, so those move to a profile slice of their own. Ships with Step 1
     (Basic Information: name, gender, date of birth) wired end to end to prove
     the pattern, including the platform-minimum-age check on DOB.
-  - [ ] 20b. **Location step** - Country locked to Bangladesh for V1 (rendered,
+  - [x] 20b. **Location step** - Country locked to Bangladesh for V1 (rendered,
     disabled, no other option), Division and City as dependent selects, Zip
     optional. Port the division/district tables and the country -> region ->
     city cascade from `../web/src/data/locations/` (`bd-regions.ts`,

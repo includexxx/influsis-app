@@ -1,5 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
-import { ageInYears, basicInformationSchema, MINIMUM_CREATOR_AGE } from './onboardingSchemas';
+import {
+  ageInYears,
+  basicInformationSchema,
+  locationSchema,
+  MINIMUM_CREATOR_AGE,
+} from './onboardingSchemas';
 
 // `basicInformationSchema` reads the real clock (its refine calls
 // `ageInYears` with a default `new Date()`), so anchor the fixtures to the
@@ -76,5 +81,47 @@ describe('basicInformationSchema', () => {
       dateOfBirth: dobFor(MINIMUM_CREATOR_AGE, -1),
     });
     expect(r.success).toBe(false);
+  });
+});
+
+describe('locationSchema', () => {
+  const validLocation = {
+    country: 'bangladesh' as const,
+    division: 'dhaka' as const,
+    city: 'Dhaka',
+    zip: '1207',
+  };
+
+  test('accepts a complete Bangladesh entry', () => {
+    expect(locationSchema.safeParse(validLocation).success).toBe(true);
+  });
+
+  test('accepts a missing zip (optional)', () => {
+    const { zip: _zip, ...noZip } = validLocation;
+    expect(locationSchema.safeParse(noZip).success).toBe(true);
+  });
+
+  test('rejects a missing or off-list division', () => {
+    expect(locationSchema.safeParse({ ...validLocation, division: undefined }).success).toBe(false);
+    expect(locationSchema.safeParse({ ...validLocation, division: 'punjab' }).success).toBe(false);
+  });
+
+  test('rejects an empty city', () => {
+    expect(locationSchema.safeParse({ ...validLocation, city: '' }).success).toBe(false);
+  });
+
+  test('rejects a free-text city that is not a real district', () => {
+    expect(locationSchema.safeParse({ ...validLocation, city: 'Nowhere' }).success).toBe(false);
+  });
+
+  test('rejects a city that belongs to a different division', () => {
+    const r = locationSchema.safeParse({ ...validLocation, division: 'sylhet', city: 'Dhaka' });
+    expect(r.success).toBe(false);
+  });
+
+  test('rejects a non-Bangladesh country in V1', () => {
+    expect(locationSchema.safeParse({ ...validLocation, country: 'united-states' }).success).toBe(
+      false,
+    );
   });
 });

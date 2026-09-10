@@ -2,12 +2,13 @@ import { describe, expect, test } from '@jest/globals';
 import reducer, {
   ONBOARDING_TOTAL_STEPS,
   saveBasics,
+  saveLocation,
   goToStep,
   markStepComplete,
   reset,
   CreatorOnboardingState,
 } from './creatorOnboarding.slice';
-import { BasicInformationValues } from '@/utils/onboardingSchemas';
+import { BasicInformationValues, LocationValues } from '@/utils/onboardingSchemas';
 
 const initial = reducer(undefined, { type: '@@INIT' });
 
@@ -17,18 +18,30 @@ const basics: BasicInformationValues = {
   dateOfBirth: '2001-04-12T00:00:00.000Z',
 };
 
+const location: LocationValues = {
+  country: 'bangladesh',
+  division: 'dhaka',
+  city: 'Dhaka',
+  zip: '1207',
+};
+
 describe('creatorOnboarding slice', () => {
   test('starts on step 1 with nothing completed or drafted', () => {
     const expected: CreatorOnboardingState = {
       currentStep: 1,
       completedSteps: [],
       basics: undefined,
+      location: undefined,
     };
     expect(initial).toEqual(expected);
   });
 
   test('saveBasics stores the Step 1 values', () => {
     expect(reducer(initial, saveBasics(basics)).basics).toEqual(basics);
+  });
+
+  test('saveLocation stores the Step 2 values', () => {
+    expect(reducer(initial, saveLocation(location)).location).toEqual(location);
   });
 
   test('goToStep clamps below 1 and above the last step', () => {
@@ -47,7 +60,7 @@ describe('creatorOnboarding slice', () => {
 
   test('reset returns the initial state', () => {
     const dirty = reducer(
-      reducer(reducer(initial, saveBasics(basics)), goToStep(4)),
+      reducer(reducer(reducer(initial, saveBasics(basics)), saveLocation(location)), goToStep(4)),
       markStepComplete(1),
     );
     expect(reducer(dirty, reset())).toEqual(initial);
