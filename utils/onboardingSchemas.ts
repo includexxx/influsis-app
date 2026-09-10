@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BD_DIVISION_VALUES, getCities } from '@/data/locations';
 import { OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
+import { OTHER_OPTION_VALUE } from '@/data/onboardingOptions';
 
 // Youngest age a creator may be at sign-up. Product decision (Draft v1
 // §6 Q2 resolved to 14): a hard client-side block, since there is no
@@ -118,3 +119,29 @@ export const contentCategoriesSchema = z
   });
 
 export type ContentCategoriesValues = z.infer<typeof contentCategoriesSchema>;
+
+// Onboarding Steps 4 (Languages) and 5 (Deliverables) are the same multi-select
+// control over different fixed option sets (requirements §3 Screens 4-5). Both
+// require at least one pick; Languages additionally reveals a free-text row when
+// `others` is selected and needs its trimmed value.
+export type MultiSelectValues = { selected: string[]; othersText?: string };
+
+function multiSelectSchema({ noun, withOther }: { noun: string; withOther: boolean }) {
+  return z
+    .object({
+      selected: z.array(z.string()).min(1, `Select at least one ${noun}`),
+      othersText: z.string().trim().max(OTHERS_TEXT_MAX_LENGTH).optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (withOther && data.selected.includes(OTHER_OPTION_VALUE) && !data.othersText?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['othersText'],
+          message: 'Add the language you speak',
+        });
+      }
+    });
+}
+
+export const languagesSchema = multiSelectSchema({ noun: 'language', withOther: true });
+export const deliverablesSchema = multiSelectSchema({ noun: 'deliverable', withOther: false });

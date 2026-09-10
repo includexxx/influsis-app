@@ -4,6 +4,8 @@ import reducer, {
   saveBasics,
   saveLocation,
   saveContentCategories,
+  saveLanguages,
+  saveDeliverables,
   goToStep,
   markStepComplete,
   reset,
@@ -13,6 +15,7 @@ import {
   BasicInformationValues,
   ContentCategoriesValues,
   LocationValues,
+  MultiSelectValues,
 } from '@/utils/onboardingSchemas';
 
 const initial = reducer(undefined, { type: '@@INIT' });
@@ -35,6 +38,10 @@ const contentCategories: ContentCategoriesValues = {
   othersText: '',
 };
 
+const languages: MultiSelectValues = { selected: ['english', 'others'], othersText: 'Bengali' };
+
+const deliverables: MultiSelectValues = { selected: ['reel', 'story'], othersText: '' };
+
 describe('creatorOnboarding slice', () => {
   test('starts on step 1 with nothing completed or drafted', () => {
     const expected: CreatorOnboardingState = {
@@ -43,6 +50,8 @@ describe('creatorOnboarding slice', () => {
       basics: undefined,
       location: undefined,
       contentCategories: undefined,
+      languages: undefined,
+      deliverables: undefined,
     };
     expect(initial).toEqual(expected);
   });
@@ -59,6 +68,11 @@ describe('creatorOnboarding slice', () => {
     expect(reducer(initial, saveContentCategories(contentCategories)).contentCategories).toEqual(
       contentCategories,
     );
+  });
+
+  test('saveLanguages and saveDeliverables store the Step 4 / 5 values', () => {
+    expect(reducer(initial, saveLanguages(languages)).languages).toEqual(languages);
+    expect(reducer(initial, saveDeliverables(deliverables)).deliverables).toEqual(deliverables);
   });
 
   test('goToStep clamps below 1 and above the last step', () => {
@@ -79,8 +93,14 @@ describe('creatorOnboarding slice', () => {
     const dirty = reducer(
       reducer(
         reducer(
-          reducer(reducer(initial, saveBasics(basics)), saveLocation(location)),
-          saveContentCategories(contentCategories),
+          reducer(
+            reducer(
+              reducer(reducer(initial, saveBasics(basics)), saveLocation(location)),
+              saveContentCategories(contentCategories),
+            ),
+            saveLanguages(languages),
+          ),
+          saveDeliverables(deliverables),
         ),
         goToStep(4),
       ),

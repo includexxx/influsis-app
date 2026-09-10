@@ -6,17 +6,21 @@ import { useCreatorOnboardingSlice } from '@/slices';
 import BasicInformationStep from './steps/BasicInformationStep';
 import LocationStep from './steps/LocationStep';
 import ContentCategoriesStep from './steps/ContentCategoriesStep';
+import LanguagesStep from './steps/LanguagesStep';
+import DeliverablesStep from './steps/DeliverablesStep';
 import PlaceholderStep from './steps/PlaceholderStep';
 
 // The private, post-registration creator onboarding wizard - one screen, the
 // active step chosen by `currentStep` in the `creatorOnboarding` slice.
-// Steps 4-8 are placeholders until 20d-20g fill them in; each real step
+// Steps 6-8 are placeholders until 20e-20g fill them in; each real step
 // owns its own header, form, and CTA row (the shell only owns the
 // themed background).
 const STEP_COMPONENTS: Record<number, ComponentType> = {
   1: BasicInformationStep,
   2: LocationStep,
   3: ContentCategoriesStep,
+  4: LanguagesStep,
+  5: DeliverablesStep,
 };
 
 export default function CreatorOnboarding() {

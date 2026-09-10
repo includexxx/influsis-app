@@ -21,6 +21,11 @@ export const profileStepStyle = StyleSheet.create({
     height: 176,
     textAlignVertical: 'top',
   },
+  // Gap above the free-text "Others" input that drops in under its option row
+  // on the Languages / Content Categories steps.
+  otherInput: {
+    marginTop: 10,
+  },
   // "Influsis.com/" left adornment on the username field.
   usernamePrefix: {
     fontSize: 16,

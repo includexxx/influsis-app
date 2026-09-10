@@ -3,6 +3,8 @@ import {
   ageInYears,
   basicInformationSchema,
   contentCategoriesSchema,
+  deliverablesSchema,
+  languagesSchema,
   locationSchema,
   MINIMUM_CREATOR_AGE,
   OTHERS_TEXT_MAX_LENGTH,
@@ -178,5 +180,43 @@ describe('contentCategoriesSchema', () => {
       othersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
     });
     expect(r.success).toBe(false);
+  });
+});
+
+describe('languagesSchema / deliverablesSchema', () => {
+  test('both reject an empty selection', () => {
+    expect(languagesSchema.safeParse({ selected: [] }).success).toBe(false);
+    expect(deliverablesSchema.safeParse({ selected: [] }).success).toBe(false);
+  });
+
+  test('both accept a single preset pick', () => {
+    expect(languagesSchema.safeParse({ selected: ['english'] }).success).toBe(true);
+    expect(deliverablesSchema.safeParse({ selected: ['reel'] }).success).toBe(true);
+  });
+
+  test('languages with Others selected needs a non-empty othersText', () => {
+    const blank = languagesSchema.safeParse({ selected: ['others'], othersText: '  ' });
+    expect(blank.success).toBe(false);
+    if (!blank.success) {
+      expect(blank.error.issues[0].path).toEqual(['othersText']);
+    }
+    expect(languagesSchema.safeParse({ selected: ['others'], othersText: 'Bengali' }).success).toBe(
+      true,
+    );
+  });
+
+  test('languages rejects an over-long othersText', () => {
+    expect(
+      languagesSchema.safeParse({
+        selected: ['others'],
+        othersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
+      }).success,
+    ).toBe(false);
+  });
+
+  test('deliverables ignores othersText entirely', () => {
+    expect(deliverablesSchema.safeParse({ selected: ['others'], othersText: '' }).success).toBe(
+      true,
+    );
   });
 });

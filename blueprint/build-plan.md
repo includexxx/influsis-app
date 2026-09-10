@@ -214,7 +214,7 @@ cleaned-up checkbox version before generating the project overview.
         subcategory before `Next` enables, deselecting a category clears its
         subcategories, and "Others" takes a free-text specify value that becomes
         both a category and a subcategory.
-  - [ ] 20d. **Languages + deliverables steps** - languages multi-select
+  - [x] 20d. **Languages + deliverables steps** - languages multi-select
         (English, Spanish, French, Russian, Hindi, Others-with-free-text, minimum
         one) and deliverables multi-select (Photo Post, Reel, Video, Story, Blog,
         Live, minimum one). Two steps, one slice shape, built together because
