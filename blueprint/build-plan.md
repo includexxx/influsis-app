@@ -225,7 +225,7 @@ cleaned-up checkbox version before generating the project overview.
         UI copy explaining they drive the discovery card and verification
         credibility. Images are held as picked-asset descriptors (uri, mimeType,
         fileName) so they can go straight into `FormData` later.
-  - [ ] 20f. **Portfolio step** - repeatable entry cards (content link,
+  - [x] 20f. **Portfolio step** - repeatable entry cards (content link,
         platform tag auto-detected from the URL with a manual Instagram / YouTube
         / TikTok / Others fallback, thumbnail with a manual image-upload fallback
         when auto-fetch is unavailable), `+ Add Another` and per-entry delete,

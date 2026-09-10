@@ -7,6 +7,7 @@ import reducer, {
   saveLanguages,
   saveDeliverables,
   savePhotos,
+  savePortfolio,
   goToStep,
   markStepComplete,
   reset,
@@ -18,6 +19,7 @@ import {
   LocationValues,
   MultiSelectValues,
   PhotosValues,
+  PortfolioEntry,
 } from '@/utils/onboardingSchemas';
 
 const initial = reducer(undefined, { type: '@@INIT' });
@@ -49,6 +51,11 @@ const photos: PhotosValues = {
   coverPhoto: { uri: 'file:///cover.jpg', mimeType: 'image/jpeg', fileName: 'cover.jpg' },
 };
 
+const portfolio: PortfolioEntry[] = [
+  { id: 'a', url: 'instagram.com/p/abc', platform: 'instagram' },
+  { id: 'b', url: 'https://youtu.be/xyz', platform: 'youtube' },
+];
+
 describe('creatorOnboarding slice', () => {
   test('starts on step 1 with nothing completed or drafted', () => {
     const expected: CreatorOnboardingState = {
@@ -61,6 +68,7 @@ describe('creatorOnboarding slice', () => {
       deliverables: undefined,
       profilePhoto: undefined,
       coverPhoto: undefined,
+      portfolio: undefined,
     };
     expect(initial).toEqual(expected);
   });
@@ -94,6 +102,12 @@ describe('creatorOnboarding slice', () => {
     expect(cleared.coverPhoto).toBeUndefined();
   });
 
+  test('savePortfolio stores the entry list and savePortfolio([]) clears it', () => {
+    expect(reducer(initial, savePortfolio(portfolio)).portfolio).toEqual(portfolio);
+    const cleared = reducer(reducer(initial, savePortfolio(portfolio)), savePortfolio([]));
+    expect(cleared.portfolio).toEqual([]);
+  });
+
   test('goToStep clamps below 1 and above the last step', () => {
     expect(reducer(initial, goToStep(0)).currentStep).toBe(1);
     expect(reducer(initial, goToStep(-3)).currentStep).toBe(1);
@@ -116,6 +130,7 @@ describe('creatorOnboarding slice', () => {
       saveLanguages(languages),
       saveDeliverables(deliverables),
       savePhotos(photos),
+      savePortfolio(portfolio),
       goToStep(4),
       markStepComplete(1),
     ];

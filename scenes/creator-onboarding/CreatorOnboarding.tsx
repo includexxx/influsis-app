@@ -9,11 +9,12 @@ import ContentCategoriesStep from './steps/ContentCategoriesStep';
 import LanguagesStep from './steps/LanguagesStep';
 import DeliverablesStep from './steps/DeliverablesStep';
 import PhotosStep from './steps/PhotosStep';
+import PortfolioStep from './steps/PortfolioStep';
 import PlaceholderStep from './steps/PlaceholderStep';
 
 // The private, post-registration creator onboarding wizard - one screen, the
 // active step chosen by `currentStep` in the `creatorOnboarding` slice.
-// Steps 7-8 are placeholders until 20f-20g fill them in; each real step
+// Step 8 is a placeholder until 20g fills it in; each real step
 // owns its own header, form, and CTA row (the shell only owns the
 // themed background).
 const STEP_COMPONENTS: Record<number, ComponentType> = {
@@ -23,6 +24,7 @@ const STEP_COMPONENTS: Record<number, ComponentType> = {
   4: LanguagesStep,
   5: DeliverablesStep,
   6: PhotosStep,
+  7: PortfolioStep,
 };
 
 export default function CreatorOnboarding() {

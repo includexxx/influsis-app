@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { BD_DIVISION_VALUES, getCities } from '@/data/locations';
 import { OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
 import { OTHER_OPTION_VALUE } from '@/data/onboardingOptions';
+import { isLikelyPortfolioUrl, PORTFOLIO_PLATFORM_VALUES } from '@/data/portfolioPlatforms';
 
 // Youngest age a creator may be at sign-up. Product decision (Draft v1
 // §6 Q2 resolved to 14): a hard client-side block, since there is no
@@ -165,3 +166,22 @@ export const photosSchema = z.object({
 });
 
 export type PhotosValues = z.infer<typeof photosSchema>;
+
+// Onboarding Step 7 - Portfolio (requirements §3 "Portfolio"). An optional
+// list of entry cards; an empty list is valid, but a present entry must carry
+// a well-formed link. `id` is a `nanoid()` list/FormData key with no persisted
+// meaning yet. Duplicate links are a non-blocking warning handled in the scene,
+// not a schema rule.
+export const portfolioEntrySchema = z.object({
+  id: z.string(),
+  url: z.string().refine(isLikelyPortfolioUrl, { message: "This link doesn't look valid" }),
+  platform: z.enum(PORTFOLIO_PLATFORM_VALUES),
+  thumbnail: pickedImageSchema.optional(),
+});
+
+export const portfolioFormSchema = z.object({
+  entries: z.array(portfolioEntrySchema),
+});
+
+export type PortfolioEntry = z.infer<typeof portfolioEntrySchema>;
+export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;

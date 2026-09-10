@@ -9,6 +9,7 @@ import {
   MINIMUM_CREATOR_AGE,
   OTHERS_TEXT_MAX_LENGTH,
   photosSchema,
+  portfolioFormSchema,
 } from './onboardingSchemas';
 
 // `basicInformationSchema` reads the real clock (its refine calls
@@ -241,5 +242,37 @@ describe('photosSchema', () => {
 
   test('rejects a photo with a blank uri', () => {
     expect(photosSchema.safeParse({ profilePhoto: { uri: '' } }).success).toBe(false);
+  });
+});
+
+describe('portfolioFormSchema', () => {
+  const entry = { id: 'e1', url: 'instagram.com/p/abc', platform: 'instagram' as const };
+
+  test('accepts an empty list (the step is optional)', () => {
+    expect(portfolioFormSchema.safeParse({ entries: [] }).success).toBe(true);
+  });
+
+  test('accepts a valid entry, with or without a thumbnail', () => {
+    expect(portfolioFormSchema.safeParse({ entries: [entry] }).success).toBe(true);
+    expect(
+      portfolioFormSchema.safeParse({
+        entries: [{ ...entry, thumbnail: { uri: 'file:///t.jpg' } }],
+      }).success,
+    ).toBe(true);
+  });
+
+  test('rejects a blank or malformed url on the entry path', () => {
+    const r = portfolioFormSchema.safeParse({ entries: [{ ...entry, url: 'not a link' }] });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues[0].path).toEqual(['entries', 0, 'url']);
+    }
+    expect(portfolioFormSchema.safeParse({ entries: [{ ...entry, url: '' }] }).success).toBe(false);
+  });
+
+  test('rejects an off-list platform', () => {
+    expect(
+      portfolioFormSchema.safeParse({ entries: [{ ...entry, platform: 'facebook' }] }).success,
+    ).toBe(false);
   });
 });
