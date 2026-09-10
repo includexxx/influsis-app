@@ -2,8 +2,10 @@ import { describe, expect, test } from '@jest/globals';
 import {
   ageInYears,
   basicInformationSchema,
+  contentCategoriesSchema,
   locationSchema,
   MINIMUM_CREATOR_AGE,
+  OTHERS_TEXT_MAX_LENGTH,
 } from './onboardingSchemas';
 
 // `basicInformationSchema` reads the real clock (its refine calls
@@ -123,5 +125,58 @@ describe('locationSchema', () => {
     expect(locationSchema.safeParse({ ...validLocation, country: 'united-states' }).success).toBe(
       false,
     );
+  });
+});
+
+describe('contentCategoriesSchema', () => {
+  test('rejects an empty category selection', () => {
+    expect(contentCategoriesSchema.safeParse({ categories: [], othersText: '' }).success).toBe(
+      false,
+    );
+  });
+
+  test('rejects a selected category with no subcategory', () => {
+    const r = contentCategoriesSchema.safeParse({
+      categories: [{ value: 'music', subcategories: [] }],
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues[0].path).toEqual(['categories', 0, 'subcategories']);
+    }
+  });
+
+  test('accepts two categories that each have a subcategory', () => {
+    const r = contentCategoriesSchema.safeParse({
+      categories: [
+        { value: 'music', subcategories: ['singing'] },
+        { value: 'travel', subcategories: ['budget-travel', 'adventure-trekking'] },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  test('rejects an Others selection with blank or whitespace text', () => {
+    expect(
+      contentCategoriesSchema.safeParse({
+        categories: [{ value: 'others', subcategories: [] }],
+        othersText: '   ',
+      }).success,
+    ).toBe(false);
+  });
+
+  test('accepts an Others selection once specify text is given', () => {
+    const r = contentCategoriesSchema.safeParse({
+      categories: [{ value: 'others', subcategories: [] }],
+      othersText: 'Gardening',
+    });
+    expect(r.success).toBe(true);
+  });
+
+  test('rejects specify text longer than the max length', () => {
+    const r = contentCategoriesSchema.safeParse({
+      categories: [{ value: 'others', subcategories: [] }],
+      othersText: 'x'.repeat(OTHERS_TEXT_MAX_LENGTH + 1),
+    });
+    expect(r.success).toBe(false);
   });
 });

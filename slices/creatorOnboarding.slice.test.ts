@@ -3,12 +3,17 @@ import reducer, {
   ONBOARDING_TOTAL_STEPS,
   saveBasics,
   saveLocation,
+  saveContentCategories,
   goToStep,
   markStepComplete,
   reset,
   CreatorOnboardingState,
 } from './creatorOnboarding.slice';
-import { BasicInformationValues, LocationValues } from '@/utils/onboardingSchemas';
+import {
+  BasicInformationValues,
+  ContentCategoriesValues,
+  LocationValues,
+} from '@/utils/onboardingSchemas';
 
 const initial = reducer(undefined, { type: '@@INIT' });
 
@@ -25,6 +30,11 @@ const location: LocationValues = {
   zip: '1207',
 };
 
+const contentCategories: ContentCategoriesValues = {
+  categories: [{ value: 'music', subcategories: ['singing', 'covers'] }],
+  othersText: '',
+};
+
 describe('creatorOnboarding slice', () => {
   test('starts on step 1 with nothing completed or drafted', () => {
     const expected: CreatorOnboardingState = {
@@ -32,6 +42,7 @@ describe('creatorOnboarding slice', () => {
       completedSteps: [],
       basics: undefined,
       location: undefined,
+      contentCategories: undefined,
     };
     expect(initial).toEqual(expected);
   });
@@ -42,6 +53,12 @@ describe('creatorOnboarding slice', () => {
 
   test('saveLocation stores the Step 2 values', () => {
     expect(reducer(initial, saveLocation(location)).location).toEqual(location);
+  });
+
+  test('saveContentCategories stores the Step 3 values', () => {
+    expect(reducer(initial, saveContentCategories(contentCategories)).contentCategories).toEqual(
+      contentCategories,
+    );
   });
 
   test('goToStep clamps below 1 and above the last step', () => {
@@ -60,7 +77,13 @@ describe('creatorOnboarding slice', () => {
 
   test('reset returns the initial state', () => {
     const dirty = reducer(
-      reducer(reducer(reducer(initial, saveBasics(basics)), saveLocation(location)), goToStep(4)),
+      reducer(
+        reducer(
+          reducer(reducer(initial, saveBasics(basics)), saveLocation(location)),
+          saveContentCategories(contentCategories),
+        ),
+        goToStep(4),
+      ),
       markStepComplete(1),
     );
     expect(reducer(dirty, reset())).toEqual(initial);

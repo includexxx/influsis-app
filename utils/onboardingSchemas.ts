@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BD_DIVISION_VALUES, getCities } from '@/data/locations';
+import { OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
 
 // Youngest age a creator may be at sign-up. Product decision (Draft v1
 // §6 Q2 resolved to 14): a hard client-side block, since there is no
@@ -72,3 +73,48 @@ export const locationSchema = z
   );
 
 export type LocationValues = z.infer<typeof locationSchema>;
+
+// Longest "Please specify" string the Others branch of the Content Categories
+// step accepts. The requirements doc is silent on a cap; this is a
+// repository-native limit, applied to the trimmed value.
+export const OTHERS_TEXT_MAX_LENGTH = 60;
+
+// Onboarding Step 3 - Content Categories (requirements §3 Screen 3). Each
+// selected non-`others` category needs at least one subcategory before `Next`
+// enables; selecting `others` instead requires a non-empty "Please specify"
+// string. `categories` is stored in selection order, not sorted.
+export const contentCategoriesSchema = z
+  .object({
+    categories: z
+      .array(
+        z.object({
+          value: z.string(),
+          subcategories: z.array(z.string()),
+        }),
+      )
+      .min(1, 'Select at least one category'),
+    othersText: z.string().trim().max(OTHERS_TEXT_MAX_LENGTH).optional(),
+  })
+  .superRefine((data, ctx) => {
+    data.categories.forEach((entry, index) => {
+      if (entry.value === OTHERS_CATEGORY_VALUE) {
+        if (!data.othersText || data.othersText.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['othersText'],
+            message: 'Tell us what you create',
+          });
+        }
+        return;
+      }
+      if (entry.subcategories.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories', index, 'subcategories'],
+          message: 'Pick at least one subcategory',
+        });
+      }
+    });
+  });
+
+export type ContentCategoriesValues = z.infer<typeof contentCategoriesSchema>;

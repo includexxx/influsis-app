@@ -1,7 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { State, Dispatch } from '@/utils/store';
-import { BasicInformationValues, LocationValues } from '@/utils/onboardingSchemas';
+import {
+  BasicInformationValues,
+  ContentCategoriesValues,
+  LocationValues,
+} from '@/utils/onboardingSchemas';
 
 // The creator onboarding wizard is one screen, eight steps
 // (creator-onboarding-requirements.md §2). Unlike the retired
@@ -15,10 +19,11 @@ export interface CreatorOnboardingState {
   currentStep: number;
   /** Steps whose form has been saved; unique, unordered. */
   completedSteps: number[];
-  // Per-step drafts. 20c+ add `categories`, `languages`, `deliverables`,
-  // `profilePhoto`, `coverPhoto`, `portfolio`, and `handle`.
+  // Per-step drafts. 20d+ add `languages`, `deliverables`, `profilePhoto`,
+  // `coverPhoto`, `portfolio`, and `handle`.
   basics?: BasicInformationValues;
   location?: LocationValues;
+  contentCategories?: ContentCategoriesValues;
 }
 
 const initialState: CreatorOnboardingState = {
@@ -26,6 +31,7 @@ const initialState: CreatorOnboardingState = {
   completedSteps: [],
   basics: undefined,
   location: undefined,
+  contentCategories: undefined,
 };
 
 function clampStep(step: number): number {
@@ -46,6 +52,12 @@ const slice = createSlice({
     saveLocation: (state: CreatorOnboardingState, { payload }: PayloadAction<LocationValues>) => {
       state.location = payload;
     },
+    saveContentCategories: (
+      state: CreatorOnboardingState,
+      { payload }: PayloadAction<ContentCategoriesValues>,
+    ) => {
+      state.contentCategories = payload;
+    },
     goToStep: (state: CreatorOnboardingState, { payload }: PayloadAction<number>) => {
       state.currentStep = clampStep(payload);
     },
@@ -57,7 +69,14 @@ const slice = createSlice({
   },
 });
 
-export const { saveBasics, saveLocation, goToStep, markStepComplete, reset } = slice.actions;
+export const {
+  saveBasics,
+  saveLocation,
+  saveContentCategories,
+  goToStep,
+  markStepComplete,
+  reset,
+} = slice.actions;
 
 export function useCreatorOnboardingSlice() {
   const dispatch = useDispatch<Dispatch>();
