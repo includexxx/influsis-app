@@ -1,4 +1,5 @@
 export { useAppSlice } from './app.slice';
 export { useAuthSlice, restoreSession, signOut, sessionEnded } from './auth.slice';
-export { useProfileVerificationSlice } from './profileVerification.slice';
+export { useProfileSlice } from './profile.slice';
+export { useCreatorOnboardingSlice, ONBOARDING_TOTAL_STEPS } from './creatorOnboarding.slice';
 export { useCreateGigSlice } from './createGig.slice';

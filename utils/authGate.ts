@@ -26,7 +26,8 @@ export function authGate(status: AuthStatus, group: GateGroup, area?: string): G
   }
 
   // group === '(auth)'
-  if (area === 'profile-verification') {
+  if (area === 'creator-onboarding') {
+    // Private, post-registration wizard: only a signed-in creator reaches it.
     return authed ? ALLOW : TO_ONBOARDING;
   }
   return authed ? TO_HOME : ALLOW;

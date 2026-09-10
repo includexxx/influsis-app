@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import app from '@/slices/app.slice';
 import auth, { sessionEnded } from '@/slices/auth.slice';
-import profileVerification from '@/slices/profileVerification.slice';
+import profile from '@/slices/profile.slice';
+import creatorOnboarding from '@/slices/creatorOnboarding.slice';
 import createGig from '@/slices/createGig.slice';
 import { authApi } from '@/services/authApi';
 import { setUnauthorizedHandler } from '@/services/http';
@@ -13,7 +14,8 @@ const store = configureStore({
   reducer: {
     app,
     auth,
-    profileVerification,
+    profile,
+    creatorOnboarding,
     createGig,
     [authApi.reducerPath]: authApi.reducer,
   },

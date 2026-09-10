@@ -183,7 +183,7 @@ cleaned-up checkbox version before generating the project overview.
   screen, multi-step form; visual pattern (pink progress bar, `X of N`
   counter, one-line subtext, full-width pink CTA, disabled-until-valid `Next`)
   carried over from the profile-verification screens it replaces.
-  - [ ] 20a. **Onboarding shell + step machine** - one route
+  - [x] 20a. **Onboarding shell + step machine** - one route
     `app/(auth)/creator-onboarding.tsx` (the `(auth)/onboarding` segment is
     already the pre-login intro carousel, so the name differs) over
     `scenes/creator-onboarding/`, a `creatorOnboarding` slice holding

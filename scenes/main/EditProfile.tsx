@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks';
-import { useAppSlice, useProfileVerificationSlice } from '@/slices';
+import { useAppSlice, useProfileSlice } from '@/slices';
 import { palette } from '@/theme';
 import { layoutStyle, editProfileStyle, buttonStyle } from '@/styles';
 import { countryFlags } from '@/data/country-flags';
@@ -57,7 +57,7 @@ function countryLabel(value?: string): string | undefined {
 // calendar) - opened from the Account screen's "Profile" row. Every field
 // commits to Redux immediately as it's edited (Full Name/Email to the
 // `app` slice's `user`, Phone/Gender/Date of Birth/Country to the
-// `profileVerification` slice) rather than needing an explicit Save step,
+// `profile` slice) rather than needing an explicit Save step,
 // since Figma's own navbar shows no save/checkmark icon anywhere across all
 // 3 captured states (only hidden variants) - see docs/screen/profile/
 // edit-profile.md "Scope notes".
@@ -81,7 +81,7 @@ export default function EditProfile() {
     setGender,
     setCountry,
     setDateOfBirth,
-  } = useProfileVerificationSlice();
+  } = useProfileSlice();
 
   const [avatarUri, setAvatarUri] = useState<string>();
   const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false);

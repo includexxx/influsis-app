@@ -1,11 +1,13 @@
 import { StyleSheet } from 'react-native';
 
-// Shared fragments for the profile-verification scenes
-// (scenes/profile-verification/*), reused directly across the six wizard
-// screens the same way layoutStyle/buttonStyle are reused by the auth
-// scenes. Component-internal look (ProfileStepHeader, SelectableListItem,
-// DateField) lives with those components instead - this file only holds
-// shapes the scene files themselves assemble.
+// Shared fragments for the creator onboarding wizard scenes
+// (scenes/creator-onboarding/*), reused directly across its step screens
+// the same way layoutStyle/buttonStyle are reused by the auth scenes.
+// (Named for the retired profile-verification wizard this flow replaced;
+// kept as-is since the shapes are unchanged.) Component-internal look
+// (ProfileStepHeader, SelectableListItem, DateField) lives with those
+// components instead - this file only holds shapes the scene files
+// themselves assemble.
 export const profileStepStyle = StyleSheet.create({
   // Vertical gap between stacked SelectableListItem rows (category/social
   // media/language screens) - 14px per Figma, not one of the standard
