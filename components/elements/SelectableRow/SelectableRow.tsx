@@ -46,13 +46,19 @@ function SelectableRow({ label, selected, onPress, style, testID }: SelectableRo
       style={[
         styles.root,
         {
-          backgroundColor: colors.card,
+          backgroundColor: selected ? palette.primary[50] : colors.card,
           borderColor: selected ? palette.primary[400] : palette.gray[100],
         },
         style,
       ]}>
-      <Text style={[styles.label, { color: colors.text.primary }]}>{label}</Text>
-      <Checkbox checked={selected} pointerEvents="none" />
+      <Text
+        style={[
+          styles.label,
+          { color: colors.text.primary, textAlign: 'center', fontWeight: 600, fontSize: 16 },
+        ]}>
+        {label}
+      </Text>
+      {/* <Checkbox checked={selected} pointerEvents="none" /> */}
     </Pressable>
   );
 }

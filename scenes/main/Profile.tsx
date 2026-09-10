@@ -131,6 +131,15 @@ export default function Profile() {
                 onPress={() => router.push('/applications')}
                 testID="account-row-applications"
               />
+              <SettingsRow
+                icon={applicationsIcon}
+                iconTint={colors.primary}
+                iconBackground={accentChip}
+                title="On Boarding"
+                style={accountStyle.row}
+                onPress={() => router.push('/creator-onboarding')}
+                testID="account-row-applications"
+              />
             </View>
           </View>
 

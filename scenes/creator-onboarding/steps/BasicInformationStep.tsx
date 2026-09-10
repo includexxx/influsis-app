@@ -127,6 +127,7 @@ export default function BasicInformationStep() {
                 helperText="MM/DD/YYYY"
                 error={fieldState.error?.message}
                 onPress={() => setIsCalendarOpen(true)}
+                style={{ marginTop: 16, padding: 0 }}
                 testID="onboarding-dob"
               />
             )}
