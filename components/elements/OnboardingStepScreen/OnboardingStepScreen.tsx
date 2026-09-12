@@ -15,6 +15,8 @@ export interface OnboardingStepScreenProps {
   onBack?: () => void;
   onNext: () => void;
   nextDisabled?: boolean;
+  /** Shows a spinner on the primary CTA and blocks presses while true. */
+  nextLoading?: boolean;
   nextLabel?: string;
   nextTestID?: string;
   /** Extra control shown in the pinned footer, above the primary CTA. */
@@ -47,6 +49,7 @@ function OnboardingStepScreen({
   onBack,
   onNext,
   nextDisabled = false,
+  nextLoading = false,
   nextLabel = 'Next',
   nextTestID = 'onboarding-next',
   footerSlot,
@@ -82,6 +85,7 @@ function OnboardingStepScreen({
           style={sharedButton.primary}
           onPress={onNext}
           disabled={nextDisabled}
+          isLoading={nextLoading}
           testID={nextTestID}
         />
       </View>

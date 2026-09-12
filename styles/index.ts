@@ -13,6 +13,7 @@ export * from './topGigs';
 export * from './topCreators';
 export * from './gigDetails';
 export * from './creatorProfile';
+export * from './myProfile';
 export * from './businessDetails';
 export * from './campaignDetails';
 export * from './messages';

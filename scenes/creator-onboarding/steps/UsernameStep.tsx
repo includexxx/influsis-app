@@ -11,7 +11,11 @@ import { useCreatorOnboardingSlice } from '@/slices';
 import { CreatorOnboardingState } from '@/slices/creatorOnboarding.slice';
 import { usernameFormSchema, UsernameFormValues } from '@/utils/onboardingSchemas';
 import { generateHandleSuggestions } from '@/data/handleSuggestions';
-import { buildOnboardingSubmission } from '@/utils/onboardingPayload';
+import { buildCreatorOnboardingBody } from '@/utils/onboardingPayload';
+import { profileSubmitErrorMessage, handleConflictMessage } from '@/utils/profileErrors';
+import { useOnboardCreatorMutation } from '@/services/profilesApi';
+import { uploadOnboardingMedia } from '@/services/mediaUpload';
+import { authApi } from '@/services/authApi';
 import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import TextField from '@/components/elements/TextField';
 import CategoryChip from '@/components/elements/CategoryChip';
@@ -50,15 +54,20 @@ const STATUS_COPY: Record<Exclude<HandleAvailabilityState, 'idle'>, string> = {
 // (creator-onboarding-requirements.md §3 "Username"; step 10 after build-plan
 // 20h split Categories/Subcategories and 21 added the Bio step). An `@`-prefixed handle
 // with client-side format rules, a debounced live availability check against
-// the one public endpoint this app calls, auto-suggested alternatives when a
-// handle is taken, and a Finish CTA that assembles + logs the submission
-// draft (no network submit - there is no create-profile endpoint yet) and
-// hands off to the completion screen.
+// the public handle-availability endpoint, auto-suggested alternatives when a
+// handle is taken, and a Finish CTA that uploads any locally-picked photos,
+// submits the whole draft to `POST /profiles/onboarding-creator`, and only
+// then hands off to the completion screen — a failed submit leaves the
+// creator on this step with their draft intact.
 export default function UsernameStep() {
   const { colors, palette } = useTheme();
   const slice = useCreatorOnboardingSlice();
   const { totalSteps, back } = useCreatorOnboardingStep();
   const [isHandleFocused, setIsHandleFocused] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [submitError, setSubmitError] = useState<string>();
+  const [handleError, setHandleError] = useState<string>();
+  const [onboardCreator, { isLoading: isSubmittingProfile }] = useOnboardCreatorMutation();
 
   const {
     control,
@@ -77,8 +86,11 @@ export default function UsernameStep() {
   const formatValid = usernameFormSchema.safeParse({ handle }).success || isValid;
   const { state } = useHandleAvailability(handle, formatValid);
 
-  const canFinish = formatValid && state === 'available';
-  const showSuggestions = state === 'taken' || state === 'reserved';
+  const isSubmitting = isUploading || isSubmittingProfile;
+  const canFinish = formatValid && state === 'available' && !handleError;
+  // A 409 the debounced availability check missed (someone else claimed it a
+  // moment ago) should still offer alternatives, same as a normal 'taken'.
+  const showSuggestions = state === 'taken' || state === 'reserved' || !!handleError;
   const suggestions = showSuggestions
     ? generateHandleSuggestions(slice.basics?.name, slice.location?.city, handle)
     : [];
@@ -86,15 +98,21 @@ export default function UsernameStep() {
   function changeHandle(text: string) {
     const next = text.replace(/^@+/, '').toLowerCase();
     setValue('handle', next, { shouldValidate: true });
+    setHandleError(undefined);
   }
 
-  function onFinish() {
+  async function onFinish() {
+    if (isSubmitting) return;
+    setSubmitError(undefined);
+    setHandleError(undefined);
     slice.dispatch(slice.saveHandle(handle));
+
     const submissionState: CreatorOnboardingState = {
       currentStep: slice.currentStep,
       completedSteps: slice.completedSteps,
       completed: slice.completed,
       basics: slice.basics,
+      bio: slice.bio,
       location: slice.location,
       contentCategories: slice.contentCategories,
       languages: slice.languages,
@@ -104,12 +122,27 @@ export default function UsernameStep() {
       portfolio: slice.portfolio,
       handle,
     };
-    const { summary } = buildOnboardingSubmission(submissionState);
-    // Required by build-plan 20g: there is no submit endpoint, so Finish
-    // logs a readable summary of the assembled payload and stops.
-    // eslint-disable-next-line no-console
-    console.log('[creator-onboarding] submission', summary);
-    slice.dispatch(slice.completeOnboarding());
+
+    try {
+      setIsUploading(true);
+      const media = await uploadOnboardingMedia(submissionState);
+      setIsUploading(false);
+
+      await onboardCreator(buildCreatorOnboardingBody(submissionState, media)).unwrap();
+
+      // GET /auth/me also returns `handle` and a profile summary — a
+      // different createApi instance, so it isn't invalidated automatically.
+      slice.dispatch(authApi.util.invalidateTags(['Me']));
+      slice.dispatch(slice.completeOnboarding());
+    } catch (err) {
+      setIsUploading(false);
+      const conflict = handleConflictMessage(err);
+      if (conflict) {
+        setHandleError(conflict);
+        return;
+      }
+      setSubmitError(profileSubmitErrorMessage(err));
+    }
   }
 
   const statusColor =
@@ -127,8 +160,18 @@ export default function UsernameStep() {
       description="This is your public handle - platform.com/@you. It doesn't change if you rename your profile later."
       onBack={back}
       onNext={onFinish}
-      nextDisabled={!canFinish}
-      nextLabel="Finish">
+      nextDisabled={!canFinish || isSubmitting}
+      nextLoading={isSubmitting}
+      nextLabel="Finish"
+      footerSlot={
+        submitError ? (
+          <Text
+            style={[profileStepStyle.helperText, { color: colors.error }]}
+            testID="onboarding-submit-error">
+            {submitError}
+          </Text>
+        ) : undefined
+      }>
       <Controller
         control={control}
         name="handle"
@@ -146,7 +189,7 @@ export default function UsernameStep() {
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-            error={fieldState.error?.message}
+            error={fieldState.error?.message ?? handleError}
             inputRowStyle={
               isHandleFocused && !fieldState.error
                 ? { borderColor: palette.primary[400] }

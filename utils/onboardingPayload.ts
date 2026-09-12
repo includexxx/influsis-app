@@ -1,127 +1,120 @@
 import { CreatorOnboardingState } from '@/slices/creatorOnboarding.slice';
 import { OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
-import { PickedImageAsset } from './onboardingSchemas';
+import { OTHER_OPTION_VALUE } from '@/data/onboardingOptions';
+import { OnboardCreatorProfileRequest, PortfolioItemRequest } from '@/types';
+import { OnboardingMediaKeys } from '@/services/mediaUpload';
 
-// Assembles the finished creator onboarding draft into a multipart
-// `FormData` body plus a log-safe `summary` object (build-plan 20g). There is
-// no create-profile endpoint yet, so `Finish` only builds this and
-// `console.log`s the summary. The field names here are NOT a backend
-// contract - they are the simplest flat mapping of the slice state and are
-// expected to be reconciled with the real submit endpoint when it lands.
+// Assembles the finished creator onboarding draft, plus already-uploaded
+// media keys, into the body for `POST /profiles/onboarding-creator`. This
+// file IS the backend contract (see types/profile.ts) — unlike its
+// predecessor, which only logged a summary because no submit endpoint
+// existed yet.
+//
+// Caps mirror the backend DTO's `@ArrayMaxSize` so a 422 never surprises the
+// user after they've already finished the wizard.
+const CATEGORY_CAP = 20;
+const SUBCATEGORY_CAP = 50;
+const LANGUAGE_CAP = 20;
+const DELIVERABLE_CAP = 20;
+const PORTFOLIO_CAP = 20;
 
-// React Native's `FormData` accepts a `{ uri, name, type }` object as a file
-// part; the DOM lib types only know `string | Blob`, hence the cast at the
-// append site.
-type FormDataFilePart = { uri: string; name: string; type: string };
-
-type FilePartSummary = { fileName?: string; mimeType?: string };
-
-function toFilePart(
-  asset: PickedImageAsset | undefined,
-  fallbackName: string,
-): FormDataFilePart | null {
-  if (!asset?.uri) return null;
-  return {
-    uri: asset.uri,
-    name: asset.fileName ?? fallbackName,
-    type: asset.mimeType ?? 'image/jpeg',
-  };
+function dedupe(values: string[]): string[] {
+  return [...new Set(values.map(v => v.trim()).filter(v => v !== ''))];
 }
 
-function fileSummary(asset: PickedImageAsset): FilePartSummary {
-  return { fileName: asset.fileName, mimeType: asset.mimeType };
-}
-
-export interface OnboardingSubmission {
-  formData: FormData;
-  summary: Record<string, unknown>;
-}
-
-export function buildOnboardingSubmission(state: CreatorOnboardingState): OnboardingSubmission {
-  const {
-    basics,
-    bio,
-    location,
-    contentCategories,
-    languages,
-    deliverables,
-    profilePhoto,
-    coverPhoto,
-    portfolio,
-    handle,
-  } = state;
-
-  const formData = new FormData();
-  const summary: Record<string, unknown> = {};
-
-  const appendText = (key: string, value: string | undefined) => {
-    if (value === undefined || value === '') return;
-    formData.append(key, value);
-    summary[key] = value;
-  };
-
-  appendText('name', basics?.name);
-  appendText('gender', basics?.gender);
-  appendText('dateOfBirth', basics?.dateOfBirth);
-  appendText('bio', bio);
-  appendText('country', location?.country);
-  appendText('division', location?.division);
-  appendText('city', location?.city);
-  appendText('zip', location?.zip);
-  appendText('handle', handle);
-
-  // The "Others" category carries its name as free text (build-plan 20h):
-  // fold it back in as both the category value and its lone subcategory.
+/**
+ * Folds the "Others" category's free text back in as both the category value
+ * and its lone subcategory, then flattens the nested
+ * `{ value, subcategories }[]` draft into two flat, deduped arrays.
+ */
+function flattenCategories(contentCategories: CreatorOnboardingState['contentCategories']): {
+  categories: string[];
+  subcategories: string[];
+} {
+  const entries = contentCategories?.categories ?? [];
   const categoryOther = contentCategories?.categoryOthersText?.trim();
   const subcategoryOther = contentCategories?.subcategoryOthersText?.trim() || categoryOther;
-  const categories = (contentCategories?.categories ?? []).map(entry => {
-    if (entry.value !== OTHERS_CATEGORY_VALUE) return entry;
-    return {
-      value: categoryOther || entry.value,
-      subcategories: subcategoryOther ? [subcategoryOther] : entry.subcategories,
-    };
-  });
-  const languageList = languages?.selected ?? [];
-  const deliverableList = deliverables?.selected ?? [];
-  const portfolioEntries = (portfolio ?? []).map(entry => ({
-    url: entry.url,
-    platform: entry.platform,
-  }));
 
-  formData.append('categories', JSON.stringify(categories));
-  formData.append('languages', JSON.stringify(languageList));
-  formData.append('deliverables', JSON.stringify(deliverableList));
-  formData.append('portfolio', JSON.stringify(portfolioEntries));
+  const categories: string[] = [];
+  const subcategories: string[] = [];
 
-  summary.categories = categories.map(category => category.value);
-  summary.languages = languageList;
-  summary.deliverables = deliverableList;
-  summary.portfolio = portfolioEntries;
-  summary.portfolioCount = portfolioEntries.length;
-
-  const profilePart = toFilePart(profilePhoto, 'profile-photo.jpg');
-  if (profilePart && profilePhoto) {
-    formData.append('profilePhoto', profilePart as unknown as Blob);
-    summary.profilePhoto = fileSummary(profilePhoto);
-  }
-
-  const coverPart = toFilePart(coverPhoto, 'cover-photo.jpg');
-  if (coverPart && coverPhoto) {
-    formData.append('coverPhoto', coverPart as unknown as Blob);
-    summary.coverPhoto = fileSummary(coverPhoto);
-  }
-
-  summary.photoCount = [profilePart, coverPart].filter(Boolean).length;
-
-  let thumbnailCount = 0;
-  for (const entry of portfolio ?? []) {
-    const thumbPart = toFilePart(entry.thumbnail, `portfolio-thumbnail-${entry.id}.jpg`);
-    if (thumbPart) {
-      formData.append(`portfolioThumbnail_${entry.id}`, thumbPart as unknown as Blob);
-      thumbnailCount += 1;
+  for (const entry of entries) {
+    const isOther = entry.value === OTHERS_CATEGORY_VALUE;
+    categories.push(isOther ? categoryOther || entry.value : entry.value);
+    if (isOther) {
+      if (subcategoryOther) subcategories.push(subcategoryOther);
+    } else {
+      subcategories.push(...entry.subcategories);
     }
   }
-  summary.portfolioThumbnailCount = thumbnailCount;
 
-  return { formData, summary };
+  return {
+    categories: dedupe(categories).slice(0, CATEGORY_CAP),
+    subcategories: dedupe(subcategories).slice(0, SUBCATEGORY_CAP),
+  };
+}
+
+/**
+ * Folds the "Others" language's free text back into the selected list.
+ * Without this, the literal string `'others'` ships to the server and the
+ * language the creator actually typed is lost.
+ */
+function flattenLanguages(languages: CreatorOnboardingState['languages']): string[] {
+  const selected = languages?.selected ?? [];
+  const otherText = languages?.othersText?.trim();
+  const mapped = selected.map(value => (value === OTHER_OPTION_VALUE ? otherText || value : value));
+  return dedupe(mapped).slice(0, LANGUAGE_CAP);
+}
+
+function mapPortfolio(
+  portfolio: CreatorOnboardingState['portfolio'],
+  thumbnailsByEntryId: Record<string, string> | undefined,
+): PortfolioItemRequest[] {
+  return (portfolio ?? []).slice(0, PORTFOLIO_CAP).map(entry => {
+    const item: PortfolioItemRequest = { url: entry.url.trim(), platform: entry.platform };
+    const thumbnail = thumbnailsByEntryId?.[entry.id];
+    if (thumbnail) item.thumbnail = thumbnail;
+    return item;
+  });
+}
+
+export function buildCreatorOnboardingBody(
+  state: CreatorOnboardingState,
+  media: OnboardingMediaKeys = {},
+): OnboardCreatorProfileRequest {
+  const body: OnboardCreatorProfileRequest = {};
+  const set = <K extends keyof OnboardCreatorProfileRequest>(
+    key: K,
+    value: OnboardCreatorProfileRequest[K] | undefined,
+  ) => {
+    if (value === undefined || value === '') return;
+    if (Array.isArray(value) && value.length === 0) return;
+    body[key] = value;
+  };
+
+  set('name', state.basics?.name?.trim());
+  set('gender', state.basics?.gender);
+  set('dateOfBirth', state.basics?.dateOfBirth);
+  set('bio', state.bio?.trim());
+
+  set('country', state.location?.country);
+  set('state', state.location?.division);
+  set('city', state.location?.city);
+  set('zip', state.location?.zip);
+
+  set('handle', state.handle);
+
+  const { categories, subcategories } = flattenCategories(state.contentCategories);
+  set('categories', categories);
+  set('subcategories', subcategories);
+  set('languages', flattenLanguages(state.languages));
+  set('deliverables', dedupe(state.deliverables?.selected ?? []).slice(0, DELIVERABLE_CAP));
+
+  const portfolio = mapPortfolio(state.portfolio, media.portfolioThumbnails);
+  set('portfolio', portfolio);
+
+  set('profilePhoto', media.profilePhoto);
+  set('coverPhoto', media.coverPhoto);
+
+  return body;
 }

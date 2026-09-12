@@ -65,4 +65,21 @@ describe('<OnboardingStepScreen />', () => {
     renderScreen({ footerSlot: <Text>skip for now</Text> });
     expect(screen.getByText('skip for now')).toBeTruthy();
   });
+
+  test('nextLoading swaps the CTA label for a spinner', () => {
+    renderScreen({ nextLoading: true });
+    expect(screen.queryByText('Next')).toBeNull();
+  });
+
+  test('nextLoading alone does not block onNext — the caller must also pass nextDisabled', () => {
+    const { onNext } = renderScreen({ nextLoading: true });
+    fireEvent.press(screen.getByTestId('onboarding-next'));
+    expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  test('nextLoading combined with nextDisabled blocks onNext', () => {
+    const { onNext } = renderScreen({ nextLoading: true, nextDisabled: true });
+    fireEvent.press(screen.getByTestId('onboarding-next'));
+    expect(onNext).not.toHaveBeenCalled();
+  });
 });
