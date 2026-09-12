@@ -1,8 +1,15 @@
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
-import { layoutStyle, creatorProfileStyle, myProfileStyle } from '@/styles';
+import {
+  layoutStyle,
+  creatorProfileStyle,
+  myProfileStyle,
+  TAG_COLORS,
+  TagColorKey,
+} from '@/styles';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { isCreatorProfileResponse } from '@/types';
 import { profileSubmitErrorMessage } from '@/utils/profileErrors';
@@ -12,8 +19,11 @@ import { PORTFOLIO_PLATFORM_OPTIONS } from '@/data/portfolioPlatforms';
 import { getDivisionLabel } from '@/data/locations';
 import { resolveMediaUrl } from '@/utils/media';
 import ScreenHeader from '@/components/elements/ScreenHeader';
+import ProfileHero, { PROFILE_HERO_TOP } from '@/components/elements/ProfileHero';
+import IconSectionHeader from '@/components/elements/IconSectionHeader';
 import Image from '@/components/elements/Image';
 import Button from '@/components/elements/Button';
+import CircleAvatar from '@/components/elements/CircleAvatar';
 import StatusBadge from '@/components/elements/StatusBadge';
 
 const avatarImage = require('@/assets/images/account/avatar.png');
@@ -30,6 +40,10 @@ function labelFor(value: string, options: { value: string; label: string }[]): s
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function openLink(url: string) {
   const target = /^https?:\/\//i.test(url) ? url : `https://${url}`;
   Linking.canOpenURL(target)
@@ -43,11 +57,18 @@ function openLink(url: string) {
 // The read-only "My Profile" view (creator role) — a pushed detail screen
 // reachable from the Profile tab's "My Profile" row, deliberately separate
 // from that tab (which stays a settings menu) and from Edit Profile (the
-// write side). Mirrors CreatorProfile.tsx's banner+avatar layout and reuses
-// creatorProfileStyle wholesale; myProfileStyle only adds what that doesn't
-// already cover (a wrapping tag row, meta rows, the portfolio grid).
+// write side).
+//
+// Presentation is a deliberately editorial, non-SaaS-card layout: a dark
+// gradient hero (the cover photo, when set, shows through a darkened
+// overlay ramp instead of plain underneath it — see `ProfileHero`), a
+// serif-flavored display name (ClashDisplay — this project's confirmed
+// brand display face; Fraunces itself isn't bundled as an asset), a
+// bordered credibility strip, and tags color-coded per type. Loading/error/
+// wrong-role states below keep the original plain `ScreenHeader` treatment
+// since there's nothing to make editorial yet.
 export default function MyProfile() {
-  const { colors, palette } = useTheme();
+  const { colors, palette: themePalette, isDark } = useTheme();
   const { data, isLoading, isError, error, refetch } = useGetMyProfileQuery();
 
   if (isLoading && !data) {
@@ -111,222 +132,272 @@ export default function MyProfile() {
   }
 
   const { profile, handle } = data;
+  const isVerified = profile.verificationStatus === 'verified';
 
-  const metaRows: { label: string; value: string }[] = [];
-  if (profile.city) metaRows.push({ label: 'City', value: profile.city });
-  if (profile.state) metaRows.push({ label: 'Division', value: getDivisionLabel(profile.state) });
-  if (profile.country) metaRows.push({ label: 'Country', value: profile.country });
-  if (profile.postalCode) metaRows.push({ label: 'Postal code', value: profile.postalCode });
-  if (profile.address) metaRows.push({ label: 'Address', value: profile.address });
+  const locationRows: { label: string; value: string }[] = [];
+  if (profile.city) locationRows.push({ label: 'City', value: profile.city });
+  if (profile.state)
+    locationRows.push({ label: 'Division', value: getDivisionLabel(profile.state) });
+  if (profile.country) locationRows.push({ label: 'Country', value: capitalize(profile.country) });
+  if (profile.postalCode) locationRows.push({ label: 'Postal code', value: profile.postalCode });
 
-  const contactRows: { label: string; value: string; onPress?: () => void }[] = [];
-  if (profile.contactEmail) contactRows.push({ label: 'Email', value: profile.contactEmail });
-  if (profile.contactPhone) contactRows.push({ label: 'Phone', value: profile.contactPhone });
-  if (profile.websiteUrl) {
-    contactRows.push({
-      label: 'Website',
-      value: profile.websiteUrl,
-      onPress: () => openLink(profile.websiteUrl as string),
-    });
-  }
+  const cityCountryLine = [profile.city, profile.country ? capitalize(profile.country) : null]
+    .filter(Boolean)
+    .join(', ');
 
-  console.log({ profile });
+  // `rating`/completed-project count/response time aren't fields the backend
+  // returns on `CreatorProfile` yet (see types/profile.ts) — this strip is
+  // built to spec but shows honest placeholders rather than invented
+  // numbers until those land. Portfolio entries are the closest real proxy
+  // this profile has for "projects" today.
+  const ratingDisplay = 'New';
+  const projectsDisplay = String(profile.portfolio.length);
+  const responseDisplay = '—';
 
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <ScrollView style={layoutStyle.screen} showsVerticalScrollIndicator={false}>
-        <View style={creatorProfileStyle.headerRow}>
-          <ScreenHeader
-            title="My Profile"
+    <SafeAreaView
+      style={[layoutStyle.screen, { backgroundColor: PROFILE_HERO_TOP }]}
+      edges={['top', 'left', 'right']}>
+      <ScrollView
+        style={[layoutStyle.screen, { backgroundColor: colors.background }]}
+        showsVerticalScrollIndicator={false}>
+        <View style={myProfileStyle.heroWrap}>
+          <ProfileHero
+            title="My profile"
             onBack={() => router.back()}
+            coverUri={profile.coverUrl ? resolveMediaUrl(profile.coverUrl)! : undefined}
             rightElement={
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Edit profile"
                 onPress={() => router.push('/profile-edit')}
+                style={myProfileStyle.editPill}
                 testID="my-profile-edit">
-                <Text style={[myProfileStyle.headerAction, { color: colors.primary }]}>Edit</Text>
+                <Text style={myProfileStyle.editPillLabel}>Edit</Text>
               </Pressable>
             }
           />
-        </View>
-
-        <View style={creatorProfileStyle.bannerWrap}>
-          {profile.coverUrl ? (
-            <Image
-              source={{ uri: resolveMediaUrl(profile.coverUrl)! }}
-              style={creatorProfileStyle.banner}
-              contentFit="cover"
-            />
-          ) : (
-            <View style={[creatorProfileStyle.banner, { backgroundColor: palette.primary[50] }]} />
-          )}
-          <Image
-            source={profile.avatarUrl ? { uri: resolveMediaUrl(profile.avatarUrl)! } : avatarImage}
-            style={creatorProfileStyle.avatar}
-            contentFit="cover"
-          />
-        </View>
-
-        <View style={creatorProfileStyle.content}>
-          <View style={creatorProfileStyle.nameRow}>
-            <Text style={[creatorProfileStyle.name, { color: colors.text.primary }]}>
-              {profile.name}
-            </Text>
-            <StatusBadge
-              label={profile.verificationStatus}
-              color={profile.verificationStatus === 'verified' ? undefined : palette.gray[100]}
-              textColor={profile.verificationStatus === 'verified' ? undefined : palette.gray[500]}
+          <View style={myProfileStyle.avatarRing}>
+            <CircleAvatar
+              source={
+                profile.avatarUrl ? { uri: resolveMediaUrl(profile.avatarUrl)! } : avatarImage
+              }
+              size={84}
             />
           </View>
-          {handle ? (
-            <Text style={[myProfileStyle.handleText, { color: palette.gray[300] }]}>@{handle}</Text>
-          ) : null}
+        </View>
+
+        <View style={myProfileStyle.content}>
+          <View style={myProfileStyle.nameRow}>
+            <Text style={[myProfileStyle.name, { color: colors.text.primary }]}>
+              {profile.name}
+            </Text>
+            {/* Not yet wired to a verification flow — no such route exists in
+                this app today, so this stays a status badge, not a control. */}
+            <StatusBadge
+              label={isVerified ? 'Verified' : 'Unverified'}
+              color={isVerified ? undefined : themePalette.gray[isDark ? 700 : 50]}
+              textColor={isVerified ? undefined : themePalette.gray[isDark ? 100 : 500]}
+            />
+          </View>
+
+          <View style={myProfileStyle.metaLine}>
+            {handle ? (
+              <Text style={[myProfileStyle.handleText, { color: themePalette.gray[300] }]}>
+                @{handle}
+              </Text>
+            ) : null}
+            {handle && cityCountryLine ? (
+              <Text style={[myProfileStyle.metaDot, { color: themePalette.gray[300] }]}>·</Text>
+            ) : null}
+            {cityCountryLine ? (
+              <Text style={[myProfileStyle.locationInline, { color: themePalette.gray[300] }]}>
+                {cityCountryLine}
+              </Text>
+            ) : null}
+          </View>
+
           {profile.bio ? (
-            <Text style={[creatorProfileStyle.bio, { color: palette.gray[300] }]}>
+            <Text style={[myProfileStyle.bio, { color: themePalette.gray[300] }]}>
               {profile.bio}
             </Text>
           ) : null}
 
-          {renderTagSection(
-            'Categories',
-            profile.categories,
-            CONTENT_CATEGORY_OPTIONS,
-            colors,
-            palette,
-          )}
-          {renderTagSection(
-            'Subcategories',
-            profile.subcategories,
-            ALL_SUBCATEGORY_OPTIONS,
-            colors,
-            palette,
-          )}
-          {renderTagSection('Languages', profile.languages, LANGUAGE_OPTIONS, colors, palette)}
-          {renderTagSection(
-            'Deliverables',
-            profile.deliverables,
-            DELIVERABLE_OPTIONS,
-            colors,
-            palette,
-          )}
+          <View style={[myProfileStyle.credCard, { borderColor: colors.border }]}>
+            <CredColumn icon="star" value={ratingDisplay} label="Rating" />
+            <View style={[myProfileStyle.credDivider, { backgroundColor: colors.divider }]} />
+            <CredColumn icon="briefcase" value={projectsDisplay} label="Projects" />
+            <View style={[myProfileStyle.credDivider, { backgroundColor: colors.divider }]} />
+            <CredColumn icon="clock" value={responseDisplay} label="Response time" />
+          </View>
 
-          {metaRows.length ? (
-            <View style={creatorProfileStyle.tagsSection}>
-              <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                Location
-              </Text>
-              <View style={creatorProfileStyle.sectionHeaderGap}>
-                {metaRows.map(row => (
-                  <View key={row.label} style={myProfileStyle.metaRow}>
-                    <Text style={[myProfileStyle.metaLabel, { color: palette.gray[300] }]}>
-                      {row.label}
-                    </Text>
-                    <Text style={[myProfileStyle.metaValue, { color: colors.text.primary }]}>
-                      {row.value}
-                    </Text>
+          <Section icon="grid" label="Category">
+            <TagRow
+              values={profile.categories}
+              options={CONTENT_CATEGORY_OPTIONS}
+              colorKey="category"
+            />
+          </Section>
+
+          <Section icon="layers" label="Subcategories">
+            <TagRow
+              values={profile.subcategories}
+              options={ALL_SUBCATEGORY_OPTIONS}
+              colorKey="subcategory"
+            />
+          </Section>
+
+          <Section icon="globe" label="Languages">
+            <TagRow values={profile.languages} options={LANGUAGE_OPTIONS} colorKey="language" />
+          </Section>
+
+          <Section icon="package" label="Deliverables">
+            <TagRow
+              values={profile.deliverables}
+              options={DELIVERABLE_OPTIONS}
+              colorKey="deliverable"
+            />
+          </Section>
+
+          {locationRows.length ? (
+            <View style={myProfileStyle.section}>
+              <IconSectionHeader icon="map-pin" label="Location" />
+              <View
+                style={[
+                  myProfileStyle.locationCard,
+                  myProfileStyle.sectionBody,
+                  { borderColor: colors.border },
+                ]}>
+                {locationRows.map((row, index) => (
+                  <View key={row.label}>
+                    <View style={myProfileStyle.metaRow}>
+                      <Text style={[myProfileStyle.metaLabel, { color: themePalette.gray[300] }]}>
+                        {row.label}
+                      </Text>
+                      <Text style={[myProfileStyle.metaValue, { color: colors.text.primary }]}>
+                        {row.value}
+                      </Text>
+                    </View>
+                    {index < locationRows.length - 1 ? (
+                      <View
+                        style={[myProfileStyle.metaRowDivider, { backgroundColor: colors.divider }]}
+                      />
+                    ) : null}
                   </View>
                 ))}
               </View>
             </View>
           ) : null}
 
-          {contactRows.length ? (
-            <View style={creatorProfileStyle.tagsSection}>
-              <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                Contact
-              </Text>
-              <View style={creatorProfileStyle.sectionHeaderGap}>
-                {contactRows.map(row => (
-                  <Pressable
-                    key={row.label}
-                    disabled={!row.onPress}
-                    onPress={row.onPress}
-                    style={myProfileStyle.metaRow}>
-                    <Text style={[myProfileStyle.metaLabel, { color: palette.gray[300] }]}>
-                      {row.label}
-                    </Text>
-                    <Text
+          <View style={myProfileStyle.section}>
+            <IconSectionHeader icon="image" label="Portfolio" />
+            <View style={[myProfileStyle.portfolioGrid, myProfileStyle.sectionBody]}>
+              {profile.portfolio.map((item, index) => (
+                <Pressable
+                  key={`${item.url}-${index}`}
+                  style={[myProfileStyle.portfolioTile, { borderColor: colors.border }]}
+                  onPress={() => openLink(item.url)}
+                  testID={`my-profile-portfolio-${index}`}>
+                  {item.thumbnailUrl ? (
+                    <Image
+                      source={{ uri: resolveMediaUrl(item.thumbnailUrl)! }}
+                      style={{ flex: 1 }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View
                       style={[
-                        myProfileStyle.metaValue,
-                        { color: row.onPress ? colors.primary : colors.text.primary },
+                        myProfileStyle.portfolioPlaceholder,
+                        { backgroundColor: themePalette.primary[isDark ? 900 : 50] },
                       ]}>
-                      {row.value}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          ) : null}
-
-          {profile.portfolio.length ? (
-            <View style={creatorProfileStyle.tagsSection}>
-              <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                Portfolio
-              </Text>
-              <View style={[myProfileStyle.portfolioGrid, creatorProfileStyle.sectionHeaderGap]}>
-                {profile.portfolio.map((item, index) => (
-                  <Pressable
-                    key={`${item.url}-${index}`}
-                    style={[myProfileStyle.portfolioTile, { borderColor: palette.gray[100] }]}
-                    onPress={() => openLink(item.url)}
-                    testID={`my-profile-portfolio-${index}`}>
-                    {item.thumbnailUrl ? (
-                      <Image
-                        source={{ uri: resolveMediaUrl(item.thumbnailUrl)! }}
-                        style={{ flex: 1 }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <View
+                      <Text
                         style={[
-                          myProfileStyle.portfolioPlaceholder,
-                          { backgroundColor: palette.primary[50] },
+                          myProfileStyle.portfolioPlaceholderLabel,
+                          { color: themePalette.gray[isDark ? 100 : 500] },
                         ]}>
-                        <Text
-                          style={[
-                            myProfileStyle.portfolioPlaceholderLabel,
-                            { color: palette.gray[500] },
-                          ]}>
-                          {labelFor(item.platform, PORTFOLIO_PLATFORM_OPTIONS)}
-                        </Text>
-                      </View>
-                    )}
-                  </Pressable>
-                ))}
-              </View>
+                        {labelFor(item.platform, PORTFOLIO_PLATFORM_OPTIONS)}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+              ))}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add work"
+                onPress={() => router.push('/profile-edit')}
+                style={[myProfileStyle.addWorkTile, { borderColor: colors.border }]}
+                testID="my-profile-add-work">
+                <Feather name="plus" size={20} color={themePalette.gray[300]} />
+                <Text style={[myProfileStyle.addWorkLabel, { color: themePalette.gray[300] }]}>
+                  Add work
+                </Text>
+              </Pressable>
             </View>
-          ) : null}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function renderTagSection(
-  title: string,
-  values: string[],
-  options: { value: string; label: string }[],
-  colors: ReturnType<typeof useTheme>['colors'],
-  palette: ReturnType<typeof useTheme>['palette'],
-) {
-  if (!values.length) return null;
+function CredColumn({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  value: string;
+  label: string;
+}) {
+  const { colors, palette: themePalette } = useTheme();
   return (
-    <View style={creatorProfileStyle.tagsSection}>
-      <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-        {title}
-      </Text>
-      <View style={[myProfileStyle.tagRowWrap, creatorProfileStyle.sectionHeaderGap]}>
-        {values.map(value => (
-          <View
-            key={value}
-            style={[creatorProfileStyle.tagPill, { backgroundColor: palette.primary[50] }]}>
-            <Text style={[creatorProfileStyle.tagLabel, { color: palette.gray[500] }]}>
-              {labelFor(value, options)}
-            </Text>
-          </View>
-        ))}
-      </View>
+    <View style={myProfileStyle.credColumn}>
+      <Feather name={icon} size={16} color={colors.primary} />
+      <Text style={[myProfileStyle.credValue, { color: colors.text.primary }]}>{value}</Text>
+      <Text style={[myProfileStyle.credLabel, { color: themePalette.gray[300] }]}>{label}</Text>
+    </View>
+  );
+}
+
+function Section({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={myProfileStyle.section}>
+      <IconSectionHeader icon={icon} label={label} />
+      <View style={myProfileStyle.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+function TagRow({
+  values,
+  options,
+  colorKey,
+}: {
+  values: string[];
+  options: { value: string; label: string }[];
+  colorKey: TagColorKey;
+}) {
+  const { isDark } = useTheme();
+  if (!values.length) return null;
+  const tone = isDark ? TAG_COLORS[colorKey].dark : TAG_COLORS[colorKey].light;
+
+  return (
+    <View style={myProfileStyle.tagRowWrap}>
+      {values.map(value => (
+        <View key={value} style={[myProfileStyle.tagPill, { backgroundColor: tone.bg }]}>
+          <Text style={[myProfileStyle.tagLabel, { color: tone.text }]}>
+            {labelFor(value, options)}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }

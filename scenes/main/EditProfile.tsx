@@ -27,8 +27,10 @@ import {
 } from '@/data/contentCategories';
 import { LANGUAGE_OPTIONS, DELIVERABLE_OPTIONS } from '@/data/onboardingOptions';
 import { detectPlatform } from '@/data/portfolioPlatforms';
-import { layoutStyle, editProfileStyle, buttonStyle, profileStepStyle } from '@/styles';
+import { layoutStyle, editProfileStyle, buttonStyle, profileStepStyle, TAG_COLORS } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
+import ProfileHero, { PROFILE_HERO_TOP } from '@/components/elements/ProfileHero';
+import IconSectionHeader from '@/components/elements/IconSectionHeader';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import TextField from '@/components/elements/TextField';
 import ControlledTextField from '@/components/elements/ControlledTextField';
@@ -38,7 +40,6 @@ import OptionSheet from '@/components/elements/OptionSheet';
 import DateField from '@/components/elements/DateField';
 import CalendarPicker from '@/components/elements/CalendarPicker';
 import CategoryChip from '@/components/elements/CategoryChip';
-import SectionHeader from '@/components/elements/SectionHeader';
 import Divider from '@/components/elements/Divider';
 import Toggle from '@/components/elements/Toggle';
 import AddItemButton from '@/components/elements/AddItemButton';
@@ -127,7 +128,7 @@ function toggleValue(values: string[], value: string): string[] {
 // country from an opaque stored string, which the previous screen's
 // `CountryCodeSheet` never had to do because nothing was ever saved).
 export default function EditProfile() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { account, dispatch } = useAuthSlice();
   const { data, isLoading: isLoadingProfile } = useGetMyProfileQuery();
   const [updateMyProfile, { isLoading: isSaving }] = useUpdateMyProfileMutation();
@@ -167,6 +168,7 @@ export default function EditProfile() {
   });
 
   const avatarPhoto = watch('avatarPhoto');
+  const coverPhoto = watch('coverPhoto');
   const gender = watch('gender');
   const dateOfBirth = watch('dateOfBirth');
   const division = watch('state');
@@ -235,7 +237,7 @@ export default function EditProfile() {
     return (
       <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
         <ScreenHeader
-          title="Edit Profile"
+          title="Edit profile"
           onBack={() => router.back()}
           style={editProfileStyle.headerGap}
         />
@@ -247,203 +249,200 @@ export default function EditProfile() {
   }
 
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[layoutStyle.screen, { backgroundColor: PROFILE_HERO_TOP }]}
+      edges={['top', 'left', 'right']}>
       <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
+        style={[layoutStyle.screen, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}>
-        <ScreenHeader
-          title="Edit Profile"
-          onBack={() => router.back()}
-          style={editProfileStyle.headerGap}
-        />
-
-        {/* Photos */}
-        <View style={editProfileStyle.avatarRow}>
-          <View
-            style={[
-              editProfileStyle.avatarHalo,
-              { backgroundColor: isDark ? 'rgba(244,46,158,0.14)' : undefined },
-            ]}>
+        <View style={editProfileStyle.heroWrap}>
+          <ProfileHero
+            title="Edit profile"
+            onBack={() => router.back()}
+            coverUri={coverPhoto?.uri}
+          />
+          <View style={editProfileStyle.avatarRing}>
             <CircleAvatar
               source={avatarPhoto?.uri ? { uri: avatarPhoto.uri } : defaultAvatar}
-              size={120}
+              size={84}
               onEditPress={undefined}
               testID="edit-profile-avatar"
             />
           </View>
         </View>
-        <Controller
-          control={control}
-          name="avatarPhoto"
-          render={({ field }) => (
-            <ImageUploader
-              imageUri={field.value?.uri}
-              aspect={[1, 1]}
-              onChange={(uri, asset) => field.onChange(asset ?? { uri })}
-              testID="edit-profile-avatar-upload"
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="coverPhoto"
-          render={({ field }) => (
-            <View style={{ marginTop: 16 }}>
-              <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
-                Cover photo
-              </Text>
+
+        <View style={editProfileStyle.body}>
+          {/* Photos */}
+          <IconSectionHeader icon="camera" label="Profile photo" />
+          <Controller
+            control={control}
+            name="avatarPhoto"
+            render={({ field }) => (
+              <ImageUploader
+                imageUri={field.value?.uri}
+                aspect={[1, 1]}
+                onChange={(uri, asset) => field.onChange(asset ?? { uri })}
+                style={editProfileStyle.photoUploader}
+                testID="edit-profile-avatar-upload"
+              />
+            )}
+          />
+          <IconSectionHeader icon="image" label="Cover photo" style={{ marginTop: 24 }} />
+          <Controller
+            control={control}
+            name="coverPhoto"
+            render={({ field }) => (
               <ImageUploader
                 imageUri={field.value?.uri}
                 aspect={[16, 9]}
                 onChange={(uri, asset) => field.onChange(asset ?? { uri })}
+                style={editProfileStyle.photoUploader}
                 testID="edit-profile-cover-upload"
               />
-            </View>
-          )}
-        />
+            )}
+          />
 
-        {/* Identity */}
-        <SectionHeader title="Identity" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
-            control={control}
-            name="name"
-            label="Full Name"
-            testID="edit-profile-full-name"
-          />
-          <ControlledTextField
-            control={control}
-            name="handle"
-            label="Username"
-            autoCapitalize="none"
-            leftAdornment={<Text style={{ color: colors.text.primary }}>@</Text>}
-            testID="edit-profile-handle"
-          />
-          <CustomSelectField
-            label="Gender"
-            placeholder="Select gender"
-            value={gender || undefined}
-            options={GENDER_OPTIONS}
-            onPress={() => setOpenSheet('gender')}
-            testID="edit-profile-gender"
-          />
-          <DateField
-            label="Date of Birth"
-            value={dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : undefined}
-            onPress={() => setIsDatePickerOpen(true)}
-            error={errors.dateOfBirth?.message}
-            testID="edit-profile-date-of-birth"
-          />
-        </View>
+          {/* Identity */}
+          <IconSectionHeader icon="user" label="Identity" style={{ marginTop: 24 }} />
+          <View style={[layoutStyle.fieldGroup, { marginTop: 12 }]}>
+            <ControlledTextField
+              control={control}
+              name="name"
+              label="Full Name"
+              testID="edit-profile-full-name"
+            />
+            <ControlledTextField
+              control={control}
+              name="handle"
+              label="Username"
+              autoCapitalize="none"
+              leftAdornment={<Text style={{ color: colors.text.primary }}>@</Text>}
+              testID="edit-profile-handle"
+            />
+            <CustomSelectField
+              label="Gender"
+              placeholder="Select gender"
+              value={gender || undefined}
+              options={GENDER_OPTIONS}
+              onPress={() => setOpenSheet('gender')}
+              testID="edit-profile-gender"
+            />
+            <DateField
+              label="Date of Birth"
+              value={dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : undefined}
+              onPress={() => setIsDatePickerOpen(true)}
+              error={errors.dateOfBirth?.message}
+              testID="edit-profile-date-of-birth"
+            />
+          </View>
 
-        {/* About */}
-        <SectionHeader title="About" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
-            control={control}
-            name="bio"
-            label="Bio"
-            multiline
-            maxLength={300}
-            testID="edit-profile-bio"
-          />
-        </View>
+          {/* About */}
+          <IconSectionHeader icon="align-left" label="About" style={{ marginTop: 24 }} />
+          <View style={[layoutStyle.fieldGroup, { marginTop: 12 }]}>
+            <ControlledTextField
+              control={control}
+              name="bio"
+              label="Bio"
+              multiline
+              maxLength={300}
+              testID="edit-profile-bio"
+            />
+          </View>
 
-        {/* Location */}
-        <SectionHeader title="Location" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          <CustomSelectField
-            label="Country"
-            placeholder="Bangladesh"
-            value={LOCKED_COUNTRY.value}
-            options={[LOCKED_COUNTRY]}
-            onPress={() => {}}
-            disabled
-            testID="edit-profile-country"
-          />
-          <CustomSelectField
-            label="Division"
-            placeholder="Select division"
-            value={division || undefined}
-            options={BD_DIVISIONS}
-            onPress={() => setOpenSheet('division')}
-            testID="edit-profile-division"
-          />
-          <CustomSelectField
-            label="City"
-            placeholder="Select city"
-            value={city || undefined}
-            options={cityOptions}
-            onPress={() => setOpenSheet('city')}
-            disabled={!division}
-            testID="edit-profile-city"
-          />
-          <ControlledTextField
-            control={control}
-            name="postalCode"
-            label="Postal Code"
-            keyboardType="number-pad"
-            testID="edit-profile-postal-code"
-          />
-          <ControlledTextField
-            control={control}
-            name="address"
-            label="Address"
-            testID="edit-profile-address"
-          />
-        </View>
+          {/* Location */}
+          <IconSectionHeader icon="map-pin" label="Location" style={{ marginTop: 24 }} />
+          <View style={[layoutStyle.fieldGroup, { marginTop: 12 }]}>
+            <CustomSelectField
+              label="Country"
+              placeholder="Bangladesh"
+              value={LOCKED_COUNTRY.value}
+              options={[LOCKED_COUNTRY]}
+              onPress={() => {}}
+              disabled
+              testID="edit-profile-country"
+            />
+            <CustomSelectField
+              label="Division"
+              placeholder="Select division"
+              value={division || undefined}
+              options={BD_DIVISIONS}
+              onPress={() => setOpenSheet('division')}
+              testID="edit-profile-division"
+            />
+            <CustomSelectField
+              label="City"
+              placeholder="Select city"
+              value={city || undefined}
+              options={cityOptions}
+              onPress={() => setOpenSheet('city')}
+              disabled={!division}
+              testID="edit-profile-city"
+            />
+            <ControlledTextField
+              control={control}
+              name="postalCode"
+              label="Postal Code"
+              keyboardType="number-pad"
+              testID="edit-profile-postal-code"
+            />
+            <ControlledTextField
+              control={control}
+              name="address"
+              label="Address"
+              testID="edit-profile-address"
+            />
+          </View>
 
-        {/* Contact */}
-        <SectionHeader title="Contact" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          <TextField
-            label="Login email"
-            value={account?.email ?? '—'}
-            editable={false}
-            testID="edit-profile-login-email"
-          />
-          <ControlledTextField
-            control={control}
-            name="contactEmail"
-            label="Contact Email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            testID="edit-profile-contact-email"
-          />
-          <Text style={[profileStepStyle.helperText, { color: colors.text.secondary }]}>
-            Shown on your profile. This is not your login email.
-          </Text>
-          <ControlledTextField
-            control={control}
-            name="contactPhone"
-            label="Contact Phone"
-            keyboardType="phone-pad"
-            testID="edit-profile-contact-phone"
-          />
-          <ControlledTextField
-            control={control}
-            name="websiteUrl"
-            label="Website"
-            autoCapitalize="none"
-            keyboardType="url"
-            testID="edit-profile-website"
-          />
-        </View>
+          {/* Contact */}
+          <IconSectionHeader icon="mail" label="Contact" style={{ marginTop: 24 }} />
+          <View style={[layoutStyle.fieldGroup, { marginTop: 12 }]}>
+            <TextField
+              label="Login email"
+              value={account?.email ?? '—'}
+              editable={false}
+              testID="edit-profile-login-email"
+            />
+            <ControlledTextField
+              control={control}
+              name="contactEmail"
+              label="Contact Email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              testID="edit-profile-contact-email"
+            />
+            <Text style={[profileStepStyle.helperText, { color: colors.text.secondary }]}>
+              Shown on your profile. This is not your login email.
+            </Text>
+            <ControlledTextField
+              control={control}
+              name="contactPhone"
+              label="Contact Phone"
+              keyboardType="phone-pad"
+              testID="edit-profile-contact-phone"
+            />
+            <ControlledTextField
+              control={control}
+              name="websiteUrl"
+              label="Website"
+              autoCapitalize="none"
+              keyboardType="url"
+              testID="edit-profile-website"
+            />
+          </View>
 
-        {/* Audience */}
-        <SectionHeader title="Audience" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
-            Categories
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {/* Audience — per-type tag colors matching the read-only My
+              Profile screen's Category/Subcategories/Languages/Deliverables
+              sections (see styles/myProfile.ts's `TAG_COLORS`). */}
+          <IconSectionHeader icon="grid" label="Category" style={{ marginTop: 24 }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
             {CONTENT_CATEGORY_OPTIONS.map(option => (
               <CategoryChip
                 key={option.value}
                 label={option.label}
                 selected={categories.includes(option.value)}
                 onPress={() => toggleCategory(option.value)}
+                selectedColor={TAG_COLORS.category.light.bg}
+                selectedTextColor={TAG_COLORS.category.light.text}
                 testID={`edit-profile-category-${option.value}`}
               />
             ))}
@@ -451,10 +450,8 @@ export default function EditProfile() {
 
           {availableSubcategoryOptions.length > 0 ? (
             <>
-              <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
-                Subcategories
-              </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <IconSectionHeader icon="layers" label="Subcategories" style={{ marginTop: 24 }} />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
                 {availableSubcategoryOptions.map(option => (
                   <CategoryChip
                     key={option.value}
@@ -465,6 +462,8 @@ export default function EditProfile() {
                         shouldDirty: true,
                       })
                     }
+                    selectedColor={TAG_COLORS.subcategory.light.bg}
+                    selectedTextColor={TAG_COLORS.subcategory.light.text}
                     testID={`edit-profile-subcategory-${option.value}`}
                   />
                 ))}
@@ -472,10 +471,8 @@ export default function EditProfile() {
             </>
           ) : null}
 
-          <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
-            Languages
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <IconSectionHeader icon="globe" label="Languages" style={{ marginTop: 24 }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
             {LANGUAGE_OPTIONS.map(option => (
               <CategoryChip
                 key={option.value}
@@ -484,15 +481,15 @@ export default function EditProfile() {
                 onPress={() =>
                   setValue('languages', toggleValue(languages, option.value), { shouldDirty: true })
                 }
+                selectedColor={TAG_COLORS.language.light.bg}
+                selectedTextColor={TAG_COLORS.language.light.text}
                 testID={`edit-profile-language-${option.value}`}
               />
             ))}
           </View>
 
-          <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
-            Deliverables
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <IconSectionHeader icon="package" label="Deliverables" style={{ marginTop: 24 }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
             {DELIVERABLE_OPTIONS.map(option => (
               <CategoryChip
                 key={option.value}
@@ -503,85 +500,94 @@ export default function EditProfile() {
                     shouldDirty: true,
                   })
                 }
+                selectedColor={TAG_COLORS.deliverable.light.bg}
+                selectedTextColor={TAG_COLORS.deliverable.light.text}
                 testID={`edit-profile-deliverable-${option.value}`}
               />
             ))}
           </View>
-        </View>
 
-        {/* Portfolio */}
-        <SectionHeader title="Portfolio" style={{ marginTop: 24 }} />
-        <View style={layoutStyle.fieldGroup}>
-          {portfolioFields.map((field, index) => (
-            <PortfolioEntryCard
-              key={field._rhfId}
-              // `PortfolioEntryCard` types `platform` against the onboarding
-              // wizard's closed enum; the edit schema stores it as free text
-              // (matching the backend's relaxed domain), but this screen only
-              // ever writes one of those four values via `detectPlatform`/the
-              // card's own chip row, so the cast is safe.
-              entry={(portfolioEntries[index] ?? field) as unknown as PortfolioEntry}
-              index={index}
-              onChangeUrl={url => {
-                setValue(`portfolio.${index}.url`, url, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-                setValue(`portfolio.${index}.platform`, detectPlatform(url), { shouldDirty: true });
-              }}
-              onChangePlatform={platform =>
-                setValue(`portfolio.${index}.platform`, platform, { shouldDirty: true })
-              }
-              onChangeThumbnail={asset =>
-                setValue(`portfolio.${index}.thumbnail`, asset, { shouldDirty: true })
-              }
-              onDelete={() => remove(index)}
-              urlError={errors.portfolio?.[index]?.url?.message}
-              testID={`edit-profile-portfolio-${index}`}
+          {/* Portfolio */}
+          <IconSectionHeader icon="image" label="Portfolio" style={{ marginTop: 24 }} />
+          <View style={[layoutStyle.fieldGroup, { marginTop: 12 }]}>
+            {portfolioFields.map((field, index) => (
+              <PortfolioEntryCard
+                key={field._rhfId}
+                // `PortfolioEntryCard` types `platform` against the onboarding
+                // wizard's closed enum; the edit schema stores it as free text
+                // (matching the backend's relaxed domain), but this screen only
+                // ever writes one of those four values via `detectPlatform`/the
+                // card's own chip row, so the cast is safe.
+                entry={(portfolioEntries[index] ?? field) as unknown as PortfolioEntry}
+                index={index}
+                onChangeUrl={url => {
+                  setValue(`portfolio.${index}.url`, url, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                  setValue(`portfolio.${index}.platform`, detectPlatform(url), {
+                    shouldDirty: true,
+                  });
+                }}
+                onChangePlatform={platform =>
+                  setValue(`portfolio.${index}.platform`, platform, { shouldDirty: true })
+                }
+                onChangeThumbnail={asset =>
+                  setValue(`portfolio.${index}.thumbnail`, asset, { shouldDirty: true })
+                }
+                onDelete={() => remove(index)}
+                urlError={errors.portfolio?.[index]?.url?.message}
+                testID={`edit-profile-portfolio-${index}`}
+              />
+            ))}
+            <AddItemButton
+              label={portfolioFields.length === 0 ? 'Add Portfolio' : 'Add Another'}
+              onPress={() => append({ id: nanoid(), url: '', platform: 'others' })}
+              testID="edit-profile-portfolio-add"
             />
-          ))}
-          <AddItemButton
-            label={portfolioFields.length === 0 ? 'Add Portfolio' : 'Add Another'}
-            onPress={() => append({ id: nanoid(), url: '', platform: 'others' })}
-            testID="edit-profile-portfolio-add"
-          />
-        </View>
+          </View>
 
-        {/* Visibility */}
-        <SectionHeader title="Visibility" style={{ marginTop: 24 }} />
-        <View
-          style={[
-            layoutStyle.fieldGroup,
-            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-          ]}>
-          <Text style={{ color: colors.text.primary }}>
-            Show my profile in the creator directory
-          </Text>
-          <Toggle
-            value={isDiscoverable}
-            onPress={() => setValue('isDiscoverable', !isDiscoverable, { shouldDirty: true })}
-            testID="edit-profile-discoverable"
-          />
-        </View>
+          {/* Visibility */}
+          <IconSectionHeader icon="eye" label="Visibility" style={{ marginTop: 24 }} />
+          <View
+            style={[
+              layoutStyle.fieldGroup,
+              {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 12,
+              },
+            ]}>
+            <Text style={{ color: colors.text.primary }}>
+              Show my profile in the creator directory
+            </Text>
+            <Toggle
+              value={isDiscoverable}
+              onPress={() => setValue('isDiscoverable', !isDiscoverable, { shouldDirty: true })}
+              testID="edit-profile-discoverable"
+            />
+          </View>
 
-        {errors.root?.message ? (
-          <Text style={[profileStepStyle.helperText, { color: colors.error, marginTop: 16 }]}>
-            {errors.root.message}
-          </Text>
-        ) : null}
+          {errors.root?.message ? (
+            <Text style={[profileStepStyle.helperText, { color: colors.error, marginTop: 16 }]}>
+              {errors.root.message}
+            </Text>
+          ) : null}
 
-        <View style={{ marginTop: 24 }}>
-          <Button
-            style={buttonStyle.primary}
-            titleStyle={buttonStyle.primaryTitle}
-            title="Save"
-            isLoading={isBusy}
-            disabled={!isDirty || isBusy}
-            onPress={handleSubmit(onSubmit)}
-            testID="edit-profile-save"
-          />
+          <View style={{ marginTop: 24 }}>
+            <Button
+              style={buttonStyle.primary}
+              titleStyle={buttonStyle.primaryTitle}
+              title="Save"
+              isLoading={isBusy}
+              disabled={!isDirty || isBusy}
+              onPress={handleSubmit(onSubmit)}
+              testID="edit-profile-save"
+            />
+          </View>
+          <Divider label=" " />
         </View>
-        <Divider label=" " />
       </ScrollView>
 
       {openSheet === 'gender' && (
