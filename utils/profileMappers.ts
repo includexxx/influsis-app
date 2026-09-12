@@ -1,5 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { MyProfileResponse, UpdateMyProfileRequest } from '@/types';
+import { resolveMediaUrl } from './media';
 import { EditProfileValues } from './profileSchemas';
 
 /**
@@ -14,8 +15,8 @@ export function toEditProfileDefaults(response: MyProfileResponse): EditProfileV
   return {
     name: profile.name,
     handle: response.handle ?? '',
-    avatarPhoto: profile.avatarUrl ? { uri: profile.avatarUrl } : undefined,
-    coverPhoto: profile.coverUrl ? { uri: profile.coverUrl } : undefined,
+    avatarPhoto: profile.avatarUrl ? { uri: resolveMediaUrl(profile.avatarUrl)! } : undefined,
+    coverPhoto: profile.coverUrl ? { uri: resolveMediaUrl(profile.coverUrl)! } : undefined,
     gender: (profile.gender as EditProfileValues['gender']) ?? '',
     dateOfBirth: profile.dateOfBirth ?? '',
     bio: profile.bio ?? '',
@@ -37,7 +38,7 @@ export function toEditProfileDefaults(response: MyProfileResponse): EditProfileV
       id: nanoid(),
       url: item.url,
       platform: item.platform,
-      thumbnail: item.thumbnailUrl ? { uri: item.thumbnailUrl } : undefined,
+      thumbnail: item.thumbnailUrl ? { uri: resolveMediaUrl(item.thumbnailUrl)! } : undefined,
     })),
     isDiscoverable: profile.isDiscoverable,
   };

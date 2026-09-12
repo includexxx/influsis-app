@@ -10,6 +10,7 @@ import { CONTENT_CATEGORY_OPTIONS, SUBCATEGORIES_BY_CATEGORY } from '@/data/cont
 import { LANGUAGE_OPTIONS, DELIVERABLE_OPTIONS } from '@/data/onboardingOptions';
 import { PORTFOLIO_PLATFORM_OPTIONS } from '@/data/portfolioPlatforms';
 import { getDivisionLabel } from '@/data/locations';
+import { resolveMediaUrl } from '@/utils/media';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import Button from '@/components/elements/Button';
@@ -129,6 +130,8 @@ export default function MyProfile() {
     });
   }
 
+  console.log({ profile });
+
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
       <ScrollView style={layoutStyle.screen} showsVerticalScrollIndicator={false}>
@@ -151,7 +154,7 @@ export default function MyProfile() {
         <View style={creatorProfileStyle.bannerWrap}>
           {profile.coverUrl ? (
             <Image
-              source={{ uri: profile.coverUrl }}
+              source={{ uri: resolveMediaUrl(profile.coverUrl)! }}
               style={creatorProfileStyle.banner}
               contentFit="cover"
             />
@@ -159,7 +162,7 @@ export default function MyProfile() {
             <View style={[creatorProfileStyle.banner, { backgroundColor: palette.primary[50] }]} />
           )}
           <Image
-            source={profile.avatarUrl ? { uri: profile.avatarUrl } : avatarImage}
+            source={profile.avatarUrl ? { uri: resolveMediaUrl(profile.avatarUrl)! } : avatarImage}
             style={creatorProfileStyle.avatar}
             contentFit="cover"
           />
@@ -270,7 +273,7 @@ export default function MyProfile() {
                     testID={`my-profile-portfolio-${index}`}>
                     {item.thumbnailUrl ? (
                       <Image
-                        source={{ uri: item.thumbnailUrl }}
+                        source={{ uri: resolveMediaUrl(item.thumbnailUrl)! }}
                         style={{ flex: 1 }}
                         contentFit="cover"
                       />

@@ -8,6 +8,7 @@ import { useAppSlice, useAuthSlice } from '@/slices';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { getShadowStyle, palette } from '@/theme';
 import { layoutStyle, accountStyle } from '@/styles';
+import { resolveMediaUrl } from '@/utils/media';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import SettingsRow from '@/components/elements/SettingsRow';
 import ConfirmDialog from '@/components/elements/ConfirmDialog';
@@ -55,7 +56,9 @@ export default function Profile() {
   const { data } = useGetMyProfileQuery();
   const displayName = data?.profile.name ?? 'Your Profile';
   const displaySubtitle = data?.handle ? `@${data.handle}` : (account?.email ?? '-');
-  const avatarSource = data?.profile.avatarUrl ? { uri: data.profile.avatarUrl } : avatarImage;
+  const avatarSource = data?.profile.avatarUrl
+    ? { uri: resolveMediaUrl(data.profile.avatarUrl)! }
+    : avatarImage;
 
   // The 50-step tints are mixed for white paper; on the dark theme's near
   // black cards the same accents have to come through as a low-alpha wash
@@ -148,7 +151,7 @@ export default function Profile() {
                 onPress={() => router.push('/applications')}
                 testID="account-row-applications"
               />
-              <SettingsRow
+              {/* <SettingsRow
                 icon={applicationsIcon}
                 iconTint={colors.primary}
                 iconBackground={accentChip}
@@ -156,7 +159,7 @@ export default function Profile() {
                 style={accountStyle.row}
                 onPress={() => router.push('/creator-onboarding')}
                 testID="account-row-onboarding"
-              />
+              /> */}
             </View>
           </View>
 
