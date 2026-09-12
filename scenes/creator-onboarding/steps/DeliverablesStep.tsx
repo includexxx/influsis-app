@@ -1,12 +1,12 @@
-import { View, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { useTheme } from '@/hooks';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import { deliverablesSchema, MultiSelectValues } from '@/utils/onboardingSchemas';
 import { DELIVERABLE_OPTIONS } from '@/data/onboardingOptions';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import SelectableRow from '@/components/elements/SelectableRow';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
@@ -15,6 +15,7 @@ import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 // added the Bio step). Multi-select from six content types, minimum one. Same control as
 // the Languages step, no "Others". `Next` stays greyed until the schema passes.
 export default function DeliverablesStep() {
+  const { colors } = useTheme();
   const { deliverables, dispatch, saveDeliverables } = useCreatorOnboardingSlice();
   const { totalSteps, saveAndContinue, back } = useCreatorOnboardingStep();
 
@@ -44,21 +45,19 @@ export default function DeliverablesStep() {
   }
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={7}
-          totalSteps={totalSteps}
-          title="What can you deliver?"
-          description="Choose the content types you offer for campaigns"
-          onBack={back}
-          style={profileStepStyle.header}
-        />
-
-        <View style={profileStepStyle.optionList}>
+    <OnboardingStepScreen
+      step={7}
+      totalSteps={totalSteps}
+      title="What can you deliver?"
+      description="Choose the content types you offer for campaigns"
+      onBack={back}
+      onNext={handleSubmit(onSubmit)}
+      nextDisabled={!isValid}>
+      <View style={profileStepStyle.fields}>
+        <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
+          Deliverables
+        </Text>
+        <View style={profileStepStyle.fields}>
           {DELIVERABLE_OPTIONS.map(option => (
             <SelectableRow
               key={option.value}
@@ -69,18 +68,7 @@ export default function DeliverablesStep() {
             />
           ))}
         </View>
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Next"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid}
-          testID="onboarding-next"
-        />
       </View>
-    </>
+    </OnboardingStepScreen>
   );
 }

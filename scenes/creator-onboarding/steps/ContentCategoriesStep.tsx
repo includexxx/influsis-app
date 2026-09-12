@@ -1,7 +1,8 @@
-import { View, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { useTheme } from '@/hooks';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import {
   categoriesStepSchema,
@@ -9,10 +10,9 @@ import {
   OTHERS_TEXT_MAX_LENGTH,
 } from '@/utils/onboardingSchemas';
 import { CONTENT_CATEGORY_OPTIONS, OTHERS_CATEGORY_VALUE } from '@/data/contentCategories';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import SelectableRow from '@/components/elements/SelectableRow';
-import ControlledTextField from '@/components/elements/ControlledTextField';
+import OnboardingTextField from '@/components/elements/OnboardingTextField';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
 // Step 4 of the creator onboarding wizard - Content Categories (build-plan
@@ -23,6 +23,7 @@ import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 // chosen on the next step. Deselecting a category drops its entry (and any
 // subcategories it had picked up on step 5).
 export default function ContentCategoriesStep() {
+  const { colors } = useTheme();
   const { contentCategories, dispatch, saveCategories } = useCreatorOnboardingSlice();
   const { totalSteps, saveAndContinue, back } = useCreatorOnboardingStep();
 
@@ -66,21 +67,19 @@ export default function ContentCategoriesStep() {
   }
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={4}
-          totalSteps={totalSteps}
-          title="What content do you create?"
-          description="Pick the categories that fit your work"
-          onBack={back}
-          style={profileStepStyle.header}
-        />
-
-        <View style={profileStepStyle.optionList}>
+    <OnboardingStepScreen
+      step={4}
+      totalSteps={totalSteps}
+      title="What content do you create?"
+      description="Pick the categories that fit your work"
+      onBack={back}
+      onNext={handleSubmit(onSubmit)}
+      nextDisabled={!isValid}>
+      <View style={profileStepStyle.fields}>
+        <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
+          Categories
+        </Text>
+        <View style={profileStepStyle.fields}>
           {CONTENT_CATEGORY_OPTIONS.map(option => (
             <View key={option.value}>
               <SelectableRow
@@ -91,7 +90,7 @@ export default function ContentCategoriesStep() {
               />
               {option.value === OTHERS_CATEGORY_VALUE &&
               selectedValues.includes(OTHERS_CATEGORY_VALUE) ? (
-                <ControlledTextField
+                <OnboardingTextField
                   control={control}
                   name="categoryOthersText"
                   placeholder="Please specify"
@@ -104,18 +103,7 @@ export default function ContentCategoriesStep() {
             </View>
           ))}
         </View>
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Next"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid}
-          testID="onboarding-next"
-        />
       </View>
-    </>
+    </OnboardingStepScreen>
   );
 }

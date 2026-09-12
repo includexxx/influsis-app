@@ -1,6 +1,6 @@
 import { Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
-import { radius, spacing } from '@/theme';
+import { radius, spacing, typography } from '@/theme';
 import Checkbox from '../Checkbox';
 
 export interface SelectableRowProps {
@@ -23,9 +23,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   label: {
+    ...typography.textLSemibold,
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    textAlign: 'center',
   },
 });
 
@@ -51,13 +51,7 @@ function SelectableRow({ label, selected, onPress, style, testID }: SelectableRo
         },
         style,
       ]}>
-      <Text
-        style={[
-          styles.label,
-          { color: colors.text.primary, textAlign: 'center', fontWeight: 600, fontSize: 16 },
-        ]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, { color: colors.text.primary }]}>{label}</Text>
       {/* <Checkbox checked={selected} pointerEvents="none" /> */}
     </Pressable>
   );

@@ -1,17 +1,18 @@
-import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Feather } from '@expo/vector-icons';
 import { useTheme, useHandleAvailability } from '@/hooks';
 import type { HandleAvailabilityState } from '@/hooks';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { spacing } from '@/theme';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import { CreatorOnboardingState } from '@/slices/creatorOnboarding.slice';
 import { usernameFormSchema, UsernameFormValues } from '@/utils/onboardingSchemas';
 import { generateHandleSuggestions } from '@/data/handleSuggestions';
 import { buildOnboardingSubmission } from '@/utils/onboardingPayload';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import TextField from '@/components/elements/TextField';
 import CategoryChip from '@/components/elements/CategoryChip';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
@@ -20,26 +21,18 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 10,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
     minHeight: 20,
   },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   suggestions: {
-    marginTop: 16,
-    gap: 8,
-  },
-  suggestionsLabel: {
-    fontSize: 13,
-    fontWeight: '500',
+    marginTop: spacing.lg,
+    gap: spacing.sm,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm,
   },
 });
 
@@ -65,6 +58,7 @@ export default function UsernameStep() {
   const { colors, palette } = useTheme();
   const slice = useCreatorOnboardingSlice();
   const { totalSteps, back } = useCreatorOnboardingStep();
+  const [isHandleFocused, setIsHandleFocused] = useState(false);
 
   const {
     control,
@@ -126,87 +120,78 @@ export default function UsernameStep() {
         : palette.gray[300];
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={10}
-          totalSteps={totalSteps}
-          title="Claim your username"
-          description="This is your public handle - platform.com/@you. It doesn't change if you rename your profile later."
-          onBack={back}
-          style={profileStepStyle.header}
-        />
+    <OnboardingStepScreen
+      step={10}
+      totalSteps={totalSteps}
+      title="Claim your username"
+      description="This is your public handle - platform.com/@you. It doesn't change if you rename your profile later."
+      onBack={back}
+      onNext={onFinish}
+      nextDisabled={!canFinish}
+      nextLabel="Finish">
+      <Controller
+        control={control}
+        name="handle"
+        render={({ field, fieldState }) => (
+          <TextField
+            label="Username"
+            value={field.value}
+            onChangeText={changeHandle}
+            onFocus={() => setIsHandleFocused(true)}
+            onBlur={() => {
+              setIsHandleFocused(false);
+              field.onBlur();
+            }}
+            placeholder="yourname"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="off"
+            error={fieldState.error?.message}
+            inputRowStyle={
+              isHandleFocused && !fieldState.error
+                ? { borderColor: palette.primary[400] }
+                : undefined
+            }
+            leftAdornment={
+              <Text style={[profileStepStyle.usernamePrefix, { color: palette.gray[900] }]}>@</Text>
+            }
+            testID="onboarding-handle"
+          />
+        )}
+      />
 
-        <Controller
-          control={control}
-          name="handle"
-          render={({ field, fieldState }) => (
-            <TextField
-              value={field.value}
-              onChangeText={changeHandle}
-              onBlur={field.onBlur}
-              placeholder="yourname"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="off"
-              error={fieldState.error?.message}
-              leftAdornment={
-                <Text style={[profileStepStyle.usernamePrefix, { color: palette.gray[900] }]}>
-                  @
-                </Text>
-              }
-              testID="onboarding-handle"
-            />
+      {formatValid && state !== 'idle' ? (
+        <View style={styles.statusRow}>
+          {state === 'checking' ? (
+            <ActivityIndicator size="small" color={palette.gray[300]} />
+          ) : (
+            <Feather name={state === 'available' ? 'check' : 'x'} size={16} color={statusColor} />
           )}
-        />
+          <Text
+            style={[profileStepStyle.helperText, { color: statusColor }]}
+            testID="onboarding-handle-status">
+            {STATUS_COPY[state]}
+          </Text>
+        </View>
+      ) : null}
 
-        {formatValid && state !== 'idle' ? (
-          <View style={styles.statusRow}>
-            {state === 'checking' ? (
-              <ActivityIndicator size="small" color={palette.gray[300]} />
-            ) : (
-              <Feather name={state === 'available' ? 'check' : 'x'} size={16} color={statusColor} />
-            )}
-            <Text
-              style={[styles.statusText, { color: statusColor }]}
-              testID="onboarding-handle-status">
-              {STATUS_COPY[state]}
-            </Text>
+      {showSuggestions && suggestions.length > 0 ? (
+        <View style={styles.suggestions}>
+          <Text style={[profileStepStyle.helperText, { color: palette.gray[300] }]}>
+            Try one of these:
+          </Text>
+          <View style={styles.chipRow}>
+            {suggestions.map(suggestion => (
+              <CategoryChip
+                key={suggestion}
+                label={`@${suggestion}`}
+                onPress={() => changeHandle(suggestion)}
+                testID={`onboarding-handle-suggestion-${suggestion}`}
+              />
+            ))}
           </View>
-        ) : null}
-
-        {showSuggestions && suggestions.length > 0 ? (
-          <View style={styles.suggestions}>
-            <Text style={[styles.suggestionsLabel, { color: palette.gray[300] }]}>
-              Try one of these:
-            </Text>
-            <View style={styles.chipRow}>
-              {suggestions.map(suggestion => (
-                <CategoryChip
-                  key={suggestion}
-                  label={`@${suggestion}`}
-                  onPress={() => changeHandle(suggestion)}
-                  testID={`onboarding-handle-suggestion-${suggestion}`}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Finish"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={onFinish}
-          disabled={!canFinish}
-          testID="onboarding-next"
-        />
-      </View>
-    </>
+        </View>
+      ) : null}
+    </OnboardingStepScreen>
   );
 }

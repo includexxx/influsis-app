@@ -1,7 +1,8 @@
-import { View, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { useTheme } from '@/hooks';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import {
   languagesSchema,
@@ -9,10 +10,9 @@ import {
   OTHERS_TEXT_MAX_LENGTH,
 } from '@/utils/onboardingSchemas';
 import { LANGUAGE_OPTIONS, OTHER_OPTION_VALUE } from '@/data/onboardingOptions';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import SelectableRow from '@/components/elements/SelectableRow';
-import ControlledTextField from '@/components/elements/ControlledTextField';
+import OnboardingTextField from '@/components/elements/OnboardingTextField';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
 // Step 6 of the creator onboarding wizard - Languages (requirements §3 Screen
@@ -21,6 +21,7 @@ import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 // free-text row; its trimmed value is stored alongside the presets. `Next`
 // stays greyed until the schema passes.
 export default function LanguagesStep() {
+  const { colors } = useTheme();
   const { languages, dispatch, saveLanguages } = useCreatorOnboardingSlice();
   const { totalSteps, saveAndContinue, back } = useCreatorOnboardingStep();
 
@@ -54,21 +55,19 @@ export default function LanguagesStep() {
   }
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={6}
-          totalSteps={totalSteps}
-          title="What languages are you fluent in?"
-          description="Businesses match creators by the languages they speak"
-          onBack={back}
-          style={profileStepStyle.header}
-        />
-
-        <View style={profileStepStyle.optionList}>
+    <OnboardingStepScreen
+      step={6}
+      totalSteps={totalSteps}
+      title="What languages are you fluent in?"
+      description="Businesses match creators by the languages they speak"
+      onBack={back}
+      onNext={handleSubmit(onSubmit)}
+      nextDisabled={!isValid}>
+      <View style={profileStepStyle.fields}>
+        <Text style={[profileStepStyle.sectionLabel, { color: colors.text.primary }]}>
+          Languages
+        </Text>
+        <View style={profileStepStyle.fields}>
           {LANGUAGE_OPTIONS.map(option => (
             <View key={option.value}>
               <SelectableRow
@@ -78,7 +77,7 @@ export default function LanguagesStep() {
                 testID={`onboarding-language-${option.value}`}
               />
               {option.value === OTHER_OPTION_VALUE && selected.includes(OTHER_OPTION_VALUE) ? (
-                <ControlledTextField
+                <OnboardingTextField
                   control={control}
                   name="othersText"
                   placeholder="Add a language"
@@ -91,18 +90,7 @@ export default function LanguagesStep() {
             </View>
           ))}
         </View>
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Next"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid}
-          testID="onboarding-next"
-        />
       </View>
-    </>
+    </OnboardingStepScreen>
   );
 }

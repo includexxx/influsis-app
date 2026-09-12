@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { radius, spacing } from '@/theme';
+import { profileStepStyle } from '@/styles';
 import { PORTFOLIO_PLATFORM_OPTIONS, PortfolioPlatform } from '@/data/portfolioPlatforms';
 import { PickedImageAsset, PortfolioEntry } from '@/utils/onboardingSchemas';
 import TextField from '../TextField';
@@ -23,7 +25,7 @@ export interface PortfolioEntryCardProps {
 const styles = StyleSheet.create({
   root: {
     borderWidth: 1,
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -45,9 +47,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  thumbHint: {
-    fontSize: 13,
-  },
 });
 
 // One portfolio entry in the onboarding Portfolio step (build-plan 20f):
@@ -67,6 +66,7 @@ function PortfolioEntryCard({
   testID,
 }: PortfolioEntryCardProps) {
   const { colors, palette } = useTheme();
+  const [isUrlFocused, setIsUrlFocused] = useState(false);
 
   return (
     <View
@@ -89,7 +89,12 @@ function PortfolioEntryCard({
         placeholder="instagram.com/p/..."
         value={entry.url}
         onChangeText={onChangeUrl}
+        onFocus={() => setIsUrlFocused(true)}
+        onBlur={() => setIsUrlFocused(false)}
         error={urlError}
+        inputRowStyle={
+          isUrlFocused && !urlError ? { borderColor: palette.primary[400] } : undefined
+        }
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="url"
@@ -113,7 +118,9 @@ function PortfolioEntryCard({
         ))}
       </View>
 
-      <Text style={[styles.thumbHint, { color: palette.gray[300] }]}>Thumbnail (optional)</Text>
+      <Text style={[profileStepStyle.helperText, { color: palette.gray[300] }]}>
+        Thumbnail (optional)
+      </Text>
       <ImageUploader
         imageUri={entry.thumbnail?.uri}
         aspect={[1, 1]}

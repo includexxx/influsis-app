@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { nanoid } from '@reduxjs/toolkit';
 import { useTheme } from '@/hooks';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import { portfolioFormSchema, PortfolioFormValues } from '@/utils/onboardingSchemas';
 import {
@@ -12,21 +12,10 @@ import {
   normalizePortfolioUrl,
   PortfolioPlatform,
 } from '@/data/portfolioPlatforms';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import AddItemButton from '@/components/elements/AddItemButton';
 import PortfolioEntryCard from '@/components/elements/PortfolioEntryCard';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
-
-const styles = StyleSheet.create({
-  list: {
-    gap: 16,
-  },
-  nudge: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});
 
 // Step 9 of the creator onboarding wizard - Portfolio (requirements §3
 // "Portfolio"; step 9 after build-plan 20h split Categories/Subcategories and
@@ -103,62 +92,44 @@ export default function PortfolioStep() {
   }
 
   return (
-    <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={9}
-          totalSteps={totalSteps}
-          title="Show your best work"
-          description="Add a few links to content you're proud of - optional, but it helps you stand out"
-          onBack={back}
-          style={profileStepStyle.header}
-        />
-
-        <View style={styles.list}>
-          {fields.map((field, index) => (
-            <PortfolioEntryCard
-              key={field._rhfId}
-              entry={entries[index] ?? field}
-              index={index}
-              onChangeUrl={url => changeUrl(index, url)}
-              onChangePlatform={platform => changePlatform(index, platform)}
-              onChangeThumbnail={asset =>
-                setValue(`entries.${index}.thumbnail`, asset, { shouldValidate: true })
-              }
-              onDelete={() => remove(index)}
-              urlError={urlErrors.get(index)}
-              duplicate={isDuplicate(index)}
-              testID={`onboarding-portfolio-${index}`}
-            />
-          ))}
-
-          <AddItemButton
-            label={fields.length === 0 ? 'Add Portfolio' : 'Add Another'}
-            onPress={addEntry}
-            testID="onboarding-portfolio-add"
+    <OnboardingStepScreen
+      step={9}
+      totalSteps={totalSteps}
+      title="Show your best work"
+      description="Add a few links to content you're proud of - optional, but it helps you stand out"
+      onBack={back}
+      onNext={handleSubmit(onSubmit)}
+      nextDisabled={!parsed.success}>
+      <View style={profileStepStyle.fields}>
+        {fields.map((field, index) => (
+          <PortfolioEntryCard
+            key={field._rhfId}
+            entry={entries[index] ?? field}
+            index={index}
+            onChangeUrl={url => changeUrl(index, url)}
+            onChangePlatform={platform => changePlatform(index, platform)}
+            onChangeThumbnail={asset =>
+              setValue(`entries.${index}.thumbnail`, asset, { shouldValidate: true })
+            }
+            onDelete={() => remove(index)}
+            urlError={urlErrors.get(index)}
+            duplicate={isDuplicate(index)}
+            testID={`onboarding-portfolio-${index}`}
           />
+        ))}
 
-          {fields.length === 0 ? (
-            <Text style={[styles.nudge, { color: palette.gray[300] }]}>
-              Adding at least one sample helps you get 3x more responses.
-            </Text>
-          ) : null}
-        </View>
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Next"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!parsed.success}
-          testID="onboarding-next"
+        <AddItemButton
+          label={fields.length === 0 ? 'Add Portfolio' : 'Add Another'}
+          onPress={addEntry}
+          testID="onboarding-portfolio-add"
         />
+
+        {fields.length === 0 ? (
+          <Text style={[profileStepStyle.helperText, { color: palette.gray[300] }]}>
+            Adding at least one sample helps you get 3x more responses.
+          </Text>
+        ) : null}
       </View>
-    </>
+    </OnboardingStepScreen>
   );
 }

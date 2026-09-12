@@ -259,3 +259,12 @@ cleaned-up checkbox version before generating the project overview.
       counter under the input. Location..Username shift down one, so the wizard
       becomes ten steps. Bio flows into the Finish payload; no submit endpoint
       yet.
+
+## Onboarding UI polish
+
+- [x] 22. **Harmonize the onboarding step UI** - give all ten creator
+      onboarding steps one identical, modern layout: a shared step-screen
+      wrapper (scroll body + keyboard handling + pinned footer), one field
+      spacing rhythm, consistent field labels, and shared section / helper /
+      counter / error text styles. Visual consistency and polish only - no new
+      screens, data, or copy rewrites.

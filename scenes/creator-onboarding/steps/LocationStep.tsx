@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
+import { profileStepStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
 import { locationSchema, LocationValues } from '@/utils/onboardingSchemas';
 import { getCities, getDivisions, LOCKED_COUNTRY } from '@/data/locations';
-import Button from '@/components/elements/Button';
-import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
+import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import CustomSelectField from '@/components/elements/CustomSelectField';
-import ControlledTextField from '@/components/elements/ControlledTextField';
+import OnboardingTextField from '@/components/elements/OnboardingTextField';
 import OptionSheet from '@/components/elements/OptionSheet';
 import { useCreatorOnboardingStep } from '../useCreatorOnboardingStep';
 
@@ -58,20 +57,15 @@ export default function LocationStep() {
 
   return (
     <>
-      <ScrollView
-        style={layoutStyle.screen}
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <ProfileStepHeader
-          step={3}
-          totalSteps={totalSteps}
-          title="Where are you based?"
-          description="Your city is used to match you with campaigns near you"
-          onBack={back}
-          style={profileStepStyle.header}
-        />
-
-        <View style={layoutStyle.fieldGroup}>
+      <OnboardingStepScreen
+        step={3}
+        totalSteps={totalSteps}
+        title="Where are you based?"
+        description="Your city is used to match you with campaigns near you"
+        onBack={back}
+        onNext={handleSubmit(onSubmit)}
+        nextDisabled={!isValid}>
+        <View style={profileStepStyle.fields}>
           <CustomSelectField
             label="Country"
             placeholder="Bangladesh"
@@ -115,7 +109,7 @@ export default function LocationStep() {
             )}
           />
 
-          <ControlledTextField
+          <OnboardingTextField
             control={control}
             name="zip"
             label="Zip / Postal code (optional)"
@@ -125,18 +119,7 @@ export default function LocationStep() {
             testID="onboarding-zip"
           />
         </View>
-      </ScrollView>
-
-      <View style={layoutStyle.scrollContent}>
-        <Button
-          title="Next"
-          titleStyle={sharedButton.primaryTitle}
-          style={sharedButton.primary}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid}
-          testID="onboarding-next"
-        />
-      </View>
+      </OnboardingStepScreen>
 
       {isDivisionOpen && (
         <OptionSheet

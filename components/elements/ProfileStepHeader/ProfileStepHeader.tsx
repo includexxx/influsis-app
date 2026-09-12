@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
+import { spacing } from '@/theme';
 import Image from '../Image';
 
 const backChevronIcon = require('@/assets/images/icons/back-chevron.png');
@@ -18,7 +19,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 24,
     height: 24,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   backIcon: {
     width: 24,
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 10,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   progressFill: {
     height: 6,
@@ -38,13 +39,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     fontSize: 14,
     lineHeight: 21,
-    marginBottom: 32,
+    marginBottom: spacing['3xl'],
   },
   title: {
     fontSize: 26,
     lineHeight: 30,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   description: {
     fontSize: 16,
