@@ -1,11 +1,11 @@
 # Completed
 
-| | |
-|---|---|
-| **Figma node** | [`6001:38922`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38922&m=dev) — "Profile_5" / "Cardyy Elearning Cards 13" |
-| **Route** | `/profile-verification/completed` (`app/(auth)/profile-verification/completed.tsx`) |
-| **Scene** | `scenes/profile-verification/Completed.tsx` |
-| **Components used** | `Button`, `Image` |
+|                     |                                                                                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma node**      | [`6001:38922`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38922&m=dev) — "Profile_5" / "Cardyy Elearning Cards 13" |
+| **Route**           | `/profile-verification/completed` (`app/(auth)/profile-verification/completed.tsx`)                                                                                         |
+| **Scene**           | `scenes/profile-verification/Completed.tsx`                                                                                                                                 |
+| **Components used** | `Button`, `Image`                                                                                                                                                           |
 
 ## Purpose
 

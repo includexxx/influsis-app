@@ -1,11 +1,11 @@
 # Social Media
 
-| | |
-|---|---|
-| **Figma nodes** | [`6001:38776`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38776&m=dev) (none selected), [`6312:8242`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8242&m=dev) (one selected) |
-| **Route** | `/profile-verification/social-media` (`app/(auth)/profile-verification/social-media.tsx`) |
-| **Scene** | `scenes/profile-verification/SocialMedia.tsx` |
-| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button` |
+|                     |                                                                                                                                                                                                                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes**     | [`6001:38776`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38776&m=dev) (none selected), [`6312:8242`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6312-8242&m=dev) (one selected) |
+| **Route**           | `/profile-verification/social-media` (`app/(auth)/profile-verification/social-media.tsx`)                                                                                                                                                                                                     |
+| **Scene**           | `scenes/profile-verification/SocialMedia.tsx`                                                                                                                                                                                                                                                 |
+| **Components used** | `ProfileStepHeader`, `SelectableListItem`, `Button`                                                                                                                                                                                                                                           |
 
 ## Purpose
 

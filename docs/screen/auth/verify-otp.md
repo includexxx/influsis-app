@@ -1,22 +1,22 @@
 # OTP Verification
 
-| | |
-|---|---|
-| **Figma nodes (sign-up flow)** | [`6010:11916`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11916&m=dev) (empty), [`6010:11997`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11997&m=dev) (filled, numeric keypad) |
-| **Figma nodes (reset-password flow)** | [`6010:11880`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11880&m=dev) (empty), [`6001:38283`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38283&m=dev) (filled) |
-| **Figma node (account-created popup)** | [`6495:5693`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6495-5693&m=dev) — "Forget OTP Submit" (name is a Figma mislabel; this is the sign-up completion popup, see below) |
-| **Route** | `/auth/verify-otp` (`app/(auth)/auth/verify-otp.tsx`) |
-| **Scene** | `scenes/auth/VerifyOtp.tsx` |
-| **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `OtpInput`, `Button`, `SuccessSheet` |
+|                                        |                                                                                                                                                                                                                                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Figma nodes (sign-up flow)**         | [`6010:11916`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11916&m=dev) (empty), [`6010:11997`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11997&m=dev) (filled, numeric keypad) |
+| **Figma nodes (reset-password flow)**  | [`6010:11880`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11880&m=dev) (empty), [`6001:38283`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38283&m=dev) (filled)                 |
+| **Figma node (account-created popup)** | [`6495:5693`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6495-5693&m=dev) — "Forget OTP Submit" (name is a Figma mislabel; this is the sign-up completion popup, see below)                                                                   |
+| **Route**                              | `/auth/verify-otp` (`app/(auth)/auth/verify-otp.tsx`)                                                                                                                                                                                                                                             |
+| **Scene**                              | `scenes/auth/VerifyOtp.tsx`                                                                                                                                                                                                                                                                       |
+| **Components used**                    | `AuthHeader` (back button only), `AuthTitleBlock`, `OtpInput`, `Button`, `SuccessSheet`                                                                                                                                                                                                           |
 
 ## Purpose
 
 4-digit email verification code entry. **This single screen is reused for two flows**, distinguished by a `flow` query param — Figma has two near-identical frames for it (only the heading/description copy and the post-verify destination differ), so rather than duplicate the screen, `VerifyOtp` branches on `flow` instead. This directly reuses the same OTP component/route the sign-up flow already had, per the pattern of not building a second OTP screen from scratch for password reset.
 
-| `flow` param | Entry point | Heading | Description | On verify |
-|---|---|---|---|---|
-| `signup` (default, or omitted) | `/auth/sign-up` | "Verification Code" | "Check your mail (`email`) to get your verification code..." | Opens the "Account Created Successfully" `SuccessSheet` |
-| `reset` | `/auth/forgot-password` | "OTP Verification" | "Please check your email to reset your password" | `router.replace('/auth/reset-password')` |
+| `flow` param                   | Entry point             | Heading             | Description                                                  | On verify                                               |
+| ------------------------------ | ----------------------- | ------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| `signup` (default, or omitted) | `/auth/sign-up`         | "Verification Code" | "Check your mail (`email`) to get your verification code..." | Opens the "Account Created Successfully" `SuccessSheet` |
+| `reset`                        | `/auth/forgot-password` | "OTP Verification"  | "Please check your email to reset your password"             | `router.replace('/auth/reset-password')`                |
 
 ## UI elements
 

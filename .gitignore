@@ -42,3 +42,6 @@ yarn-error.*
 # coverage or example directories
 coverage/
 app-example
+
+
+.obsidian

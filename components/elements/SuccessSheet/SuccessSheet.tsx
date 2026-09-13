@@ -1,4 +1,4 @@
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '@/hooks';
 import { buttonStyle as sharedButton } from '@/styles';
 import Button from '../Button';
@@ -13,6 +13,8 @@ export interface SuccessSheetProps {
   buttonLabel: string;
   onButtonPress: () => void;
   onClose?: () => void;
+  buttonStyle?: StyleProp<ViewStyle>;
+  buttonTitleStyle?: StyleProp<TextStyle>;
 }
 
 // Figma's `0px 24px 17px rgba(46,118,87,0.3)` badge shadow, platform-
@@ -99,6 +101,8 @@ function SuccessSheet({
   buttonLabel,
   onButtonPress,
   onClose,
+  buttonStyle,
+  buttonTitleStyle,
 }: SuccessSheetProps) {
   const { colors } = useTheme();
 
@@ -123,8 +127,8 @@ function SuccessSheet({
           </View>
           <Button
             title={buttonLabel}
-            titleStyle={sharedButton.primaryTitle}
-            style={[sharedButton.primary, styles.button]}
+            titleStyle={buttonTitleStyle ?? sharedButton.primaryTitle}
+            style={[sharedButton.primary, styles.button, buttonStyle]}
             onPress={onButtonPress}
           />
         </View>

@@ -55,11 +55,7 @@ export default function CampaignDetails() {
               contentFit="cover"
             />
             {avatarSource && (
-              <Image
-                source={avatarSource}
-                style={campaignDetailsStyle.avatar}
-                contentFit="cover"
-              />
+              <Image source={avatarSource} style={campaignDetailsStyle.avatar} contentFit="cover" />
             )}
           </View>
         )}
@@ -131,7 +127,10 @@ export default function CampaignDetails() {
                 What you need to create
               </Text>
               <View
-                style={[campaignDetailsStyle.sectionHeaderGap, campaignDetailsStyle.deliverablesGap]}>
+                style={[
+                  campaignDetailsStyle.sectionHeaderGap,
+                  campaignDetailsStyle.deliverablesGap,
+                ]}>
                 {campaign.deliverables.map(deliverable => (
                   <InfoCard
                     key={deliverable.title}
@@ -177,8 +176,7 @@ export default function CampaignDetails() {
                   style={campaignDetailsStyle.calendarIcon}
                   contentFit="contain"
                 />
-                <Text
-                  style={[campaignDetailsStyle.deadlineLabel, { color: colors.text.primary }]}>
+                <Text style={[campaignDetailsStyle.deadlineLabel, { color: colors.text.primary }]}>
                   {`Application deadline: ${campaign.applicationDeadline}`}
                 </Text>
               </View>
@@ -188,6 +186,7 @@ export default function CampaignDetails() {
               title="Apply Now"
               style={[buttonStyle.primary, campaignDetailsStyle.applyButton]}
               titleStyle={buttonStyle.primaryTitle}
+              onPress={() => router.push(`/campaign/${campaign.id}/apply`)}
             />
           </View>
         </View>

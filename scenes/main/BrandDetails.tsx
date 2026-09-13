@@ -58,7 +58,11 @@ export default function BrandDetails() {
               {brand.name ?? brand.label}
             </Text>
             {brand.verified && (
-              <Image source={verifiedBadge} style={brandDetailsStyle.verifiedIcon} contentFit="contain" />
+              <Image
+                source={verifiedBadge}
+                style={brandDetailsStyle.verifiedIcon}
+                contentFit="contain"
+              />
             )}
           </View>
 

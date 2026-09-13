@@ -15,7 +15,7 @@ import StatusBadge from '../StatusBadge';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 
-export type CampaignCardVariant = 'hero' | 'list';
+export type CampaignCardVariant = 'hero' | 'list' | 'applied';
 
 export interface CampaignCardProps {
   variant?: CampaignCardVariant;
@@ -27,6 +27,8 @@ export interface CampaignCardProps {
   tags?: string[];
   servicesDescription?: string;
   status?: string;
+  statusColor?: string;
+  statusTextColor?: string;
   price: string;
   dueDate: string;
   onPress?: () => void;
@@ -104,6 +106,31 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     gap: 8,
   },
+  // Content padding for the `applied` variant - image-to-row gap (14),
+  // row-to-title gap (8) and bottom padding (20) all confirmed from Figma's
+  // pixel positions (Applications screen, node 6015:7202 and siblings).
+  contentApplied: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 20,
+    gap: 8,
+  },
+  appliedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  appliedDate: {
+    fontSize: 14,
+    lineHeight: 21,
+    letterSpacing: 0.07,
+  },
+  appliedPrice: {
+    fontSize: 14,
+    lineHeight: 21,
+    letterSpacing: 0.07,
+    fontWeight: '600',
+  },
   avatarTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -175,6 +202,8 @@ function CampaignCard({
   tags,
   servicesDescription,
   status,
+  statusColor,
+  statusTextColor,
   price,
   dueDate,
   onPress,
@@ -183,6 +212,7 @@ function CampaignCard({
 }: CampaignCardProps) {
   const { colors, palette } = useTheme();
   const isHero = variant === 'hero';
+  const isApplied = variant === 'applied';
 
   return (
     <Pressable
@@ -207,10 +237,27 @@ function CampaignCard({
         )}
       </View>
 
-      {status && <StatusBadge label={status} style={styles.statusBadge} />}
+      {status && (
+        <StatusBadge
+          label={status}
+          color={statusColor}
+          textColor={statusTextColor}
+          style={styles.statusBadge}
+        />
+      )}
 
-      <View style={styles.content}>
-        {isHero ? (
+      <View style={isApplied ? styles.contentApplied : styles.content}>
+        {isApplied ? (
+          <>
+            <View style={styles.appliedRow}>
+              <Text style={[styles.appliedDate, { color: palette.gray[300] }]}>{dueDate}</Text>
+              <Text style={[styles.appliedPrice, { color: colors.text.primary }]}>{price}</Text>
+            </View>
+            <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
+              {title}
+            </Text>
+          </>
+        ) : isHero ? (
           <View style={styles.avatarTitleRow}>
             {brandAvatar && <Image source={brandAvatar} style={styles.avatar} contentFit="cover" />}
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
@@ -231,18 +278,20 @@ function CampaignCard({
           </View>
         )}
 
-        {!isHero && brandName && (
+        {!isApplied && !isHero && brandName && (
           <Text style={[styles.brandName, { color: palette.primary[400] }]}>{brandName}</Text>
         )}
 
-        {servicesDescription && (
+        {!isApplied && servicesDescription && (
           <Text style={[styles.services, { color: palette.gray[300] }]}>{servicesDescription}</Text>
         )}
 
-        <View style={styles.footerRow}>
-          <Text style={[styles.price, { color: colors.text.primary }]}>{price}</Text>
-          <CalendarBadge date={dueDate} />
-        </View>
+        {!isApplied && (
+          <View style={styles.footerRow}>
+            <Text style={[styles.price, { color: colors.text.primary }]}>{price}</Text>
+            <CalendarBadge date={dueDate} />
+          </View>
+        )}
       </View>
     </Pressable>
   );

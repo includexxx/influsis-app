@@ -1,118 +1,138 @@
+import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/hooks';
-import { useAppSlice, useProfileVerificationSlice } from '@/slices';
-import { layoutStyle } from '@/styles';
+import { router } from 'expo-router';
+import { useTheme, useDataPersist, DataPersistKeys } from '@/hooks';
+import { useAppSlice } from '@/slices';
+import { layoutStyle, accountStyle } from '@/styles';
+import CircleAvatar from '@/components/elements/CircleAvatar';
+import SettingsRow from '@/components/elements/SettingsRow';
+import ConfirmDialog from '@/components/elements/ConfirmDialog';
 
-const CATEGORY_LABELS: Record<string, string> = {
-  education: 'Education',
-  beauty: 'Beauty & Life Style',
-  travel: 'Travel',
-  music: 'Music',
-  gym: 'Gym & Body Building',
-  sports: 'Sports',
-  health: 'Health',
-};
-
-const SOCIAL_LABELS: Record<string, string> = {
-  facebook: 'Facebook',
-  instagram: 'Instagram',
-  tiktok: 'Tiktok',
-  youtube: 'Youtube',
-  likee: 'Likee',
-};
-
-const LANGUAGE_LABELS: Record<string, string> = {
-  english: 'English',
-  spanish: 'Spanish',
-  french: 'French',
-  russian: 'Russian',
-  hindi: 'Hindi',
-};
-
-function formatList(ids: string[], labels: Record<string, string>): string {
-  return ids.length ? ids.map(id => labels[id] ?? id).join(', ') : 'Not set';
-}
-
-function formatDate(iso?: string): string {
-  if (!iso) return 'Not set';
-  const date = new Date(iso);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}/${day}/${date.getFullYear()}`;
-}
+const avatarImage = require('@/assets/images/account/avatar.png');
+const profileIcon = require('@/assets/images/account/profile.png');
+const securityIcon = require('@/assets/images/account/security.png');
+const billingIcon = require('@/assets/images/account/billing.png');
+const helpCenterIcon = require('@/assets/images/account/help-center.png');
+const privacyIcon = require('@/assets/images/account/privacy-lock.png');
+const logoutIcon = require('@/assets/images/account/logout.png');
+// Not a Figma-provided row (see docs/screen/profile/account.md "Scope
+// notes") - reuses the existing calendar glyph already extracted for
+// profile-verification rather than exporting a new "applications" icon.
+const applicationsIcon = require('@/assets/images/profile-verification/calendar-today.png');
 
 const styles = StyleSheet.create({
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  username: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  fieldGroup: {
-    gap: 20,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  fieldValue: {
-    fontSize: 15,
-    lineHeight: 21,
+  scrollContent: {
+    paddingTop: 8,
   },
 });
 
-interface FieldProps {
-  label: string;
-  value: string;
-}
-
-function Field({ label, value }: FieldProps) {
-  const { palette, colors } = useTheme();
-  return (
-    <View>
-      <Text style={[styles.fieldLabel, { color: palette.gray[300] }]}>{label}</Text>
-      <Text style={[styles.fieldValue, { color: colors.text.primary }]}>{value}</Text>
-    </View>
-  );
-}
-
-// The one profile-verification-aware tab: displays what the wizard in
-// scenes/profile-verification collected (Redux `profileVerification` slice)
-// rather than a blank placeholder, since that data already exists. No real
-// backend to fetch/edit a profile from yet (docs/PRD.md §2.2/§4.1) - this is
-// read-only.
+// The Profile tab (Figma "Account", node 6001:38957 + 6027:8164's logout
+// popup) - a settings menu, not a data display, superseding this screen's
+// previous read-only field dump. See docs/screen/profile/account.md.
 export default function Profile() {
   const { colors, palette } = useTheme();
-  const { user } = useAppSlice();
-  const { dateOfBirth, categories, socialPlatforms, languages, bio, username } =
-    useProfileVerificationSlice();
+  const { user, dispatch, setLoggedIn, setUser } = useAppSlice();
+  const { removePersistData } = useDataPersist();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  function handleLogout() {
+    setIsLogoutConfirmOpen(false);
+    removePersistData(DataPersistKeys.USER);
+    dispatch(setUser(undefined));
+    dispatch(setLoggedIn(false));
+    router.replace('/auth/sign-in');
+  }
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={layoutStyle.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.name, { color: colors.text.primary }]}>{user?.name ?? 'Your Profile'}</Text>
-          <Text style={[styles.username, { color: palette.primary[400] }]}>
-            Influsis.com/{username || '-'}
-          </Text>
+      <ScrollView
+        style={layoutStyle.screen}
+        contentContainerStyle={[layoutStyle.scrollContent, styles.scrollContent]}
+        showsVerticalScrollIndicator={false}>
+        <View style={accountStyle.profileRow}>
+          <CircleAvatar source={avatarImage} size={80} />
+          <View>
+            <Text style={[accountStyle.name, { color: colors.text.primary }]}>
+              {user?.name ?? 'Your Profile'}
+            </Text>
+            <Text style={[accountStyle.email, { color: palette.gray[300] }]}>
+              {user?.email ?? '-'}
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.fieldGroup}>
-          <Field label="Date of birth" value={formatDate(dateOfBirth)} />
-          <Field label="Content categories" value={formatList(categories, CATEGORY_LABELS)} />
-          <Field label="Social media" value={formatList(socialPlatforms, SOCIAL_LABELS)} />
-          <Field label="Languages" value={formatList(languages, LANGUAGE_LABELS)} />
-          <Field label="Bio" value={bio || 'Not set'} />
+        <View style={accountStyle.section}>
+          <View style={accountStyle.sectionDivider}>
+            <Text style={[accountStyle.sectionLabel, { color: colors.text.primary }]}>General</Text>
+            <View style={[accountStyle.dividerLine, { backgroundColor: colors.divider }]} />
+          </View>
+          <View style={accountStyle.rowGroup}>
+            <SettingsRow
+              icon={profileIcon}
+              title="Profile"
+              onPress={() => router.push('/profile-edit')}
+              testID="account-row-profile"
+            />
+            <SettingsRow
+              icon={securityIcon}
+              title="Security"
+              onPress={() => router.push('/security-settings')}
+              testID="account-row-security"
+            />
+            <SettingsRow icon={billingIcon} title="Billing" testID="account-row-billing" />
+            <SettingsRow
+              icon={applicationsIcon}
+              title="My Applications"
+              onPress={() => router.push('/applications')}
+              testID="account-row-applications"
+            />
+          </View>
         </View>
+
+        <View style={accountStyle.section}>
+          <View style={accountStyle.sectionDivider}>
+            <Text style={[accountStyle.sectionLabel, { color: colors.text.primary }]}>About</Text>
+            <View style={[accountStyle.dividerLine, { backgroundColor: colors.divider }]} />
+          </View>
+          <View style={accountStyle.rowGroup}>
+            <SettingsRow
+              icon={helpCenterIcon}
+              title="Help Center"
+              onPress={() => router.push('/help-center')}
+              testID="account-row-help-center"
+            />
+            <SettingsRow
+              icon={privacyIcon}
+              title="Privacy Policy"
+              onPress={() => router.push('/privacy-policy')}
+              testID="account-row-privacy-policy"
+            />
+          </View>
+        </View>
+
+        <SettingsRow
+          icon={logoutIcon}
+          iconTint={colors.error}
+          title="Logout"
+          destructive
+          showChevron={false}
+          onPress={() => setIsLogoutConfirmOpen(true)}
+          testID="account-row-logout"
+        />
       </ScrollView>
+
+      {isLogoutConfirmOpen && (
+        <ConfirmDialog
+          title="Are you sure you want to logout?"
+          primaryLabel="Cancel"
+          onPrimaryPress={() => setIsLogoutConfirmOpen(false)}
+          secondaryLabel="Log Out"
+          onSecondaryPress={handleLogout}
+          onClose={() => setIsLogoutConfirmOpen(false)}
+          testID="logout-confirm"
+        />
+      )}
     </SafeAreaView>
   );
 }

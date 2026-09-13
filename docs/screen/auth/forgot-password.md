@@ -1,11 +1,11 @@
 # Forgot Password
 
-| | |
-|---|---|
-| **Figma node** | [`6010:11684`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11684&m=dev) — "Forget" |
-| **Route** | `/auth/forgot-password` (`app/(auth)/auth/forgot-password.tsx`) |
-| **Scene** | `scenes/auth/ForgotPassword.tsx` |
-| **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button` |
+|                     |                                                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Figma node**      | [`6010:11684`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6010-11684&m=dev) — "Forget" |
+| **Route**           | `/auth/forgot-password` (`app/(auth)/auth/forgot-password.tsx`)                                                                            |
+| **Scene**           | `scenes/auth/ForgotPassword.tsx`                                                                                                           |
+| **Components used** | `AuthHeader` (back button only), `AuthTitleBlock`, `TextField`, `Button`                                                                   |
 
 ## Purpose
 
@@ -22,8 +22,8 @@ Collects the account email to kick off the password-reset flow, then hands off t
 
 Client-side validation only (no backend — see `docs/PRD.md` §2.2/§4.1):
 
-| Field | Rule | Error text |
-|---|---|---|
+| Field | Rule                  | Error text      |
+| ----- | --------------------- | --------------- |
 | Email | matches `EMAIL_REGEX` | "Invalid email" |
 
 ## Navigation

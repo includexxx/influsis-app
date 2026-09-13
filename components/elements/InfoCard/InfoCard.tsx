@@ -3,7 +3,7 @@ import { useTheme } from '@/hooks';
 
 export interface InfoCardProps {
   title: string;
-  description: string;
+  description?: string;
   backgroundColor?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -31,7 +31,10 @@ const styles = StyleSheet.create({
 // 6401:5746 - the Gig Details screen's "What I will create" breakdown).
 // `backgroundColor` defaults to Figma's confirmed `palette.primary[50]`
 // pink but is overridable, generic enough for any future "info tile" this
-// project doesn't have a design for yet.
+// project doesn't have a design for yet. `description` is optional for the
+// Create Gig preview step (`scenes/main/CreateGigPreview.tsx`), whose
+// "What's Included" features are single-line only - unlike the Gig Details
+// screen's services, which always have both.
 function InfoCard({ title, description, backgroundColor, style, testID }: InfoCardProps) {
   const { colors, palette } = useTheme();
 
@@ -40,7 +43,9 @@ function InfoCard({ title, description, backgroundColor, style, testID }: InfoCa
       style={[styles.root, { backgroundColor: backgroundColor ?? palette.primary[50] }, style]}
       testID={testID}>
       <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
-      <Text style={[styles.description, { color: palette.gray[400] }]}>{description}</Text>
+      {description ? (
+        <Text style={[styles.description, { color: palette.gray[400] }]}>{description}</Text>
+      ) : null}
     </View>
   );
 }

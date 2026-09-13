@@ -24,8 +24,11 @@ const tabBarShadow =
 // / Message / Profile. "Create Gig" has no active tab state in Figma (no
 // "Create Gig Active" variant exists, unlike the other four) - it's an
 // action button rather than a persisted tab, so its `tabPress` is
-// intercepted below and redirected to the hidden "create" screen instead of
-// letting it become a 6th selected tab.
+// intercepted below and redirected to `/create` (the first step of the
+// Create Gig wizard, `app/(details)/create.tsx`) instead of letting it
+// become a 6th selected tab. The wizard lives in the `(details)` route
+// group rather than here so its 3 screens push onto the root Stack without
+// the tab bar mounted underneath - see docs/screen/create-gig/README.md.
 export default function MainLayout() {
   const { colors } = useTheme();
 
@@ -82,11 +85,6 @@ export default function MainLayout() {
           tabBarLabel: ({ focused }) => <TabBarLabel label="Profile" focused={focused} />,
         }}
       />
-      {/* Reached only via the "create-gig" tabPress listener above -
-          `href: null` keeps it out of the tab bar (it's not a 6th
-          destination) while still registering "/create" as a real route
-          inside this group, so `router.push('/create')` resolves. */}
-      <Tabs.Screen name="create" options={{ href: null }} />
       {/* Reached via the Home tab's search bar (scenes/main/Home.tsx). Not
           a tab bar destination (Figma's Search screen has no matching tab
           icon), but the tab bar itself stays visible on this screen per

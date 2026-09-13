@@ -34,6 +34,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       'expo-router',
       'expo-asset',
       [
+        'expo-image-picker',
+        {
+          photosPermission: 'Allow $(PRODUCT_NAME) to access your photos to upload a gig cover.',
+        },
+      ],
+      [
         'expo-splash-screen',
         {
           backgroundColor: '#ffffff',

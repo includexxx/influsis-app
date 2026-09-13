@@ -5,7 +5,7 @@
 | **Product**      | Influsis (mobile + web app)                                                                |
 | **Status**       | Foundation stage — built on React Native boilerplate, product features not yet implemented |
 | **Platforms**    | iOS, Android, Web (single Expo codebase)                                                   |
-| **Last updated** | 2026-08-10                                                                                 |
+| **Last updated** | 2026-08-16                                                                                 |
 
 ---
 
@@ -24,6 +24,9 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Onboarding + Auth flow](./screen/auth/README.md) — brand intro, onboarding carousel, sign-in/sign-up, OTP verification, forgot/reset password
 - [Profile Verification flow](./screen/profile-verification/README.md) — post-signup wizard: date of birth, content categories, social media, languages, bio, username, completion
 - [Main App Shell](./screen/main/README.md) — the post-login `(main)` Tabs group: Home, Order, Create Gig, Message, Profile
+- [Order](./screen/orders/README.md) — the Order tab's campaign/gig order list, filtered by 4 status tabs
+- [Order Details](./screen/order-details/README.md) — a single order's full detail view, opened by tapping any order card
+- [Order Deliver](./screen/order-deliver/README.md) — the delivery timeline + link-submission flow, opened from Order Details' "Delivery" button, ending in a confirmation screen
 - [Home](./screen/home/README.md) — the Home tab's campaign/gig/creator feed
 - [Notifications](./screen/notifications/README.md) — notifications list pushed from the Home tab's bell icon
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
@@ -34,8 +37,13 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
 - [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
 - [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
+- [Create Gig](./screen/create-gig/README.md) — the 3-step wizard for publishing a new gig, opened from the main tab bar's "Create Gig" button
 - [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
+- [Apply Campaign](./screen/apply-campaign/README.md) — the application form a creator submits to a campaign, opened from Campaign Details' "Apply Now" button
+- [Applications (Applied / Request)](./screen/apply-campaign/campaign-list.md) — a creator's own submitted applications and the campaign invitations they've received, opened from Profile's "My Applications" link
 - [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
+- [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
+- [Profile / Account Settings](./screen/profile/README.md) — the Profile tab's settings menu and its 5 sub-screens: Edit Profile, Security Settings, Change Password, Privacy Policy, Help Center (FAQ)
 
 ## 2. Current State of the App
 
@@ -56,7 +64,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.2 What is placeholder / not real yet
 
-- **Main app screens**: Home, Order, Message are placeholder screens (title + note); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
+- **Main app screens**: Order, Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
 - **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
 - **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.

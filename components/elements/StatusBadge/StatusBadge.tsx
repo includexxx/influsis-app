@@ -3,6 +3,7 @@ import { View, Text, Platform, StyleSheet, StyleProp, ViewStyle } from 'react-na
 export interface StatusBadgeProps {
   label: string;
   color?: string;
+  textColor?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -33,7 +34,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.5,
     fontWeight: '500',
-    color: '#030304',
   },
 });
 
@@ -41,11 +41,20 @@ const styles = StyleSheet.create({
 // on the Search screen's result cards) - `color` defaults to Figma's
 // confirmed green (`#B2FFD2`, the same tone CampaignCard's gender tag pills
 // use) but is overridable for other statuses this project hasn't designed
-// yet (e.g. an Order screen's "Completed"/"Cancelled").
-function StatusBadge({ label, color = '#B2FFD2', style, testID }: StatusBadgeProps) {
+// yet (e.g. an Order screen's "Completed"/"Cancelled"). `textColor` was
+// added for the Create Gig preview's "Pending" badge (Figma node 6549:5987,
+// `#F79009` text on `#FEF0C7`), which - unlike every prior status this
+// component rendered - doesn't use the default near-black label color.
+function StatusBadge({
+  label,
+  color = '#B2FFD2',
+  textColor = '#030304',
+  style,
+  testID,
+}: StatusBadgeProps) {
   return (
     <View style={[styles.root, badgeShadow, { backgroundColor: color }, style]} testID={testID}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
     </View>
   );
 }

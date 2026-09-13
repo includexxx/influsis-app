@@ -9,6 +9,19 @@ export interface ProfileVerificationState {
   languages: string[];
   bio: string;
   username: string;
+  // Edit Profile screen fields (scenes/main/EditProfile.tsx) - live here
+  // rather than a new slice since this is already this project's "extra
+  // profile info beyond the core User type" slice (dateOfBirth is edited
+  // by both the onboarding wizard and this screen, a single canonical
+  // value either way).
+  phoneNumber?: string;
+  // Lowercase ISO-3166 code of the phone number's *dial-code* country
+  // (`@/data/dial-codes`), kept apart from `phoneNumber` so the input holds
+  // only local digits - and distinct from `country` below, which is the
+  // user's residence country and moves independently.
+  phoneCountry?: string;
+  gender?: string;
+  country?: string;
 }
 
 const initialState: ProfileVerificationState = {
@@ -18,6 +31,10 @@ const initialState: ProfileVerificationState = {
   languages: [],
   bio: '',
   username: '',
+  phoneNumber: undefined,
+  phoneCountry: undefined,
+  gender: undefined,
+  country: undefined,
 };
 
 function toggleItem(list: string[], id: string): string[] {
@@ -34,10 +51,7 @@ const slice = createSlice({
     toggleCategory: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.categories = toggleItem(state.categories, payload);
     },
-    toggleSocialPlatform: (
-      state: ProfileVerificationState,
-      { payload }: PayloadAction<string>,
-    ) => {
+    toggleSocialPlatform: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.socialPlatforms = toggleItem(state.socialPlatforms, payload);
     },
     toggleLanguage: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
@@ -48,6 +62,18 @@ const slice = createSlice({
     },
     setUsername: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
       state.username = payload;
+    },
+    setPhoneNumber: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.phoneNumber = payload;
+    },
+    setPhoneCountry: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.phoneCountry = payload;
+    },
+    setGender: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.gender = payload;
+    },
+    setCountry: (state: ProfileVerificationState, { payload }: PayloadAction<string>) => {
+      state.country = payload;
     },
     reset: () => initialState,
   },

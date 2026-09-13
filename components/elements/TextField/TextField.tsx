@@ -18,9 +18,15 @@ const alertErrorIcon = require('@/assets/images/icons/alert-error.png');
 
 export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   label?: string;
+  labelStyle?: StyleProp<TextStyle>;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
+  // Overrides the bordered row's own shape (radius/height/border color) -
+  // added for the Order Deliver screen's link field (Figma node 6040:8590),
+  // whose 8px radius and `rgba(0,0,0,0.2)` border don't match this
+  // component's original 12px/`gray[100]` caller.
+  inputRowStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   leftAdornment?: React.ReactNode;
   rightAdornment?: React.ReactNode;
@@ -73,9 +79,11 @@ const styles = StyleSheet.create({
 
 function TextField({
   label,
+  labelStyle,
   error,
   containerStyle,
   inputStyle,
+  inputRowStyle,
   style,
   leftAdornment,
   rightAdornment,
@@ -89,11 +97,14 @@ function TextField({
 
   return (
     <View style={[styles.root, containerStyle, style]}>
-      {label ? <Text style={[styles.label, { color: colors.text.secondary }]}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, { color: colors.text.secondary }, labelStyle]}>{label}</Text>
+      ) : null}
       <View
         style={[
           styles.inputRow,
           { borderColor: error ? colors.error : palette.gray[100], backgroundColor: colors.card },
+          inputRowStyle,
         ]}>
         {leftAdornment}
         <TextInput
