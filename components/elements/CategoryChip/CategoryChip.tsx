@@ -5,6 +5,12 @@ export interface CategoryChipProps {
   label: string;
   selected?: boolean;
   onPress?: () => void;
+  /** Overrides the default brand-pink selected fill/border — e.g. the
+   * per-type tag colors on the Edit Profile Audience section. */
+  selectedColor?: string;
+  /** Overrides the default white selected label color, paired with
+   * `selectedColor` for a soft-tint chip instead of a solid brand fill. */
+  selectedTextColor?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -31,8 +37,18 @@ const styles = StyleSheet.create({
 // "Food" chip; unselected is a plain outlined pill. Generic `label`/
 // `selected`/`onPress` so any future filter row (Order, Message, ...) can
 // reuse it.
-function CategoryChip({ label, selected, onPress, style, testID }: CategoryChipProps) {
+function CategoryChip({
+  label,
+  selected,
+  onPress,
+  selectedColor,
+  selectedTextColor,
+  style,
+  testID,
+}: CategoryChipProps) {
   const { palette } = useTheme();
+  const fill = selectedColor ?? palette.primary[400];
+  const textColor = selectedTextColor ?? palette.white;
 
   return (
     <Pressable
@@ -43,12 +59,12 @@ function CategoryChip({ label, selected, onPress, style, testID }: CategoryChipP
       style={[
         styles.root,
         {
-          backgroundColor: selected ? palette.primary[400] : palette.white,
-          borderColor: selected ? palette.primary[400] : palette.gray[100],
+          backgroundColor: selected ? fill : palette.white,
+          borderColor: selected ? fill : palette.gray[100],
         },
         style,
       ]}>
-      <Text style={[styles.label, { color: selected ? palette.white : palette.gray[900] }]}>
+      <Text style={[styles.label, { color: selected ? textColor : palette.gray[900] }]}>
         {label}
       </Text>
     </Pressable>

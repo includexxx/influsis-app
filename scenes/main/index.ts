@@ -22,6 +22,7 @@ export { default as CampaignDetails } from './CampaignDetails';
 export { default as ApplyCampaign } from './ApplyCampaign';
 export { default as Applications } from './Applications';
 export { default as EditProfile } from './EditProfile';
+export { default as MyProfile } from './MyProfile';
 export { default as SecuritySettings } from './SecuritySettings';
 export { default as ChangePassword } from './ChangePassword';
 export { default as PrivacyPolicy } from './PrivacyPolicy';

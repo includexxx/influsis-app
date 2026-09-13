@@ -1,5 +1,11 @@
 # Screen Specs — Profile Verification Flow
 
+> **Superseded by the creator onboarding wizard (build-plan item 20).** The
+> screens and Redux slice described here were removed in 20a; the
+> post-registration flow is now `app/(auth)/creator-onboarding.tsx` /
+> `scenes/creator-onboarding/*`, specified in `creator-onboarding-requirements.md`.
+> These specs are kept for design/history reference only.
+
 Source: [Influsis Project — Brand & App Version (Figma)](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6449-5583&m=dev)
 
 This is the second product flow implemented on top of [`docs/screen/auth`](../auth/README.md). It runs immediately after a new account finishes sign-up ([`verify-otp.md`](../auth/verify-otp.md)'s "Account Created Successfully" popup) and walks a newly-created creator through a 5-step profile wizard — date of birth, content categories, social media, languages, and a final "about you" pair of screens (bio + username) — before landing on a completion screen.

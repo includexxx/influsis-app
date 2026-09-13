@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { State, Dispatch } from '@/utils/store';
 import { authApi, clearTokens, getTokens, ApiError } from '@/services';
+import { profilesApi } from '@/services/profilesApi';
 import { AuthAccount } from '@/types';
 
 export type AuthStatus = 'restoring' | 'authenticated' | 'unauthenticated';
@@ -81,6 +82,7 @@ export const { sessionEstablished, sessionEnded, accountUpdated } = slice.action
 export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
   dispatch(sessionEnded());
   dispatch(authApi.util.resetApiState());
+  dispatch(profilesApi.util.resetApiState());
   await clearTokens();
 });
 

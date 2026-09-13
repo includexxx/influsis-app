@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks';
+import { PickedImageAsset } from '@/utils/onboardingSchemas';
 import Image from '../Image';
 
 const uploadCloudIcon = require('@/assets/images/create-gig/upload-cloud.png');
@@ -8,7 +9,13 @@ const successCheckIcon = require('@/assets/images/create-gig/upload-success-chec
 
 export interface ImageUploaderProps {
   imageUri?: string;
-  onChange: (uri: string) => void;
+  // `uri` first so existing callers that only want the string keep working;
+  // `asset` carries `{ uri, mimeType, fileName }` for callers assembling a
+  // `FormData` upload later (creator onboarding photos step).
+  onChange: (uri: string, asset?: PickedImageAsset) => void;
+  // Crop aspect passed to the picker. Defaults to square (the Create Gig
+  // cover picker); the onboarding cover photo overrides it to a wide ratio.
+  aspect?: [number, number];
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -99,7 +106,7 @@ const styles = StyleSheet.create({
 // the filled state swaps in a 148x148 preview with a green success badge
 // and a "Change Image" pill, both wired to the same device image picker.
 // Fills the previously-empty `components/elements/ImageUploader` stub.
-function ImageUploader({ imageUri, onChange, style, testID }: ImageUploaderProps) {
+function ImageUploader({ imageUri, onChange, aspect = [1, 1], style, testID }: ImageUploaderProps) {
   const { colors, palette } = useTheme();
 
   async function handlePick() {
@@ -110,10 +117,15 @@ function ImageUploader({ imageUri, onChange, style, testID }: ImageUploaderProps
       mediaTypes: ['images'],
       quality: 0.8,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect,
     });
-    if (!result.canceled && result.assets[0]) {
-      onChange(result.assets[0].uri);
+    const asset = !result.canceled ? result.assets[0] : undefined;
+    if (asset) {
+      onChange(asset.uri, {
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        fileName: asset.fileName ?? undefined,
+      });
     }
   }
 

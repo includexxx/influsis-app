@@ -1,5 +1,4 @@
-import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query/react';
-import { Method } from 'axios';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import {
   AuthAccount,
   Login2faVerifyRequest,
@@ -12,34 +11,7 @@ import {
   ResetPasswordRequest,
   SessionTokenPair,
 } from '@/types';
-import { ApiError, request } from './http';
-
-interface BaseQueryArgs {
-  url: string;
-  method?: Method;
-  data?: unknown;
-  params?: unknown;
-  skipAuth?: boolean;
-}
-
-// Thin adapter over services/http.ts: request() already unwraps the response
-// envelope and normalizes every failure to ApiError, and httpClient owns the
-// bearer-token attach plus the one-shot 401 refresh (19a). This only reshapes
-// the result into RTK Query's { data } | { error } contract.
-const axiosBaseQuery = (): BaseQueryFn<BaseQueryArgs, unknown, ApiError> => async args => {
-  try {
-    return { data: await request<unknown>(args) };
-  } catch (err) {
-    if (err instanceof ApiError) return { error: err };
-    return {
-      error: new ApiError({
-        code: 'UNKNOWN',
-        statusCode: 0,
-        message: 'The request failed unexpectedly.',
-      }),
-    };
-  }
-};
+import { axiosBaseQuery } from './baseQuery';
 
 export const authApi = createApi({
   reducerPath: 'authApi',

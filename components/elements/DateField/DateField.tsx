@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
+import { radius } from '@/theme';
 import Image from '../Image';
 
 const calendarIcon = require('@/assets/images/profile-verification/calendar-today.png');
@@ -18,7 +19,9 @@ export interface DateFieldProps {
 const styles = StyleSheet.create({
   root: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    minHeight: 54,
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
   },

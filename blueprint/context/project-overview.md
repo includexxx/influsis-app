@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 0e997960cfcd0611ae292d4657d791ccc64916f06f806f3c056a9560b1cf5e40 -->
+<!-- blueprint:source-hash d2553ec73d7930c76f2f55c9368851ac23f58287e4a69f279bca004f438c33e5 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -20,9 +20,11 @@ delivery tracking, messaging, and payouts end to end.
 - **Businesses** - post campaigns and gigs, review creator applications, and
   manage active collaborations.
 
-Both roles share one app shell (`(main)` tabs); screens differ by role. No
-anonymous tier - the onboarding/auth flow gates entry, though route guarding
-isn't enforced yet (see Open questions).
+Both roles share one app shell (`(main)` tabs); screens differ by role. This
+repo is the **creator-facing** app - `roleKey: 'creator'` is hard-coded on
+register, so businesses cannot sign up here. No anonymous tier: entry is gated
+by `utils/authGate.ts` plus the `(auth)`/`(main)`/`(details)` layout guards
+(feature 19c).
 
 ## Features
 
@@ -32,7 +34,8 @@ for the not-yet-built backend):
 1. **Onboarding + auth** - intro carousel, sign-in/sign-up, OTP verification,
    forgot/reset password.
 2. **Profile verification wizard** - post-signup steps: date of birth,
-   categories, social media, languages, bio, username.
+   categories, social media, languages, bio, username. **Superseded by item
+   20**, which retires these seven routes.
 3. **Main app shell** - post-login Tabs: Home, Order, Create Gig, Message,
    Profile.
 4. **Home feed** - campaign/gig/creator/business discovery feed. **Headline
@@ -60,11 +63,23 @@ for the not-yet-built backend):
 18. **Withdrawals** - bank transfer branch and mobile banking/bKash branch,
     sharing amount -> review -> success steps.
 
-Not yet built: the backend-integration roadmap (`build-plan.md` items 19+).
-Item 19 (real creator authentication) is the active slice: the backend NestJS
-API at `../backend` now exists, and 19a-19g wire the `/auth/*` endpoints
-(login, registration OTP, password reset, TOTP second factor, token refresh,
-route guarding). Every product screen still runs on `data/*.ts` mock fixtures
+**Item 19 (real creator authentication) is complete.** 19a-19g wire the
+`/auth/*` endpoints against the NestJS API at `../backend` - login,
+registration OTP, password reset, TOTP second factor, token refresh, and route
+guarding - on axios (with a refresh interceptor), RTK Query, and
+react-hook-form + zod.
+
+**Next up - item 20, creator onboarding wizard.** One private
+post-registration route hosting a multi-step form that captures everything the
+matching engine, public profile, and verification queue need: basics,
+location, categories with subcategories, languages, deliverables, profile and
+cover photos, portfolio entries, and a unique handle. It replaces the item-2
+profile-verification wizard, which captured no location, subcategories,
+deliverables, portfolio, or photos. Split into 20a-20g. Its only server call
+today is the public handle-availability check; there is **no submit endpoint
+yet**, so Finish assembles the `FormData` payload and `console.log`s it.
+
+Every product screen outside auth still runs on `data/*.ts` mock fixtures
 until later items.
 
 ## Data model

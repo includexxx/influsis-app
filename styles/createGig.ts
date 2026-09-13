@@ -4,10 +4,10 @@ import { spacing } from '@/theme';
 // Shared fragments for the three Create Gig wizard scenes
 // (scenes/main/CreateGigBasics.tsx, CreateGigPricing.tsx,
 // CreateGigPreview.tsx) - the same "reused across a flow's scene files"
-// role styles/profileStep.ts plays for profile-verification. Field-level
-// look (TextField/SelectField/Checkbox/ImageUploader) lives with those
-// components instead - this file only holds shapes the scene files
-// themselves assemble.
+// role styles/profileStep.ts plays for the creator onboarding wizard.
+// Field-level look (TextField/SelectField/Checkbox/ImageUploader) lives
+// with those components instead - this file only holds shapes the scene
+// files themselves assemble.
 export const createGigStyle = StyleSheet.create({
   // Thin rule under the ScreenHeader (Figma "Line 10", node 6525:6048) -
   // none of this project's other ScreenHeader-based screens have one, so

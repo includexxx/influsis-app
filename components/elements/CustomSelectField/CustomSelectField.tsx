@@ -3,6 +3,7 @@ import { useTheme } from '@/hooks';
 import Image from '../Image';
 
 const chevronDownIcon = require('@/assets/images/create-gig/chevron-down.png');
+const alertErrorIcon = require('@/assets/images/icons/alert-error.png');
 
 export interface CustomSelectOption {
   label: string;
@@ -17,6 +18,10 @@ export interface CustomSelectFieldProps {
   options: CustomSelectOption[];
   /** Opens the caller-owned option list (an `OptionSheet` rendered by the scene). */
   onPress: () => void;
+  /** Dims the trigger and blocks the press (e.g. a locked or not-yet-ready field). */
+  disabled?: boolean;
+  /** Inline validation message, rendered below the trigger like `TextField`. */
+  error?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -52,6 +57,21 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
+  // Matches TextField's error row so the two read the same in a form.
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  errorIcon: {
+    width: 16,
+    height: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
 
 // Boxed single-select *trigger* (Figma node 6525:6068): it renders the label,
@@ -72,6 +92,8 @@ function CustomSelectField({
   value,
   options,
   onPress,
+  disabled,
+  error,
   style,
   testID,
 }: CustomSelectFieldProps) {
@@ -88,7 +110,16 @@ function CustomSelectField({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label ?? placeholder}
-        style={[styles.field, { borderColor: palette.gray[100], backgroundColor: colors.card }]}
+        accessibilityState={{ disabled: !!disabled }}
+        disabled={disabled}
+        style={[
+          styles.field,
+          {
+            borderColor: error ? colors.error : palette.gray[100],
+            backgroundColor: colors.card,
+            opacity: disabled ? 0.5 : 1,
+          },
+        ]}
         onPress={onPress}
         testID={testID}>
         <Text
@@ -101,6 +132,13 @@ function CustomSelectField({
         </Text>
         <Image source={chevronDownIcon} style={styles.chevron} contentFit="contain" />
       </Pressable>
+
+      {error ? (
+        <View style={styles.errorRow}>
+          <Image source={alertErrorIcon} style={styles.errorIcon} contentFit="contain" />
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }

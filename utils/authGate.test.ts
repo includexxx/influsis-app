@@ -7,24 +7,19 @@ describe('authGate', () => {
     ['restoring', '(main)', undefined, { type: 'wait' }],
     ['restoring', '(details)', undefined, { type: 'wait' }],
     ['restoring', '(auth)', 'auth', { type: 'wait' }],
-    ['restoring', '(auth)', 'profile-verification', { type: 'wait' }],
+    ['restoring', '(auth)', 'creator-onboarding', { type: 'wait' }],
 
     ['unauthenticated', '(main)', undefined, { type: 'redirect', href: '/onboarding' }],
     ['unauthenticated', '(details)', undefined, { type: 'redirect', href: '/onboarding' }],
     ['unauthenticated', '(auth)', 'auth', { type: 'allow' }],
     ['unauthenticated', '(auth)', 'onboarding', { type: 'allow' }],
-    [
-      'unauthenticated',
-      '(auth)',
-      'profile-verification',
-      { type: 'redirect', href: '/onboarding' },
-    ],
+    ['unauthenticated', '(auth)', 'creator-onboarding', { type: 'redirect', href: '/onboarding' }],
 
     ['authenticated', '(main)', undefined, { type: 'allow' }],
     ['authenticated', '(details)', undefined, { type: 'allow' }],
     ['authenticated', '(auth)', 'auth', { type: 'redirect', href: '/home' }],
     ['authenticated', '(auth)', 'onboarding', { type: 'redirect', href: '/home' }],
-    ['authenticated', '(auth)', 'profile-verification', { type: 'allow' }],
+    ['authenticated', '(auth)', 'creator-onboarding', { type: 'allow' }],
   ])('%s + %s + %s', (status, group, area, expected) => {
     expect(authGate(status, group, area)).toEqual(expected);
   });

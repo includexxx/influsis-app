@@ -55,7 +55,7 @@ Good:
 - [ ] 2. **Validation result** - run checks and show pass/fail status for a skill
 - [ ] 3. **Directory listing** - browse and filter published skills
 - [ ] 4. **Deployment readiness** - configure Render or Vercel and verify the
-  production build
+     production build
 
 Avoid:
 
@@ -75,46 +75,46 @@ cleaned-up checkbox version before generating the project overview.
 ## Shipped (UI-complete against mock data)
 
 - [x] 1. **Onboarding + auth flow** - intro carousel, sign-in/sign-up, OTP
-  verification, forgot/reset password (`docs/screen/auth/`)
+     verification, forgot/reset password (`docs/screen/auth/`)
 - [x] 2. **Profile verification wizard** - post-signup steps for date of
-  birth, categories, social media, languages, bio, username
-  (`docs/screen/profile-verification/`)
+     birth, categories, social media, languages, bio, username
+     (`docs/screen/profile-verification/`)
 - [x] 3. **Main app shell** - post-login Tabs group: Home, Order, Create Gig,
-  Message, Profile (`docs/screen/main/`)
+     Message, Profile (`docs/screen/main/`)
 - [x] 4. **Home feed** - campaign/gig/creator/business discovery feed
-  (`docs/screen/home/`)
+     (`docs/screen/home/`)
 - [x] 5. **Notifications** - notifications list (`docs/screen/notifications/`)
 - [x] 6. **Search** - campaign search (`docs/screen/search/`)
 - [x] 7. **Live campaigns** - a creator's ongoing campaigns
-  (`docs/screen/live-campaign/`)
+     (`docs/screen/live-campaign/`)
 - [x] 8. **Campaigns list + details** - all of a creator's campaigns and a
-  single campaign's full detail view (`docs/screen/campaigns/`,
-  `docs/screen/campaign-details/`)
+     single campaign's full detail view (`docs/screen/campaigns/`,
+     `docs/screen/campaign-details/`)
 - [x] 9. **Apply to campaign** - application form plus a creator's own
-  applications/invitations list (`docs/screen/apply-campaign/`)
+     applications/invitations list (`docs/screen/apply-campaign/`)
 - [x] 10. **Businesses directory + details** - business logo directory and a
-  single business's full profile (`docs/screen/businesses/`,
-  `docs/screen/business-details/`)
+      single business's full profile (`docs/screen/businesses/`,
+      `docs/screen/business-details/`)
 - [x] 11. **Top gigs + top creators** - ranked directories
-  (`docs/screen/top-gigs/`, `docs/screen/top-creators/`)
+      (`docs/screen/top-gigs/`, `docs/screen/top-creators/`)
 - [x] 12. **Gig details + creator profile** - single gig detail view and a
-  single creator's full profile (`docs/screen/gig-details/`,
-  `docs/screen/creator-profile/`)
+      single creator's full profile (`docs/screen/gig-details/`,
+      `docs/screen/creator-profile/`)
 - [x] 13. **Create gig wizard** - 3-step gig publishing flow: basics, pricing,
-  preview (`docs/screen/create-gig/`)
+      preview (`docs/screen/create-gig/`)
 - [x] 14. **Order lifecycle** - order list (4 status tabs), order details,
-  delivery submission, delivered confirmation (`docs/screen/orders/`,
-  `docs/screen/order-details/`, `docs/screen/order-deliver/`)
+      delivery submission, delivered confirmation (`docs/screen/orders/`,
+      `docs/screen/order-details/`, `docs/screen/order-deliver/`)
 - [x] 15. **Messaging** - conversation list and single-chat detail
-  (`docs/screen/message/`)
+      (`docs/screen/message/`)
 - [x] 16. **Profile / account settings** - settings menu, edit profile,
-  security settings, change password, privacy policy, help center
-  (`docs/screen/profile/`)
+      security settings, change password, privacy policy, help center
+      (`docs/screen/profile/`)
 - [x] 17. **Balance + transactions** - earnings summary and full transfer
-  history (`docs/screen/balance/`, `docs/screen/transactions/`)
+      history (`docs/screen/balance/`, `docs/screen/transactions/`)
 - [x] 18. **Withdrawals** - bank transfer branch and mobile banking/bKash
-  branch, sharing amount -> review -> success steps
-  (`docs/screen/withdraw-bank/`, `docs/screen/mobile-banking/`)
+      branch, sharing amount -> review -> success steps
+      (`docs/screen/withdraw-bank/`, `docs/screen/mobile-banking/`)
 
 ## Backend integration
 
@@ -127,34 +127,144 @@ cleaned-up checkbox version before generating the project overview.
 > registration OTP, with an optional TOTP second factor at login.
 
 - [x] 19. **Real creator authentication (server-wired)** - replace the
-  client-side-only auth stubs with real `/auth/*` calls: an access/refresh
-  token strategy, login, registration + OTP verification, password reset, a
-  login second factor, and route guarding. Built on axios (with a refresh
-  interceptor), Redux Toolkit + RTK Query, and react-hook-form + zod for the
-  forms.
+      client-side-only auth stubs with real `/auth/*` calls: an access/refresh
+      token strategy, login, registration + OTP verification, password reset, a
+      login second factor, and route guarding. Built on axios (with a refresh
+      interceptor), Redux Toolkit + RTK Query, and react-hook-form + zod for the
+      forms.
   - [x] 19a. **Auth HTTP foundation** - an axios instance for `/api/v1`, response
-    envelope handling with a `code`-based `ApiError`, an AsyncStorage token
-    store, a request interceptor (attach the access token) and a response
-    interceptor (one-shot refresh on 401, single-flight, persist the rotated
-    pair atomically). New modules only, no screen/redux/bootstrap change.
+        envelope handling with a `code`-based `ApiError`, an AsyncStorage token
+        store, a request interceptor (attach the access token) and a response
+        interceptor (one-shot refresh on 401, single-flight, persist the rotated
+        pair atomically). New modules only, no screen/redux/bootstrap change.
   - [x] 19b. **RTK Query auth API + session slice** - an `axiosBaseQuery` RTK
-    Query API with a typed endpoint per Group A/B auth route, an `auth.slice`
-    holding session status/account, store wiring, and a launch rehydrate that
-    replaces the fake `getUserAsync`.
+        Query API with a typed endpoint per Group A/B auth route, an `auth.slice`
+        holding session status/account, store wiring, and a launch rehydrate that
+        replaces the fake `getUserAsync`.
   - [x] 19c. **Route guarding** - a pure `authGate` helper plus `(auth)` /
-    `(main)` / `(details)` layout guards and session-based `app/index.tsx`
-    routing.
+        `(main)` / `(details)` layout guards and session-based `app/index.tsx`
+        routing.
   - [x] 19d. **Sign In + Sign Up wired** - zod schemas driven by
-    react-hook-form, `POST /auth/login` and `POST /auth/register`
-    (`roleKey: 'creator'`), with envelope `code` and per-field `errors` surfaced
-    inline.
+        react-hook-form, `POST /auth/login` and `POST /auth/register`
+        (`roleKey: 'creator'`), with envelope `code` and per-field `errors` surfaced
+        inline.
   - [x] 19e. **Registration OTP** - the `VerifyOtp` signup branch calls
-    `POST /auth/otp/verify` (`purpose: registration`) for the token pair and
-    creates the session; "Resend Code" calls `POST /auth/otp/request`.
+        `POST /auth/otp/verify` (`purpose: registration`) for the token pair and
+        creates the session; "Resend Code" calls `POST /auth/otp/request`.
   - [x] 19f. **Password reset wired** - `ForgotPassword`, `VerifyOtp` (reset
-    branch), and `ResetPassword` call `POST /auth/otp/request`,
-    `POST /auth/otp/verify` (`purpose: password_reset`), and
-    `POST /auth/reset-password`.
+        branch), and `ResetPassword` call `POST /auth/otp/request`,
+        `POST /auth/otp/verify` (`purpose: password_reset`), and
+        `POST /auth/reset-password`.
   - [x] 19g. **Login second factor** - handle the
-    `{ mfaRequired, preAuthToken }` login branch and add the TOTP step that
-    calls `POST /auth/login/2fa/verify`.
+        `{ mfaRequired, preAuthToken }` login branch and add the TOTP step that
+        calls `POST /auth/login/2fa/verify`.
+
+## Creator onboarding
+
+> Written manually from `creator-onboarding-requirements.md` (Creator Onboarding
+> — User Flow, Guidelines & Requirements, Draft v1). This **replaces** the
+> shipped profile-verification wizard (item 2), which captured too little for
+> the matching engine: no location, no subcategories, no deliverables, no
+> portfolio, no photos. The old `(auth)/profile-verification/*` routes and
+> `scenes/profile-verification/*` retire as part of item 20.
+>
+> Shape: **one private route** hosting a multi-step form, not eight routes.
+> react-hook-form per step (zod resolver, as in `utils/authSchemas.ts`),
+> Redux Toolkit for cross-step draft state, RTK Query for the one server call
+> the flow makes today (handle availability). Images are collected as local
+> URIs and assembled into `FormData` at Finish. **There is no submit endpoint
+> yet** - Finish `console.log`s the assembled onboarding state and stops. What
+> happens after submit is specified later.
+
+- [x] 20. **Creator onboarding wizard** - the post-registration private flow
+      that captures everything the matching engine, public profile, and
+      verification queue need: basics, location, categories/subcategories,
+      languages, deliverables, photos, portfolio, and a unique handle. Single
+      screen, multi-step form; visual pattern (pink progress bar, `X of N`
+      counter, one-line subtext, full-width pink CTA, disabled-until-valid `Next`)
+      carried over from the profile-verification screens it replaces.
+  - [x] 20a. **Onboarding shell + step machine** - one route
+        `app/(auth)/creator-onboarding.tsx` (the `(auth)/onboarding` segment is
+        already the pre-login intro carousel, so the name differs) over
+        `scenes/creator-onboarding/`, a `creatorOnboarding` slice holding
+        `currentStep` / `completedSteps` / per-step `draft`, and a
+        `useCreatorOnboardingStep` hook exposing `saveAndContinue` / `skip` /
+        `back`. Each step owns its own react-hook-form seeded from the saved draft,
+        so Back restores the previous answer. Gate it behind `authGate` the way
+        `profile-verification` is gated (authenticated only), point the
+        registration-OTP redirect in `scenes/auth/VerifyOtp.tsx` at it, and retire
+        the seven `(auth)/profile-verification` routes plus
+        `scenes/profile-verification/*`. `slices/profileVerification.slice.ts`
+        cannot simply be deleted - `scenes/main/EditProfile.tsx` reads its
+        `phoneNumber` / `phoneCountry` / `gender` / `country` / `dateOfBirth`
+        fields, so those move to a profile slice of their own. Ships with Step 1
+        (Basic Information: name, gender, date of birth) wired end to end to prove
+        the pattern, including the platform-minimum-age check on DOB.
+  - [x] 20b. **Location step** - Country locked to Bangladesh for V1 (rendered,
+        disabled, no other option), Division and City as dependent selects, Zip
+        optional. Port the division/district tables and the country -> region ->
+        city cascade from `../web/src/data/locations/` (`bd-regions.ts`,
+        `bd-districts.ts`) into `data/locations.ts` so both apps agree on the
+        values; keep the schema country-generic so a US launch adds data, not
+        fields. City is a hard filter in Search & Discovery, so it must be a
+        picked value, never free text.
+  - [x] 20c. **Content categories + subcategories** - multi-select categories
+        (the existing eight) where selecting one expands its subcategory list
+        inline as an accordion, each selected category needs at least one
+        subcategory before `Next` enables, deselecting a category clears its
+        subcategories, and "Others" takes a free-text specify value that becomes
+        both a category and a subcategory.
+  - [x] 20d. **Languages + deliverables steps** - languages multi-select
+        (English, Spanish, French, Russian, Hindi, Others-with-free-text, minimum
+        one) and deliverables multi-select (Photo Post, Reel, Video, Story, Blog,
+        Live, minimum one). Two steps, one slice shape, built together because
+        they are the same multi-select control with different option sets.
+  - [x] 20e. **Profile + cover photo step** - single-image pickers for the
+        profile photo and the cover photo via `expo-image-picker` (reusing
+        `components/elements/ImageUploader`), both recommended and skippable with
+        UI copy explaining they drive the discovery card and verification
+        credibility. Images are held as picked-asset descriptors (uri, mimeType,
+        fileName) so they can go straight into `FormData` later.
+  - [x] 20f. **Portfolio step** - repeatable entry cards (content link,
+        platform tag auto-detected from the URL with a manual Instagram / YouTube
+        / TikTok / Others fallback, thumbnail with a manual image-upload fallback
+        when auto-fetch is unavailable), `+ Add Another` and per-entry delete,
+        inline validation for a malformed link, a non-blocking duplicate-link
+        warning, and a soft nudge - never a block - when the user continues with
+        zero entries.
+  - [x] 20g. **Username step + finish** - `@`-prefixed handle input with
+        debounced real-time availability against
+        `GET /api/v1/handles/{handle}/availability` (public; `200` with
+        `available: false` plus `reason: taken | reserved` is the not-available
+        case, not an error status; `422` means the format check failed), a green
+        tick / red cross indicator, auto-suggested alternatives when taken, and
+        client-side format rules (lowercase letters, digits, underscore, period;
+        3-20 chars; no leading or trailing period/underscore). `Finish` assembles
+        the full onboarding payload as `FormData` (fields plus profile, cover, and
+        portfolio thumbnail files), `console.log`s it, and lands on the completion
+        screen. **No network submit** - the post-submit behaviour is specified in
+        a later item.
+    - [x] 20h. **Split the Category and Subcategory screen into two steps** -
+          step 3 picks content categories only; a new step 4 picks subcategories
+          per selected category (min one each). Every later step shifts down by
+          one, so the wizard is nine steps. Both screens keep the "Others" option:
+          picking it opens a free-text input that is added as a custom category
+          (step 3) and a custom subcategory (step 4).
+
+## Creator bio step
+
+- [x] 21. **Creator bio onboarding step** - a new step 2 (between Basic
+      Information and Location) with a multi-line text field for the creator's
+      public bio: required, 20-300 characters, with a live "N characters left"
+      counter under the input. Location..Username shift down one, so the wizard
+      becomes ten steps. Bio flows into the Finish payload; no submit endpoint
+      yet.
+
+## Onboarding UI polish
+
+- [x] 22. **Harmonize the onboarding step UI** - give all ten creator
+      onboarding steps one identical, modern layout: a shared step-screen
+      wrapper (scroll body + keyboard handling + pinned footer), one field
+      spacing rhythm, consistent field labels, and shared section / helper /
+      counter / error text styles. Visual consistency and polish only - no new
+      screens, data, or copy rewrites.

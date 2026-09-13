@@ -5,8 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTheme, useDataPersist, DataPersistKeys } from '@/hooks';
 import { useAppSlice, useAuthSlice } from '@/slices';
+import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { getShadowStyle, palette } from '@/theme';
 import { layoutStyle, accountStyle } from '@/styles';
+import { resolveMediaUrl } from '@/utils/media';
 import CircleAvatar from '@/components/elements/CircleAvatar';
 import SettingsRow from '@/components/elements/SettingsRow';
 import ConfirmDialog from '@/components/elements/ConfirmDialog';
@@ -45,10 +47,18 @@ const styles = StyleSheet.create({
 // specified.
 export default function Profile() {
   const { colors, isDark } = useTheme();
-  const { user, dispatch, setUser } = useAppSlice();
-  const { signOut } = useAuthSlice();
+  const { dispatch, setUser } = useAppSlice();
+  const { account, signOut } = useAuthSlice();
   const { removePersistData } = useDataPersist();
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  // No loading state on this hero: the fallbacks below read fine while the
+  // query is in flight, and a spinner here would flash on every tab visit.
+  const { data } = useGetMyProfileQuery();
+  const displayName = data?.profile.name ?? 'Your Profile';
+  const displaySubtitle = data?.handle ? `@${data.handle}` : (account?.email ?? '-');
+  const avatarSource = data?.profile.avatarUrl
+    ? { uri: resolveMediaUrl(data.profile.avatarUrl)! }
+    : avatarImage;
 
   // The 50-step tints are mixed for white paper; on the dark theme's near
   // black cards the same accents have to come through as a low-alpha wash
@@ -82,10 +92,10 @@ export default function Profile() {
           <View style={accountStyle.heroGlowTop} />
           <View style={accountStyle.heroGlowBottom} />
           <View style={accountStyle.avatarRing}>
-            <CircleAvatar source={avatarImage} size={84} />
+            <CircleAvatar source={avatarSource} size={84} />
           </View>
-          <Text style={accountStyle.name}>{user?.name ?? 'Your Profile'}</Text>
-          <Text style={accountStyle.email}>{user?.email ?? '-'}</Text>
+          <Text style={accountStyle.name}>{displayName}</Text>
+          <Text style={accountStyle.email}>{displaySubtitle}</Text>
         </LinearGradient>
 
         <View style={accountStyle.body}>
@@ -96,7 +106,17 @@ export default function Profile() {
                 icon={profileIcon}
                 iconTint={colors.primary}
                 iconBackground={accentChip}
-                title="Profile"
+                title="My Profile"
+                style={accountStyle.row}
+                onPress={() => router.push('/my-profile')}
+                testID="account-row-my-profile"
+              />
+              <View style={dividerStyle} />
+              <SettingsRow
+                icon={profileIcon}
+                iconTint={colors.primary}
+                iconBackground={accentChip}
+                title="Edit Profile"
                 style={accountStyle.row}
                 onPress={() => router.push('/profile-edit')}
                 testID="account-row-profile"
@@ -131,6 +151,15 @@ export default function Profile() {
                 onPress={() => router.push('/applications')}
                 testID="account-row-applications"
               />
+              {/* <SettingsRow
+                icon={applicationsIcon}
+                iconTint={colors.primary}
+                iconBackground={accentChip}
+                title="On Boarding"
+                style={accountStyle.row}
+                onPress={() => router.push('/creator-onboarding')}
+                testID="account-row-onboarding"
+              /> */}
             </View>
           </View>
 

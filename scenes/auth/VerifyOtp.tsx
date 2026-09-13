@@ -71,7 +71,7 @@ export default function VerifyOtp() {
     if (notice) setNotice(undefined);
   }
 
-  async function proceedToProfileSetup() {
+  async function proceedToOnboarding() {
     const pair = sessionRef.current;
     if (!pair) return;
     await setTokens({
@@ -80,7 +80,7 @@ export default function VerifyOtp() {
       tokenExpires: pair.tokenExpires,
     });
     dispatch(sessionEstablished(pair.user));
-    router.replace('/profile-verification/date-of-birth');
+    router.replace('/creator-onboarding');
   }
 
   async function handleVerify() {
@@ -188,8 +188,8 @@ export default function VerifyOtp() {
           title="Account Created Successfully"
           description="Enjoy your Experience"
           buttonLabel="Next"
-          onButtonPress={proceedToProfileSetup}
-          onClose={proceedToProfileSetup}
+          onButtonPress={proceedToOnboarding}
+          onClose={proceedToOnboarding}
         />
       )}
     </SafeAreaView>
