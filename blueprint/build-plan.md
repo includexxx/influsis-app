@@ -268,3 +268,28 @@ cleaned-up checkbox version before generating the project overview.
       spacing rhythm, consistent field labels, and shared section / helper /
       counter / error text styles. Visual consistency and polish only - no new
       screens, data, or copy rewrites.
+
+## Better-auth OAuth login
+
+- [x] 23. **Add Google + Facebook login via better-auth (`@better-auth/expo`),
+      auth surface only** - the existing email/password/OTP/2FA flow
+      (`services/authApi.ts`, `tokenStore.ts`, `auth.slice.ts`,
+      `VerifyOtp.tsx`, `VerifyTwoFactor.tsx`) is NOT touched by this item.
+      Split into:
+  - [x] 23a. Install `@better-auth/expo` + `expo-secure-store`; configure
+        `authClient` with `baseURL` = backend's better-auth origin (backend
+        build-plan item 27).
+  - [x] 23b. Replace the `SocialAuthButton`/`SignInLanding` stub ("routes to
+        email sign-in, no real OAuth backend yet") with
+        `authClient.signIn.social({ provider: 'google' | 'facebook' })`.
+  - [x] 23c. Bridge effect: on a fresh better-auth session, read
+        `additionalFields.{realAccessToken,realRefreshToken,realTokenExpires}`
+        (set by backend's OAuth hook, item 27c) and hand off into the
+        existing `tokenStore.setTokens()` + `auth.slice.ts` `sessionEstablished`
+        dispatch (the actual action name in `auth.slice.ts`, not
+        `sessionAuthenticated` as originally written above) - the same
+        convergence point every other login path already uses, so
+        `authGate.ts`/`restoreSession()` need no changes.
+  - [x] 23d. `docs/better-auth-integration.md` - document that
+        `@better-auth/expo` is scoped to Google/Facebook only, why (preserve
+        the shipped OTP/2FA flow untouched), and the bridge mechanism.

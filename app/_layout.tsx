@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthSlice } from '@/slices';
 import Provider from '@/providers';
+import SocialAuthBridge from '@/providers/SocialAuthBridge';
 
 // keep the splash screen visible while complete fetching resources
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +32,9 @@ function Router() {
     <>
       <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="light" />
+      {/* Bridges a Google/Facebook better-auth session into the existing
+          auth engine (build-plan 23c) - renders nothing. */}
+      <SocialAuthBridge />
     </>
   );
 }

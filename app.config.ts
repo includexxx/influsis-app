@@ -28,11 +28,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       eas: { projectId: expoProjectId },
       env: process.env.ENV ?? 'development',
       apiUrl: process.env.API_URL ?? 'https://example.com',
+      // Origin of the backend's better-auth mount (`/api/auth/*`), used only
+      // by the Google/Facebook social sign-in buttons (build-plan 23). Not
+      // the same as apiUrl: better-auth is mounted at the backend's
+      // unversioned root, not under /api/v1. See docs/better-auth-integration.md.
+      betterAuthUrl: process.env.BETTER_AUTH_URL ?? 'https://example.com',
       // add more env variables here...
     },
     plugins: [
       'expo-router',
       'expo-asset',
+      'expo-secure-store',
       [
         'expo-image-picker',
         {
