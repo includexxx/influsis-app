@@ -1,12 +1,13 @@
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { useTheme, useDebouncedOtherOption } from '@/hooks';
 import { layoutStyle, buttonStyle as sharedButton, profileStepStyle } from '@/styles';
 import { useProfileVerificationSlice } from '@/slices';
 import Button from '@/components/elements/Button';
 import ProfileStepHeader from '@/components/elements/ProfileStepHeader';
 import SelectableListItem from '@/components/elements/SelectableListItem';
+import TextField from '@/components/elements/TextField';
 
 const TOTAL_STEPS = 5;
 
@@ -46,11 +47,22 @@ const CATEGORY_OPTIONS = [
     label: 'Health',
     icon: require('@/assets/images/profile-verification/category-health.png'),
   },
+  {
+    id: 'others',
+    label: 'Others',
+    icon: require('@/assets/images/tab-bar/create-gig.png'),
+  },
 ];
 
 export default function ContentCategories() {
   const { colors } = useTheme();
   const { categories, toggleCategory, dispatch } = useProfileVerificationSlice();
+  const {
+    showInput: showOtherInput,
+    setShowInput: setShowOtherInput,
+    text: otherText,
+    setText: setOtherText,
+  } = useDebouncedOtherOption(dispatch, toggleCategory);
 
   function handleNext() {
     router.push('/profile-verification/social-media');
@@ -70,16 +82,39 @@ export default function ContentCategories() {
           style={profileStepStyle.header}
         />
         <View style={profileStepStyle.optionList}>
-          {CATEGORY_OPTIONS.map(option => (
-            <SelectableListItem
-              key={option.id}
-              icon={option.icon}
-              label={option.label}
-              selected={categories.includes(option.id)}
-              onPress={() => dispatch(toggleCategory(option.id))}
-              testID={`category-${option.id}`}
-            />
-          ))}
+          {CATEGORY_OPTIONS.map(option =>
+            option.id === 'others' ? (
+              showOtherInput ? (
+                <TextField
+                  key={option.id}
+                  label="Others"
+                  placeholder="Enter a category"
+                  value={otherText}
+                  onChangeText={setOtherText}
+                  autoFocus
+                  testID="category-other-input"
+                />
+              ) : (
+                <SelectableListItem
+                  key={option.id}
+                  icon={option.icon}
+                  label={option.label}
+                  selected={false}
+                  onPress={() => setShowOtherInput(true)}
+                  testID={`category-${option.id}`}
+                />
+              )
+            ) : (
+              <SelectableListItem
+                key={option.id}
+                icon={option.icon}
+                label={option.label}
+                selected={categories.includes(option.id)}
+                onPress={() => dispatch(toggleCategory(option.id))}
+                testID={`category-${option.id}`}
+              />
+            ),
+          )}
         </View>
       </ScrollView>
       <View style={layoutStyle.scrollContent}>

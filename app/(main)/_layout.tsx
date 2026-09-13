@@ -92,6 +92,12 @@ export default function MainLayout() {
           rather than at the root (unlike /notifications, which Figma shows
           without a tab bar) keeps that shell intact. */}
       <Tabs.Screen name="search" options={{ href: null }} />
+      {/* The Balance screen, reached from the Profile tab's "Ballance" row
+          (scenes/main/Profile.tsx). Registered here for the same reason as
+          /search: Figma's frame (node 6402:5295) keeps a Tab Bar instance
+          mounted at y=848, so the shell has to stay intact - see
+          docs/screen/balance/README.md. */}
+      <Tabs.Screen name="ballance" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,20 +1,22 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks';
 import { useAppSlice, useProfileVerificationSlice } from '@/slices';
-import { layoutStyle, editProfileStyle } from '@/styles';
+import { palette } from '@/theme';
+import { layoutStyle, editProfileStyle, buttonStyle } from '@/styles';
 import { countryFlags } from '@/data/country-flags';
 import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import CircleAvatar from '@/components/elements/CircleAvatar';
-import UnderlineField from '@/components/elements/UnderlineField';
+import TextField from '@/components/elements/TextField';
 import OptionSheet from '@/components/elements/OptionSheet';
 import CountryCodeSheet from '@/components/elements/CountryCodeSheet';
 import CalendarPicker from '@/components/elements/CalendarPicker';
 import Image from '@/components/elements/Image';
+import Button from '@/components/elements/Button';
 
 const defaultAvatar = require('@/assets/images/account/avatar.png');
 const chevronDownIcon = require('@/assets/images/account/chevron-down.png');
@@ -59,8 +61,13 @@ function countryLabel(value?: string): string | undefined {
 // since Figma's own navbar shows no save/checkmark icon anywhere across all
 // 3 captured states (only hidden variants) - see docs/screen/profile/
 // edit-profile.md "Scope notes".
+//
+// Presentation only: the fields moved from the original underline shape onto
+// the bordered, label-above shape the auth forms use (scenes/auth/SignUp.tsx)
+// so a form on the settings side of the app reads the same as one on the
+// sign-up side. Same fields, same values, same pickers.
 export default function EditProfile() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user, dispatch: dispatchApp, setUser } = useAppSlice();
   const {
     phoneNumber,
@@ -84,6 +91,9 @@ export default function EditProfile() {
 
   const selectedDate = dateOfBirth ? new Date(dateOfBirth) : undefined;
   const selectedPhoneCountry = findPhoneCountry(phoneCountry ?? DEFAULT_PHONE_COUNTRY);
+  // `primary/25` is mixed for white paper; the dark theme needs the same
+  // accent as a low-alpha wash to stay a hint rather than a halo.
+  const avatarHalo = isDark ? 'rgba(244, 46, 158, 0.14)' : palette.primary[25];
 
   async function handlePickAvatar() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -113,103 +123,117 @@ export default function EditProfile() {
         />
 
         <View style={editProfileStyle.avatarRow}>
-          <CircleAvatar
-            source={avatarUri ? { uri: avatarUri } : defaultAvatar}
-            size={120}
-            onEditPress={handlePickAvatar}
-            testID="edit-profile-avatar"
-          />
+          <View style={[editProfileStyle.avatarHalo, { backgroundColor: avatarHalo }]}>
+            <CircleAvatar
+              source={avatarUri ? { uri: avatarUri } : defaultAvatar}
+              size={120}
+              onEditPress={handlePickAvatar}
+              testID="edit-profile-avatar"
+            />
+          </View>
         </View>
 
-        <UnderlineField
-          label="Full Name"
-          value={user?.name ?? ''}
-          onChangeText={text => dispatchApp(setUser({ name: text, email: user?.email ?? '' }))}
-          testID="edit-profile-full-name"
-        />
-        <UnderlineField
-          label="Email"
-          value={user?.email ?? ''}
-          onChangeText={text => dispatchApp(setUser({ name: user?.name ?? '', email: text }))}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          testID="edit-profile-email"
-        />
-        <UnderlineField
-          label="Phone Number"
-          value={phoneNumber ?? '111 467 378 399'}
-          onChangeText={text => dispatchProfile(setPhoneNumber(text))}
-          keyboardType="phone-pad"
-          leadingAdornment={
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Select country code"
-              style={editProfileStyle.phoneLeading}
-              onPress={() => setIsPhoneCountryPickerOpen(true)}
-              testID="edit-profile-phone-country">
-              {!!selectedPhoneCountry && (
-                <>
+        <View style={layoutStyle.fieldGroup}>
+          <TextField
+            label="Full Name"
+            value={user?.name ?? ''}
+            onChangeText={text => dispatchApp(setUser({ name: text, email: user?.email ?? '' }))}
+            testID="edit-profile-full-name"
+          />
+          <TextField
+            label="Email"
+            value={user?.email ?? ''}
+            onChangeText={text => dispatchApp(setUser({ name: user?.name ?? '', email: text }))}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            testID="edit-profile-email"
+          />
+          <TextField
+            label="Phone Number"
+            value={phoneNumber ?? '111 467 378 399'}
+            onChangeText={text => dispatchProfile(setPhoneNumber(text))}
+            keyboardType="phone-pad"
+            leftAdornment={
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Select country code"
+                  hitSlop={8}
+                  style={editProfileStyle.phoneLeading}
+                  onPress={() => setIsPhoneCountryPickerOpen(true)}
+                  testID="edit-profile-phone-country">
+                  {!!selectedPhoneCountry && (
+                    <>
+                      <Image
+                        source={{ uri: selectedPhoneCountry.flag }}
+                        style={editProfileStyle.phoneFlag}
+                        contentFit="contain"
+                      />
+                      <Text
+                        style={[editProfileStyle.phoneDialCode, { color: colors.text.primary }]}>
+                        {selectedPhoneCountry.dialCode}
+                      </Text>
+                    </>
+                  )}
                   <Image
-                    source={{ uri: selectedPhoneCountry.flag }}
-                    style={editProfileStyle.phoneFlag}
+                    source={chevronDownIcon}
+                    style={editProfileStyle.phoneChevron}
                     contentFit="contain"
                   />
-                  <Text style={[editProfileStyle.phoneDialCode, { color: colors.text.primary }]}>
-                    {selectedPhoneCountry.dialCode}
-                  </Text>
-                </>
-              )}
+                </Pressable>
+                <View
+                  style={[editProfileStyle.phoneSeparator, { backgroundColor: colors.divider }]}
+                />
+              </>
+            }
+            testID="edit-profile-phone"
+          />
+          <TextField
+            label="Gender"
+            value={genderLabel(gender) ?? 'Male'}
+            editable={false}
+            onPress={() => setIsGenderPickerOpen(true)}
+            rightAdornment={
               <Image
                 source={chevronDownIcon}
-                style={editProfileStyle.phoneChevron}
+                style={editProfileStyle.trailingIcon}
                 contentFit="contain"
               />
-            </Pressable>
-          }
-          testID="edit-profile-phone"
-        />
-        <UnderlineField
-          label="Gender"
-          value={genderLabel(gender) ?? 'Male'}
-          editable={false}
-          onPress={() => setIsGenderPickerOpen(true)}
-          trailingAdornment={
-            <Image
-              source={chevronDownIcon}
-              style={editProfileStyle.trailingIcon}
-              contentFit="contain"
-            />
-          }
-          testID="edit-profile-gender"
-        />
-        <UnderlineField
-          label="Date of Birth"
-          value={selectedDate ? formatDate(selectedDate) : '12/27/1995'}
-          editable={false}
-          onPress={() => setIsDatePickerOpen(true)}
-          trailingAdornment={
-            <Image
-              source={calendarIcon}
-              style={editProfileStyle.trailingIcon}
-              contentFit="contain"
-            />
-          }
-          testID="edit-profile-date-of-birth"
-        />
-        <UnderlineField
-          label="Country"
-          value={countryLabel(country) ?? 'United States'}
-          editable={false}
-          onPress={() => setIsCountryPickerOpen(true)}
-          trailingAdornment={
-            <Image
-              source={chevronDownIcon}
-              style={editProfileStyle.trailingIcon}
-              contentFit="contain"
-            />
-          }
-          testID="edit-profile-country"
-        />
+            }
+            testID="edit-profile-gender"
+          />
+          <TextField
+            label="Date of Birth"
+            value={selectedDate ? formatDate(selectedDate) : '12/27/1995'}
+            editable={false}
+            onPress={() => setIsDatePickerOpen(true)}
+            rightAdornment={
+              <Image
+                source={calendarIcon}
+                style={editProfileStyle.trailingIcon}
+                contentFit="contain"
+              />
+            }
+            testID="edit-profile-date-of-birth"
+          />
+          <TextField
+            label="Country"
+            value={countryLabel(country) ?? 'United States'}
+            editable={false}
+            onPress={() => setIsCountryPickerOpen(true)}
+            rightAdornment={
+              <Image
+                source={chevronDownIcon}
+                style={editProfileStyle.trailingIcon}
+                contentFit="contain"
+              />
+            }
+            testID="edit-profile-country"
+          />
+        </View>
+        <TouchableOpacity style={{ marginTop: 12 }}>
+          <Button style={buttonStyle.primary} titleStyle={buttonStyle.primaryTitle} title="Save" />
+        </TouchableOpacity>
       </ScrollView>
 
       {isGenderPickerOpen && (

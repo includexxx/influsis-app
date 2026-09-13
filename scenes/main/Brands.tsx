@@ -44,7 +44,7 @@ export default function Brands() {
                   key={item.id}
                   source={item.source}
                   label={item.label}
-                  size={94}
+                  size={80}
                   onPress={() => router.push(`/brand/${item.id}`)}
                 />
               ))}

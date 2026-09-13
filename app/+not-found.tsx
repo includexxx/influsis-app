@@ -13,11 +13,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 22,
-    height: 44,
-    width: '50%',
+    width: '80%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     marginBottom: 20,
   },
 });
@@ -27,6 +30,12 @@ export default function NotFoundScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ title: 'Oops!' }} />
+      <View style={{ paddingBottom: 12 }}>
+        <Text style={{ fontSize: 22, textAlign: 'center', fontWeight: 700 }}>404! Not Found!</Text>
+        <Text style={{ fontSize: 18, textAlign: 'center', fontWeight: 500 }}>
+          This page is not found!
+        </Text>
+      </View>
       <Link href="/" style={[styles.link, { backgroundColor: colors.primary }]}>
         <Text style={[styles.title, { color: colors.onPrimary }]}>Go to home screen!</Text>
       </Link>

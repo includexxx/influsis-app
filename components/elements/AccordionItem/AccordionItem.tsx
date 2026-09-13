@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks';
-import { radius, spacing } from '@/theme';
+import { getShadowStyle, radius, spacing } from '@/theme';
 import Image from '../Image';
 
 const chevronDownIcon = require('@/assets/images/create-gig/chevron-down.png');
@@ -16,8 +16,8 @@ export interface AccordionItemProps {
 const styles = StyleSheet.create({
   root: {
     borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -59,7 +59,12 @@ function AccordionItem({ question, answer, expanded, onToggle, testID }: Accordi
   const { colors, palette } = useTheme();
 
   return (
-    <View style={[styles.root, { borderColor: palette.gray[50] }]}>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: colors.card, borderColor: colors.border },
+        getShadowStyle('xs'),
+      ]}>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded }}

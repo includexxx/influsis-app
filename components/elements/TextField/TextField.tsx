@@ -30,6 +30,12 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   style?: StyleProp<ViewStyle>;
   leftAdornment?: React.ReactNode;
   rightAdornment?: React.ReactNode;
+  // Turns the whole field into a press target that opens a caller-owned
+  // picker instead of a keyboard (Edit Profile's Gender/Date of
+  // Birth/Country fields). Pair it with `editable={false}`; the input row
+  // stops taking touches so the press always reaches this handler, and the
+  // field's `testID` moves onto the pressable rather than the input.
+  onPress?: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -88,14 +94,18 @@ function TextField({
   leftAdornment,
   rightAdornment,
   secureTextEntry,
+  onPress,
   ...others
 }: TextFieldProps) {
   const { colors, palette } = useTheme();
   const [isSecure, setIsSecure] = useState(!!secureTextEntry);
 
   const showToggle = !!secureTextEntry && !rightAdornment;
+  // On the pressable variant the id belongs to the wrapper, so the input
+  // must not also claim it.
+  const { testID, ...inputProps } = others;
 
-  return (
+  const field = (
     <View style={[styles.root, containerStyle, style]}>
       {label ? (
         <Text style={[styles.label, { color: colors.text.secondary }, labelStyle]}>{label}</Text>
@@ -105,13 +115,14 @@ function TextField({
           styles.inputRow,
           { borderColor: error ? colors.error : palette.gray[100], backgroundColor: colors.card },
           inputRowStyle,
-        ]}>
+        ]}
+        pointerEvents={onPress ? 'none' : undefined}>
         {leftAdornment}
         <TextInput
           style={[styles.input, { color: colors.text.primary }, inputStyle]}
           placeholderTextColor={palette.gray[200]}
           secureTextEntry={showToggle ? isSecure : secureTextEntry}
-          {...others}
+          {...(onPress ? inputProps : others)}
         />
         {showToggle && (
           <Pressable
@@ -132,6 +143,18 @@ function TextField({
         </View>
       ) : null}
     </View>
+  );
+
+  if (!onPress) return field;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      testID={testID}>
+      {field}
+    </Pressable>
   );
 }
 
