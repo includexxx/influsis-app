@@ -1,6 +1,6 @@
 """One-off script: rasterize the raw SVG icon exports for the Campaign
 Details screen (Figma node 6001:37641) into PNGs, same approach as
-scripts/rasterize-brand-details-assets.py (expo-image does not render SVG).
+scripts/rasterize-business-details-assets.py (expo-image does not render SVG).
 Run once after extracting the SVG assets, then the .svg sources are
 discarded.
 """

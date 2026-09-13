@@ -26,8 +26,8 @@ const styles = StyleSheet.create({
 });
 
 // "Title" + "See all" row repeated at the top of every Home screen section
-// (Active Campaigns, Brand, Popular Campaigns, Campaigns, Top Gigs, Top
-// Rated Influencer - Figma node 6121:6539 and five siblings with the same
+// (Active Campaigns, Business, Popular Campaigns, Campaigns, Top Gigs, Top
+// Rated Creator - Figma node 6121:6539 and five siblings with the same
 // shape).
 function SectionHeader({ title, onSeeAllPress, style }: SectionHeaderProps) {
   const { colors, palette } = useTheme();

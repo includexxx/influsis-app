@@ -6,12 +6,12 @@ const image = { uri: 'campaign.png' };
 const avatar = { uri: 'avatar.png' };
 
 describe('<CampaignCard />', () => {
-  test('renders hero variant with brand avatar and gender tags', () => {
+  test('renders hero variant with business avatar and gender tags', () => {
     render(
       <CampaignCard
         variant="hero"
         image={image}
-        brandAvatar={avatar}
+        businessAvatar={avatar}
         title="KFC Branding Campaign"
         verified
         tags={['Male', 'Female']}
@@ -26,13 +26,13 @@ describe('<CampaignCard />', () => {
     expect(screen.getByText('21 Oct 2022')).not.toBeNull();
   });
 
-  test('renders list variant with brand name and services description', () => {
+  test('renders list variant with business name and services description', () => {
     render(
       <CampaignCard
         variant="list"
         image={image}
         title="Bkash Branding Campaign"
-        brandName="Bkash Ltd."
+        businessName="Bkash Ltd."
         servicesDescription="3 Tiktok Video, 1 Youtube Reel, 2 Facebook Post"
         tags={['Male', 'Female']}
         price="$2,000"
@@ -49,7 +49,7 @@ describe('<CampaignCard />', () => {
         variant="list"
         image={image}
         title="Bkash Branding Campaign"
-        brandName="Bkash Ltd."
+        businessName="Bkash Ltd."
         status="Ongoing"
         price="$2,000"
         dueDate="21 Oct 2022"
@@ -58,7 +58,7 @@ describe('<CampaignCard />', () => {
     expect(screen.getByText('Ongoing')).not.toBeNull();
   });
 
-  test('renders applied variant with applied date and price, no brand name', () => {
+  test('renders applied variant with applied date and price, no business name', () => {
     render(
       <CampaignCard
         variant="applied"

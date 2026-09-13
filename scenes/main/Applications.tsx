@@ -76,8 +76,8 @@ export default function Applications() {
             {requests.map(item => (
               <CampaignRequestCard
                 key={item.id}
-                avatar={item.brandLogo}
-                brandName={item.brandName}
+                avatar={item.businessLogo}
+                businessName={item.businessName}
                 time={item.time}
                 onAccept={() => removeRequest(item.id)}
                 onDecline={() => removeRequest(item.id)}

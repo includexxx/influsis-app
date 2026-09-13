@@ -32,16 +32,16 @@ This document records (a) what the app does today, (b) the technical foundation 
 - [Search](./screen/search/README.md) — campaign search, opened from the Home tab's search bar
 - [Live Campaigns](./screen/live-campaign/README.md) — a creator's ongoing campaigns, opened from the Home tab's Active Campaigns section
 - [Campaigns](./screen/campaigns/README.md) — all of a creator's campaigns, opened from the Home tab's Campaigns section
-- [Brands](./screen/brands/README.md) — brand logo directory, opened from the Home tab's Brand section
-- [Brand Details](./screen/brand-details/README.md) — a single brand's full profile view, opened by tapping any brand logo
+- [Businesses](./screen/businesses/README.md) — business logo directory, opened from the Home tab's Business section
+- [Business Details](./screen/business-details/README.md) — a single business's full profile view, opened by tapping any business logo
 - [Top Gigs](./screen/top-gigs/README.md) — all of a creator's gigs, opened from the Home tab's Top Gigs section
-- [Top Influencers](./screen/top-influencers/README.md) — top-rated influencer directory, opened from the Home tab's Top Rated Influencer section
+- [Top Creators](./screen/top-creators/README.md) — top-rated creator directory, opened from the Home tab's Top Rated Creator section
 - [Gig Details](./screen/gig-details/README.md) — a single gig's full detail view, opened by tapping any gig card
 - [Create Gig](./screen/create-gig/README.md) — the 3-step wizard for publishing a new gig, opened from the main tab bar's "Create Gig" button
 - [Campaign Details](./screen/campaign-details/README.md) — a single campaign's full detail view, opened by tapping any campaign card
 - [Apply Campaign](./screen/apply-campaign/README.md) — the application form a creator submits to a campaign, opened from Campaign Details' "Apply Now" button
 - [Applications (Applied / Request)](./screen/apply-campaign/campaign-list.md) — a creator's own submitted applications and the campaign invitations they've received, opened from Profile's "My Applications" link
-- [Influencer Profile](./screen/influencer-profile/README.md) — a single influencer's full profile, opened by tapping any influencer
+- [Creator Profile](./screen/creator-profile/README.md) — a single creator's full profile, opened by tapping any creator
 - [Message](./screen/message/README.md) — the Message tab's conversation list (with search + empty state) and the single-chat detail screen opened by tapping any thread
 - [Profile / Account Settings](./screen/profile/README.md) — the Profile tab's settings menu and its 5 sub-screens: Edit Profile, Security Settings, Change Password, Privacy Policy, Help Center (FAQ)
 - [Balance](./screen/balance/README.md) — the creator's balance, monthly/total earnings and payment-method list, opened from Profile's "Ballance" link
@@ -53,7 +53,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ### 2.1 What works today
 
-- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; a simulated user fetch runs, the user is stored in Redux and persisted to AsyncStorage, then the splash hides (`app/_layout.tsx`).
+- **App bootstrap**: Splash screen stays visible while fonts (Open Sans family) and images preload; `restoreSession` rehydrates the auth session from the token store (confirmed with `GET /auth/me`), then the splash hides (`app/_layout.tsx`).
 - **Navigation** (Expo Router v6, file-based) — see the Screen Specs above for the full flow; at a glance:
   ```
   /onboarding → /auth/* (sign-in/sign-up/OTP/forgot-reset password)
@@ -62,17 +62,17 @@ This document records (a) what the app does today, (b) the technical foundation 
   ```
   The original boilerplate's Drawer + demo Home/Profile/Details tabs were removed; `(main)` is a fresh Tabs-only shell (no drawer) matching the real Figma tab bar design. See `docs/design-system.md` "App shell reset".
 - **Theming**: Automatic light/dark mode via `useColorScheme`, centralized color palette (`theme/colors.ts`), font and image loaders.
-- **State management**: Redux Toolkit with a single `app` slice (`checked`, `loggedIn`, `user`) exposed through a `useAppSlice` convenience hook.
-- **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys.
-- **Offline fallback**: If the startup fetch fails, the user is restored from persistent storage.
+- **State management**: Redux Toolkit slices behind convenience hooks (`useAppSlice`, `useAuthSlice`, and others). The auth session (`status`, `account`) lives in `auth.slice`; the `app` slice now holds only the mock `user`.
+- **Persistence**: `useDataPersist` hook wrapping AsyncStorage with typed keys; the token pair persists under its own `TOKENS` key via `services/tokenStore.ts`.
+- **Startup failure**: if `GET /auth/me` fails, `restoreSession` resolves to `unauthenticated`. The stored token pair is dropped only on a definitive 401/403, so a transient failure still lets a later launch retry.
 
 ### 2.2 What is placeholder / not real yet
 
 - **Main app screens**: Order, Home and Message are built out against mock data (`data/*.ts`); Profile displays real data collected by the profile-verification wizard (via Redux) rather than fetching from a backend. See `docs/screen/main/README.md`.
-- **User service**: `services/user.service.ts` returns a hardcoded fake user after a 500 ms delay — no real API integration exists.
-- **Auth**: A full sign-in/sign-up/OTP/forgot-password UI flow exists (`docs/screen/auth/`) and drives the real `loggedIn` Redux state, but validates entirely client-side — there's no backend to authenticate against, and no route guarding (the `(main)` tabs are reachable without signing in).
+- **Auth HTTP layer**: `services/http.ts` and `services/authApi.ts` wire the `/auth/*` endpoints (axios client, envelope unwrap, `ApiError`, bearer-token interceptor, one-shot 401 refresh), but `API_URL` points at a placeholder so no real round trip completes yet.
+- **Auth**: The sign-in/sign-up/OTP/2FA/forgot-reset screens (`docs/screen/auth/`) use react-hook-form + zod validation and drive `auth.slice.status` through `authApi`; `authGate` guards `(auth)`, `(main)`, and `(details)`, so the tabs are no longer reachable while signed out. What is still missing is a live backend to authenticate against.
 - **Branding/identity**: App name, slug, and bundle identifiers still reference the original boilerplate (`react-native-boilerplate`, `com.watarumaeda.*`); `API_URL` defaults to `https://example.com`.
-- **Backend**: No API client, no endpoints, no data models beyond a minimal `User { name, email }` type.
+- **Backend**: No running server. The `/auth/*` contracts are typed and consumed (`types/auth.ts`, `types/api.ts`); every other domain (campaigns, gigs, orders, wallet, messaging) is still `data/*.ts` fixtures.
 
 ## 3. Technical Foundation (inherited, keep)
 
@@ -91,7 +91,7 @@ This document records (a) what the app does today, (b) the technical foundation 
 
 ## 4. Product Direction (to be defined)
 
-The product scope of Influsis (target users, core features, monetization) is **not yet captured in the codebase** and must be defined by the product owner. Based on the name, the working assumption is an influencer-marketing platform; the requirements below are structured so feature epics can be slotted in.
+The product scope of Influsis (target users, core features, monetization) is **not yet captured in the codebase** and must be defined by the product owner. Based on the name, the working assumption is an creator-marketing platform; the requirements below are structured so feature epics can be slotted in.
 
 ### 4.1 Proposed epics (placeholders — confirm before building)
 
@@ -105,11 +105,13 @@ The product scope of Influsis (target users, core features, monetization) is **n
 | E6  | Push notifications & deep linking                                                  | E2          |
 | E7  | Analytics and crash reporting                                                      | —           |
 
+E2 and E3 are largely built by the 19a-19g auth epic (auth screens, session slice, HTTP client with `ApiError` handling and token refresh, token storage, route guarding); a live backend is the remaining gap.
+
 ### 4.2 Functional requirements that already have scaffolding
 
-- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Scaffolded — currently always "logs in".)_
+- **FR-1 App startup**: App must show splash until assets and session are ready, then land the user on the correct screen based on auth state. _(Working: routes on `auth.slice.status` via `restoreSession` + `authGate`; live backend still pending.)_
 - **FR-2 Theme**: All screens must render correctly in light and dark mode. _(Working pattern established.)_
-- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working with fake data.)_
+- **FR-3 Session persistence**: A previously signed-in user must be restored when offline. _(Working against the real token store and `GET /auth/me`; a transient offline failure currently signs the user out rather than restoring from cache.)_
 - **FR-4 Navigation**: Drawer + bottom-tab + stack navigation with typed routes. _(Working.)_
 
 ## 5. Non-Functional Requirements
@@ -132,7 +134,7 @@ The product scope of Influsis (target users, core features, monetization) is **n
 
 ## 7. Open Questions
 
-1. What is the confirmed product scope of Influsis (influencer marketplace? campaign management? analytics?) and who are the primary personas?
+1. What is the confirmed product scope of Influsis (creator marketplace? campaign management? analytics?) and who are the primary personas?
 2. Which backend will the app talk to (existing API, new service, BaaS)?
 3. Auth provider decision: custom, OAuth/social, or managed (e.g., Auth0/Firebase/Supabase)?
 4. Is the drawer navigation needed for the final IA, or should it be removed in favor of tabs only?
@@ -141,7 +143,7 @@ The product scope of Influsis (target users, core features, monetization) is **n
 ## 8. Success Criteria for Exiting Foundation Stage
 
 - [ ] App identity (name, slug, bundle IDs, icons, splash) rebranded to Influsis
-- [ ] Fake user service replaced with a real API client and error handling
-- [ ] Real auth flow with route guarding (logged-out users cannot reach main tabs)
+- [x] Fake user service replaced with a real API client and error handling
+- [x] Real auth flow with route guarding (logged-out users cannot reach main tabs)
 - [ ] At least one real product screen replacing the demo Home/Details screens
 - [ ] Environment files pointing to real dev/staging endpoints

@@ -5,11 +5,11 @@ import OrderActivityRow from './OrderActivityRow';
 const icon = { uri: 'icon.png' };
 
 describe('<OrderActivityRow />', () => {
-  test('renders brand, action and timestamp', () => {
+  test('renders business, action and timestamp', () => {
     render(
       <OrderActivityRow
         icon={icon}
-        brand="Bkash Ltd."
+        business="Bkash Ltd."
         action="place the order"
         timestamp="April 24, 12:20 PM"
       />,

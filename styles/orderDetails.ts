@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { palette, radius, spacing } from '@/theme';
 
 // Shared fragments for the Order Details scene (scenes/main/OrderDetails.tsx,
-// Figma "Order details", node 6040:8515). Unlike Campaign/Brand Details, the
+// Figma "Order details", node 6040:8515). Unlike Campaign/Business Details, the
 // banner photo here isn't full-bleed - Figma insets it the same 16px as the
 // rest of the screen's content, so the whole scene uses
 // `layoutStyle.scrollContent` rather than a separate `bannerWrap`.
@@ -47,7 +47,7 @@ export const orderDetailsStyle = StyleSheet.create({
     marginTop: 4,
     color: '#313131',
   },
-  // "Order: {brand} ✓ | Delivery: {date}" meta row - marginTop normalized to
+  // "Order: {business} ✓ | Delivery: {date}" meta row - marginTop normalized to
   // a single value rather than Figma's own fixed absolute gap (which
   // assumes the title wraps to exactly 2 lines, not reliable once the title
   // is real flex-wrapped text).
@@ -66,12 +66,12 @@ export const orderDetailsStyle = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
   },
-  metaBrandGroup: {
+  metaBusinessGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  metaBrandValue: {
+  metaBusinessValue: {
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '500',

@@ -12,11 +12,11 @@ export interface AppliedCampaign {
   appliedDate: string;
 }
 
-// A brand's invitation to join a campaign (Applications screen's "Request"
+// A business's invitation to join a campaign (Applications screen's "Request"
 // tab) - accept/decline, no further detail fields specified by Figma.
 export interface CampaignRequest {
   id: string;
-  brandLogo: ImageSourcePropType;
-  brandName: string;
+  businessLogo: ImageSourcePropType;
+  businessName: string;
   time: string;
 }

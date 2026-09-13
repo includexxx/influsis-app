@@ -44,7 +44,7 @@ app/index.tsx  ─────────────────▶  /onboardi
                             /(main)/home
 ```
 
-- `app/index.tsx` always redirects to `/onboarding` once the app-level splash/hydration check (`checked` in `slices/app.slice.ts`) resolves — there is currently no "already completed onboarding" fast path, so every fresh launch or reload starts at the brand intro. This is intentional for now (easier to test the flow repeatedly); see [`sign-in.md`](./sign-in.md) "Scope notes" for how to reintroduce persistence later.
+- `app/index.tsx` routes on `auth.slice.status` once `restoreSession` resolves: `restoring` renders nothing, `authenticated` goes to `/home`, `unauthenticated` goes to `/onboarding` (19c route guarding). A signed-out fresh launch or reload still starts at the brand intro; see [`sign-in.md`](./sign-in.md) "Scope notes" for the onboarding-completion fast path that is still not built.
 - `/home` is the first tab of the `app/(main)` tab group (see [`docs/screen/main/README.md`](../main/README.md)) — the real main-app shell that replaced the old `/welcome` placeholder. Sign In reaches it directly (`router.replace('/home')`); Sign Up reaches it after the profile-verification wizard's completion screen. Reloading the page does not remember that you got there.
 - `/auth/verify-otp` is **one screen shared by both the sign-up and forgot-password flows** — see [`verify-otp.md`](./verify-otp.md) for how the `flow` query param branches its copy and post-verify destination, instead of duplicating a second OTP screen.
 - The "Reset Succesfully" and "Account Created Successfully" popups are the same reusable `SuccessSheet` component (green tick-square badge + title + description + CTA) with different copy — see "Shared style fragments" below.

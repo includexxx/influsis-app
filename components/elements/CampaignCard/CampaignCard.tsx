@@ -20,8 +20,8 @@ export type CampaignCardVariant = 'hero' | 'list' | 'applied';
 export interface CampaignCardProps {
   variant?: CampaignCardVariant;
   image: ImageSourcePropType;
-  brandAvatar?: ImageSourcePropType;
-  brandName?: string;
+  businessAvatar?: ImageSourcePropType;
+  businessName?: string;
   title: string;
   verified?: boolean;
   tags?: string[];
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     height: 20,
     marginTop: 3,
   },
-  brandName: {
+  businessName: {
     fontSize: 16,
     lineHeight: 24,
     letterSpacing: 0.08,
@@ -186,16 +186,16 @@ const styles = StyleSheet.create({
 // 6659/6684/6709 "list" variant). Both share the same DNA - image, gender
 // tag pills overlaid on the image's bottom-left corner, title + verified
 // badge, price + due date - but differ in corner radius, shadow, and
-// whether a circular brand avatar (hero, overlapping the image) or a plain
-// brand-name text line (list) is shown. See docs/screen/home for detail. The
+// whether a circular business avatar (hero, overlapping the image) or a plain
+// business-name text line (list) is shown. See docs/screen/home for detail. The
 // optional `status` pill (Figma node 6138:5549, "Ongoing") added for the
 // Search screen's result cards (docs/screen/search) sits top-right of the
 // whole card via the shared `StatusBadge` component.
 function CampaignCard({
   variant = 'list',
   image,
-  brandAvatar,
-  brandName,
+  businessAvatar,
+  businessName,
   title,
   verified,
   tags,
@@ -258,7 +258,9 @@ function CampaignCard({
           </>
         ) : isHero ? (
           <View style={styles.avatarTitleRow}>
-            {brandAvatar && <Image source={brandAvatar} style={styles.avatar} contentFit="cover" />}
+            {businessAvatar && (
+              <Image source={businessAvatar} style={styles.avatar} contentFit="cover" />
+            )}
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
               {title}
             </Text>
@@ -277,8 +279,8 @@ function CampaignCard({
           </View>
         )}
 
-        {!isApplied && !isHero && brandName && (
-          <Text style={[styles.brandName, { color: palette.primary[400] }]}>{brandName}</Text>
+        {!isApplied && !isHero && businessName && (
+          <Text style={[styles.businessName, { color: palette.primary[400] }]}>{businessName}</Text>
         )}
 
         {!isApplied && servicesDescription && (

@@ -11,12 +11,12 @@ DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "images", "home")
 # filename -> max(width, height) cap in px
 TARGETS = {
     "hero-campaign.png": 900,
-    "hero-brand-avatar.png": 200,
-    "brand-logo-1.png": 200,
-    "brand-logo-2.png": 200,
-    "brand-logo-3.png": 200,
-    "brand-logo-4.png": 200,
-    "brand-logo-5.png": 200,
+    "hero-business-avatar.png": 200,
+    "business-logo-1.png": 200,
+    "business-logo-2.png": 200,
+    "business-logo-3.png": 200,
+    "business-logo-4.png": 200,
+    "business-logo-5.png": 200,
     "popular-campaign-1.png": 400,
     "popular-campaign-2.png": 400,
     "popular-campaign-3.png": 400,
@@ -26,11 +26,11 @@ TARGETS = {
     "campaign-list-4.png": 900,
     "gig-1.png": 800,
     "gig-2.png": 800,
-    "influencer-1.png": 200,
-    "influencer-2.png": 200,
-    "influencer-3.png": 200,
-    "influencer-4.png": 200,
-    "influencer-5.png": 200,
+    "creator-1.png": 200,
+    "creator-2.png": 200,
+    "creator-3.png": 200,
+    "creator-4.png": 200,
+    "creator-5.png": 200,
 }
 
 for fname, cap in TARGETS.items():

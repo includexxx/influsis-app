@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     width: 168,
     height: 220,
   },
-  brand: {
+  business: {
     alignItems: 'center',
     marginBottom: 24,
   },
@@ -116,7 +116,7 @@ export default function SignInLanding() {
           />
         </View>
 
-        <View style={styles.brand}>
+        <View style={styles.business}>
           <Image source={logomark} style={styles.logomark} contentFit="contain" />
           <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
             Welcome to Influsis

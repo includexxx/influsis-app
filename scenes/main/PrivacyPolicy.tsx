@@ -30,7 +30,7 @@ const RULES: { label: string; text: string }[] = [
 // intro and bullet list twice back-to-back (a duplicated content group,
 // node 6027:8300), the same kind of copy-paste content error already
 // normalized away elsewhere in this project (see data/campaigns.ts's
-// "About the brand" note).
+// "About the business" note).
 //
 // Presentation only: restyled into an elevated hero card (tinted icon chip
 // reused from the Account screen's own Privacy Policy row) plus a

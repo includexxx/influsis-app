@@ -15,9 +15,9 @@ Three horizontally-paged slides introducing the product's value props, each with
 
 | Slide | Visual                                                           | Title                                        | Button label    |
 | ----- | ---------------------------------------------------------------- | -------------------------------------------- | --------------- |
-| 1     | Full-bleed hero photo, gradient fade to background at the bottom | "Discover and Collaborate with Brands"       | **Get Started** |
+| 1     | Full-bleed hero photo, gradient fade to background at the bottom | "Discover and Collaborate with Businesses"       | **Get Started** |
 | 2     | Three circular photo cutouts                                     | "Monetize Your Journey as a Content Creator" | **Next**        |
-| 3     | Four rotated "fanned" card photos behind a bordered hero card    | "Manage Brand Collaboration"                 | **Next**        |
+| 3     | Four rotated "fanned" card photos behind a bordered hero card    | "Manage Business Collaboration"                 | **Next**        |
 
 All three share the same description copy in Figma ("Working with Salman Muktadir was an absolute pleasure! They brilliantly promoted our.") and the same pagination-dot row (active dot = `palette.primary[400]` pill, inactive = `palette.gray[100]` dot).
 

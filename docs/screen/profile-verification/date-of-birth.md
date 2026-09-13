@@ -9,7 +9,7 @@
 
 ## Purpose
 
-Step 1 of 5. Collects date of birth, used (per the screen's own copy) so brands can target creators within an age range.
+Step 1 of 5. Collects date of birth, used (per the screen's own copy) so businesses can target creators within an age range.
 
 ## UI elements
 

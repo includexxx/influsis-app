@@ -23,7 +23,7 @@ A flat list of the user's notifications (payments, transfers, campaign activity)
                                             └─ tap a NotificationCard          → (no notification-detail screen yet - inert)
 ```
 
-`/notifications` lives in the `app/(details)/` route group (outside the `(main)` Tabs group) rather than a tab — it's pushed full-screen on top of the tab bar, matching Figma (no tab bar visible on this screen), and popped via the back chevron (`router.back()`). `(details)` groups every screen reached via a Home "See all" link that Figma shows without a tab bar (`/notifications`, `/live-campaign`, `/campaigns`, `/brands`, `/top-gigs`, `/top-influencers`) — a route group is purely organizational in Expo Router and doesn't affect the URL, so each screen's path is unchanged.
+`/notifications` lives in the `app/(details)/` route group (outside the `(main)` Tabs group) rather than a tab — it's pushed full-screen on top of the tab bar, matching Figma (no tab bar visible on this screen), and popped via the back chevron (`router.back()`). `(details)` groups every screen reached via a Home "See all" link that Figma shows without a tab bar (`/notifications`, `/live-campaign`, `/campaigns`, `/businesses`, `/top-gigs`, `/top-creators`) — a route group is purely organizational in Expo Router and doesn't affect the URL, so each screen's path is unchanged.
 
 ## Sections (top to bottom)
 

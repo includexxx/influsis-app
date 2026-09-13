@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@/hooks';
+import { useRegisterMutation } from '@/services';
+import { signUpSchema, SignUpValues } from '@/utils/authSchemas';
+import { applyApiError } from '@/utils/authFormErrors';
 import { layoutStyle, buttonStyle as sharedButton, textStyle as sharedText } from '@/styles';
 import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
 import Button from '@/components/elements/Button';
-import TextField from '@/components/elements/TextField';
+import ControlledTextField from '@/components/elements/ControlledTextField';
 import AuthHeader from '@/components/elements/AuthHeader';
 import CountryCodeSheet from '@/components/elements/CountryCodeSheet';
 import Divider from '@/components/elements/Divider';
 import Image from '@/components/elements/Image';
 
 const chevronDownIcon = require('@/assets/images/account/chevron-down.png');
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 6;
 
 // Matches the `+880` this screen's phone field was already seeded with.
 const DEFAULT_PHONE_COUNTRY = 'bd';
@@ -24,8 +26,6 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 32,
   },
-  // Sits inside TextField's existing bordered row via `leftAdornment`, sized
-  // to that row's own 14px type so the field's shape is unchanged.
   phonePrefix: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -43,6 +43,11 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
   },
+  formError: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+  },
   submitButton: {
     marginTop: 8,
   },
@@ -57,44 +62,32 @@ const styles = StyleSheet.create({
 
 export default function SignUp() {
   const { colors, palette } = useTheme();
+  const [registerCreator, { isLoading }] = useRegisterMutation();
 
-  const [fullName, setFullName] = useState('Test User');
-  const [email, setEmail] = useState('test@example.com');
-  // Local digits only - the dial code lives in `phoneCountry` and is shown
-  // by the field's own prefix, the same split Edit Profile uses.
-  const [phone, setPhone] = useState('1521000000');
   const [phoneCountry, setPhoneCountry] = useState(DEFAULT_PHONE_COUNTRY);
   const [isPhoneCountryPickerOpen, setIsPhoneCountryPickerOpen] = useState(false);
-  const [password, setPassword] = useState('pass1234');
-  const [confirmPassword, setConfirmPassword] = useState('pass1234');
-
-  const [fullNameError, setFullNameError] = useState<string>();
-  const [emailError, setEmailError] = useState<string>();
-  const [phoneError, setPhoneError] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string>();
-
   const selectedPhoneCountry = findPhoneCountry(phoneCountry);
 
-  function handleSubmit() {
-    const isNameValid = fullName.trim().length > 0;
-    const isEmailValid = EMAIL_REGEX.test(email.trim());
-    const isPhoneValid = phone.trim().length > 0;
-    const isPasswordValid = password.length >= MIN_PASSWORD_LENGTH;
-    const doPasswordsMatch = password === confirmPassword;
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { email: '', phone: '', password: '', confirmPassword: '' },
+  });
 
-    setFullNameError(isNameValid ? undefined : 'Full name is required');
-    setEmailError(isEmailValid ? undefined : 'Invalid email');
-    setPhoneError(isPhoneValid ? undefined : 'Phone number is required');
-    setPasswordError(
-      isPasswordValid ? undefined : `Must be at least ${MIN_PASSWORD_LENGTH} characters`,
-    );
-    setConfirmPasswordError(doPasswordsMatch ? undefined : 'Passwords do not match');
-
-    if (!isNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid || !doPasswordsMatch)
-      return;
-
-    router.push({ pathname: '/auth/verify-otp', params: { email: email.trim() } });
+  async function onSubmit(values: SignUpValues) {
+    clearErrors('root');
+    const email = values.email.trim();
+    try {
+      await registerCreator({ roleKey: 'creator', email, password: values.password }).unwrap();
+      router.push({ pathname: '/auth/verify-otp', params: { email } });
+    } catch (err) {
+      applyApiError(err, setError, ['email', 'password']);
+    }
   }
 
   return (
@@ -102,39 +95,21 @@ export default function SignUp() {
       <ScrollView
         contentContainerStyle={layoutStyle.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Sign Up" onBack={() => router.back()} style={styles.header} />
+        <AuthHeader title="Sign Up" onBack={() => router.push('/auth')} style={styles.header} />
         <View style={layoutStyle.fieldGroup}>
-          <TextField
-            label="Full Name"
-            placeholder="Gazi Delowar"
-            value={fullName}
-            onChangeText={text => {
-              setFullName(text);
-              if (fullNameError) setFullNameError(undefined);
-            }}
-            error={fullNameError}
-          />
-          <TextField
+          <ControlledTextField
+            control={control}
+            name="email"
             label="Email"
             placeholder="you@example.com"
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              if (emailError) setEmailError(undefined);
-            }}
-            error={emailError}
             autoCapitalize="none"
             keyboardType="email-address"
           />
-          <TextField
+          <ControlledTextField
+            control={control}
+            name="phone"
             label="Phone"
             placeholder="1521702480"
-            value={phone}
-            onChangeText={text => {
-              setPhone(text);
-              if (phoneError) setPhoneError(undefined);
-            }}
-            error={phoneError}
             keyboardType="phone-pad"
             leftAdornment={
               <Pressable
@@ -160,33 +135,29 @@ export default function SignUp() {
               </Pressable>
             }
           />
-          <TextField
+          <ControlledTextField
+            control={control}
+            name="password"
             label="Password"
             placeholder="Password"
-            value={password}
-            onChangeText={text => {
-              setPassword(text);
-              if (passwordError) setPasswordError(undefined);
-            }}
-            error={passwordError}
             secureTextEntry
           />
-          <TextField
+          <ControlledTextField
+            control={control}
+            name="confirmPassword"
             label="Confirm Password"
             placeholder="Confirm password"
-            value={confirmPassword}
-            onChangeText={text => {
-              setConfirmPassword(text);
-              if (confirmPasswordError) setConfirmPasswordError(undefined);
-            }}
-            error={confirmPasswordError}
             secureTextEntry
           />
+          {errors.root?.message ? (
+            <Text style={[styles.formError, { color: colors.error }]}>{errors.root.message}</Text>
+          ) : null}
           <Button
             title="Sign Up"
             titleStyle={sharedButton.primaryTitle}
             style={[sharedButton.primary, styles.submitButton]}
-            onPress={handleSubmit}
+            isLoading={isLoading || isSubmitting}
+            onPress={handleSubmit(onSubmit)}
           />
         </View>
         <Divider style={styles.divider} />

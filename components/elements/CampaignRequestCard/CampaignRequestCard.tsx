@@ -13,7 +13,7 @@ import Image from '../Image';
 
 export interface CampaignRequestCardProps {
   avatar: ImageSourcePropType;
-  brandName: string;
+  businessName: string;
   time: string;
   onAccept?: () => void;
   onDecline?: () => void;
@@ -68,9 +68,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// A brand's campaign invitation row (Figma "Frame 1707480346" and 6
+// A business's campaign invitation row (Figma "Frame 1707480346" and 6
 // siblings, node 6475:6500 etc, the Applications screen's "Request" tab) -
-// a square-ish 88px rounded-corner brand logo, "{brand} invited you to join
+// a square-ish 88px rounded-corner business logo, "{business} invited you to join
 // a Campaign" + a relative timestamp, and an Accept/Decline pill-button
 // pair. New component - no existing card in this app pairs an avatar with
 // two trailing action buttons (ConversationCard's trailing slot is a
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 // definitions for this frame.
 function CampaignRequestCard({
   avatar,
-  brandName,
+  businessName,
   time,
   onAccept,
   onDecline,
@@ -100,13 +100,13 @@ function CampaignRequestCard({
       <Image source={avatar} style={styles.avatar} contentFit="cover" />
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
-          {brandName} invited you to join a Campaign
+          {businessName} invited you to join a Campaign
         </Text>
         <Text style={[styles.time, { color: palette.gray[300] }]}>{time}</Text>
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Accept ${brandName}'s invitation`}
+            accessibilityLabel={`Accept ${businessName}'s invitation`}
             onPress={onAccept}
             style={[styles.actionButton, { backgroundColor: palette.gray[900] }]}
             testID={testID ? `${testID}-accept` : undefined}>
@@ -114,7 +114,7 @@ function CampaignRequestCard({
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Decline ${brandName}'s invitation`}
+            accessibilityLabel={`Decline ${businessName}'s invitation`}
             onPress={onDecline}
             style={[styles.actionButton, { backgroundColor: palette.gray[50] }]}
             testID={testID ? `${testID}-decline` : undefined}>

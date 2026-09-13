@@ -9,12 +9,12 @@ describe('<OnboardingSlide />', () => {
       <OnboardingSlide
         width={400}
         visual={<Text>Visual</Text>}
-        title="Discover and Collaborate with Brands"
+        title="Discover and Collaborate with Businesses"
         description="Working with Salman Muktadir was an absolute pleasure!"
       />,
     );
     expect(screen.getByText('Visual')).not.toBeNull();
-    expect(screen.getByText('Discover and Collaborate with Brands')).not.toBeNull();
+    expect(screen.getByText('Discover and Collaborate with Businesses')).not.toBeNull();
     expect(
       screen.getByText('Working with Salman Muktadir was an absolute pleasure!'),
     ).not.toBeNull();

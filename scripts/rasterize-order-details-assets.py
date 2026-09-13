@@ -5,7 +5,7 @@ extracting the SVG asset, then the .svg source is discarded.
 
 The screen's other two icons are reused rather than re-extracted: the back
 chevron matches ScreenHeader's existing `assets/images/icons/back-chevron.png`,
-and the pink "verified" badge next to the brand name is pixel-identical to
+and the pink "verified" badge next to the business name is pixel-identical to
 the existing `assets/images/home/verified-badge.png` (same scalloped-circle
 glyph, same #F42E9E fill). Only the "Deliverable" list's outlined
 check-in-circle icon has no existing match in this project.

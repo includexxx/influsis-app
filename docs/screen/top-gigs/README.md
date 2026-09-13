@@ -23,7 +23,7 @@ A flat list of all of a creator's available gigs. Reached from the Home tab's To
                                                     └─ tap a GigCard                    → /gig/[id] (docs/screen/gig-details/README.md)
 ```
 
-`/top-gigs` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns` and `/brands` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
+`/top-gigs` lives in the `app/(details)/` route group (outside the `(main)` Tabs group), the same reasoning as `/notifications`, `/live-campaign`, `/campaigns` and `/businesses` — Figma's frame has no tab bar instance, so it's pushed full-screen and popped via the back chevron rather than kept inside the tab shell.
 
 ## Sections (top to bottom)
 

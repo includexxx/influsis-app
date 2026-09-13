@@ -1,4 +1,4 @@
-"""One-off script: rasterize the raw SVG icon exports for the Influencer
+"""One-off script: rasterize the raw SVG icon exports for the Creator
 Profile screen (Figma node 6001:37822) into PNGs, same approach as
 scripts/rasterize-icons.py (expo-image does not render SVG). Run once after
 extracting SVG assets, then the .svg sources are discarded.

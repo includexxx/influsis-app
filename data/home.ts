@@ -1,7 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import { gigs as allGigs } from './gigs';
-import { influencers as allInfluencers } from './influencers';
-import { brands as allBrands } from './brands';
+import { creators as allCreators } from './creators';
+import { businesses as allBusinesses } from './businesses';
 
 // Mock content for the Home screen (scenes/main/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
@@ -16,16 +16,16 @@ import { brands as allBrands } from './brands';
 export { activeCampaigns } from './campaigns';
 export { homeCampaigns as campaigns } from './campaigns';
 
-// {id, source} pairs from the canonical brand list (data/brands.ts), picked
-// by id to reproduce the same five brand-logo-1..5.jpg images in the same
+// {id, source} pairs from the canonical business list (data/businesses.ts), picked
+// by id to reproduce the same five business-logo-1..5.jpg images in the same
 // order this row showed before - previously a plain `ImageSourcePropType[]`
-// with no id to link a tap to a brand profile, the same "identity-less"
-// gap docs/screen/influencer-profile/README.md describes fixing for
-// topRatedInfluencers below.
-const homeBrandIds = ['brand-2', 'brand-1', 'brand-12', 'brand-4', 'brand-3'];
-export const brandLogos = homeBrandIds
-  .map(id => allBrands.find(brand => brand.id === id))
-  .filter((brand): brand is (typeof allBrands)[number] => !!brand)
+// with no id to link a tap to a business profile, the same "identity-less"
+// gap docs/screen/creator-profile/README.md describes fixing for
+// topRatedCreators below.
+const homeBusinessIds = ['business-2', 'business-1', 'business-12', 'business-4', 'business-3'];
+export const businessLogos = homeBusinessIds
+  .map(id => allBusinesses.find(business => business.id === id))
+  .filter((business): business is (typeof allBusinesses)[number] => !!business)
   .map(({ id, source }) => ({ id, source }));
 
 export interface PopularCampaign {
@@ -61,10 +61,10 @@ export const popularCampaigns: PopularCampaign[] = [
 // Details screen (`/gig/[id]`) share, not a separate mock set.
 export const gigs = allGigs.slice(0, 2);
 
-// The canonical influencer list (data/influencers.ts) - Home's "Top Rated
-// Influencer" row is a preview of the same influencers the full
-// /top-influencers list and Influencer Profile screen (`/influencer/[id]`)
+// The canonical creator list (data/creators.ts) - Home's "Top Rated
+// Creator" row is a preview of the same creators the full
+// /top-creators list and Creator Profile screen (`/creator/[id]`)
 // share, not a separate identity-less mock set. Previously five plain
-// `influencer-1..5.jpg` headshots with no id to link a tap to a profile -
-// see docs/screen/influencer-profile/README.md "Scope notes".
-export const topRatedInfluencers = allInfluencers.map(({ id, image }) => ({ id, image }));
+// `creator-1..5.jpg` headshots with no id to link a tap to a profile -
+// see docs/screen/creator-profile/README.md "Scope notes".
+export const topRatedCreators = allCreators.map(({ id, image }) => ({ id, image }));

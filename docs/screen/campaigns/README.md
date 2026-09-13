@@ -34,7 +34,7 @@ A flat list of all of a creator's campaigns. Reached from the Home tab's Campaig
 
 ## No new components needed
 
-Every piece of this screen already existed before this task. `ScreenHeader` (built for `/notifications`) and `CampaignCard`'s `list` variant (built for Home, already supporting gender tags, a verified badge, brand name, and an optional services-description line) reproduce this design exactly as-is — Figma's cards here are structurally identical to Home's own "Campaigns" section cards, right down to the same `0px 2px 15.5px rgba(0,0,0,0.1)` shadow and `#B2FFD2` tag-pill color already implemented. This screen is purely a new composition of existing reusable pieces plus its own data and a small `styles/campaigns.ts` module for its list-gap spacing — see "Reuse First" in `CLAUDE.md`.
+Every piece of this screen already existed before this task. `ScreenHeader` (built for `/notifications`) and `CampaignCard`'s `list` variant (built for Home, already supporting gender tags, a verified badge, business name, and an optional services-description line) reproduce this design exactly as-is — Figma's cards here are structurally identical to Home's own "Campaigns" section cards, right down to the same `0px 2px 15.5px rgba(0,0,0,0.1)` shadow and `#B2FFD2` tag-pill color already implemented. This screen is purely a new composition of existing reusable pieces plus its own data and a small `styles/campaigns.ts` module for its list-gap spacing — see "Reuse First" in `CLAUDE.md`.
 
 ## Scope notes
 

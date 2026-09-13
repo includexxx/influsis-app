@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 });
 
 // Customer review card (Figma "Frame 1618873242" and siblings, node
-// 6001:37885, on the Influencer Profile screen) - reviewer avatar, name,
+// 6001:37885, on the Creator Profile screen) - reviewer avatar, name,
 // a five-star rating row, a relative timestamp, and the review text.
 function ReviewCard({ avatar, name, rating, timeAgo, comment, style, testID }: ReviewCardProps) {
   const { colors, palette } = useTheme();

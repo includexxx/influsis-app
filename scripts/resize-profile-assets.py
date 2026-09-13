@@ -1,7 +1,7 @@
 """One-off script: flatten transparent PNGs onto white and downscale +
-JPEG-compress the raw Figma photo exports for the Influencer Profile screen
+JPEG-compress the raw Figma photo exports for the Creator Profile screen
 (Figma node 6001:37822) in assets/images/profile/, same approach as
-scripts/resize-brand-assets.py.
+scripts/resize-business-assets.py.
 """
 
 import os

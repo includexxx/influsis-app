@@ -58,11 +58,11 @@ export default function OrderDetails() {
         <View style={orderDetailsStyle.metaRow}>
           <View style={orderDetailsStyle.metaGroup}>
             <Text style={[orderDetailsStyle.metaLabel, { color: palette.gray[300] }]}>Order:</Text>
-            <View style={orderDetailsStyle.metaBrandGroup}>
-              <Text style={[orderDetailsStyle.metaBrandValue, { color: palette.primary[400] }]}>
-                {order.brandName}
+            <View style={orderDetailsStyle.metaBusinessGroup}>
+              <Text style={[orderDetailsStyle.metaBusinessValue, { color: palette.primary[400] }]}>
+                {order.businessName}
               </Text>
-              {order.brandVerified && (
+              {order.businessVerified && (
                 <Image
                   source={verifiedBadge}
                   style={orderDetailsStyle.verifiedIcon}

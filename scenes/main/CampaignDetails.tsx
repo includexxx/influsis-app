@@ -21,7 +21,7 @@ const calendarIcon = require('@/assets/images/campaign-details/calendar.png');
 // The Campaign Details screen (Figma "Campaign Details_Sample 1", node
 // 6001:37641), pushed from any campaign's tap - every CampaignCard in the
 // app (Home's "Active Campaigns" hero row and "Campaigns" list section,
-// the full /campaigns list, /live-campaign, /search results, and Brand
+// the full /campaigns list, /live-campaign, /search results, and Business
 // Details' "Ongoing Campaign" section) navigates here. Registered as a
 // dynamic route in the app/(details)/ route group
 // (app/(details)/campaign/[id].tsx), the same "no tab bar" reasoning as
@@ -38,7 +38,7 @@ export default function CampaignDetails() {
     return <Redirect href="/home" />;
   }
 
-  const avatarSource = campaign.avatar ?? campaign.brandAvatar;
+  const avatarSource = campaign.avatar ?? campaign.businessAvatar;
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -61,10 +61,10 @@ export default function CampaignDetails() {
         )}
 
         <View style={campaignDetailsStyle.content}>
-          {campaign.brandName && (
-            <View style={campaignDetailsStyle.brandNameRow}>
-              <Text style={[campaignDetailsStyle.brandName, { color: colors.text.primary }]}>
-                {campaign.brandName}
+          {campaign.businessName && (
+            <View style={campaignDetailsStyle.businessNameRow}>
+              <Text style={[campaignDetailsStyle.businessName, { color: colors.text.primary }]}>
+                {campaign.businessName}
               </Text>
               {campaign.verified && (
                 <Image
@@ -143,13 +143,13 @@ export default function CampaignDetails() {
             </>
           )}
 
-          {campaign.brandDescription && (
+          {campaign.businessDescription && (
             <>
               <Text style={[campaignDetailsStyle.sectionTitle, { color: colors.text.primary }]}>
-                About the brand
+                About the business
               </Text>
               <Text style={[campaignDetailsStyle.sectionBody, { color: palette.gray[400] }]}>
-                {campaign.brandDescription}
+                {campaign.businessDescription}
               </Text>
             </>
           )}
