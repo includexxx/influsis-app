@@ -1,7 +1,10 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useTheme } from '@/hooks';
+import { useAuthSlice } from '@/slices';
+import { ApiError, setTokens, useGoogleLoginMutation } from '@/services';
 import { layoutStyle, cardStyle as sharedCard, textStyle as sharedText } from '@/styles';
 import Image from '@/components/elements/Image';
 import SocialAuthButton from '@/components/elements/SocialAuthButton';
@@ -143,11 +146,6 @@ export default function SignInLanding() {
             icon={facebookIcon}
             onPress={continueWithProvider}
           />
-          {/* <SocialAuthButton
-            label="Continue with Google"
-            icon={googleIcon}
-            onPress={continueWithProvider}
-          /> */}
           <GoogleLoginButton />
         </View>
 
@@ -166,31 +164,40 @@ export default function SignInLanding() {
   );
 }
 
-// LoginScreen.tsx
-import React from 'react';
-import { Button, Alert } from 'react-native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { httpClient } from '@/services';
+function GoogleLoginButton() {
+  const { dispatch, sessionEstablished } = useAuthSlice();
+  const [googleLogin, { isLoading }] = useGoogleLoginMutation();
 
-export function GoogleLoginButton() {
-  const signIn = async () => {
+  async function signIn() {
     try {
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const { idToken } = await GoogleSignin.getTokens();
+      const result = await GoogleSignin.signIn();
+      if (result.type === 'cancelled') return;
 
-      // Send idToken to your NestJS backend
-      const res = await httpClient.post('/auth/google', {
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, role: 'creator' }),
+      const idToken = result.data.idToken;
+      if (!idToken) throw new Error('Google did not return an ID token.');
+
+      const res = await googleLogin({ idToken }).unwrap();
+      await setTokens({
+        token: res.token,
+        refreshToken: res.refreshToken,
+        tokenExpires: res.tokenExpires,
       });
-
-      console.log(res);
-    } catch (error: any) {
-      console.log(error, 'mh_______');
-      Alert.alert('Sign in failed', error.message);
+      dispatch(sessionEstablished(res.user));
+      router.replace('/home');
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
+      Alert.alert('Sign in failed', message + '\n' + JSON.stringify(err, null, 2));
     }
-  };
+  }
 
-  return <SocialAuthButton label="Continue with Google" icon={googleIcon} onPress={signIn} />;
+  return (
+    <SocialAuthButton
+      label="Continue with Google"
+      icon={googleIcon}
+      onPress={signIn}
+      disabled={isLoading}
+    />
+  );
 }

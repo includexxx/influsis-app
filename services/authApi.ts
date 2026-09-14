@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import {
   AuthAccount,
+  GoogleLoginRequest,
   Login2faVerifyRequest,
   LoginRequest,
   LoginResponse,
@@ -23,6 +24,14 @@ export const authApi = createApi({
     }),
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: body => ({ url: '/auth/login', method: 'POST', data: body, skipAuth: true }),
+    }),
+    googleLogin: builder.mutation<SessionTokenPair, GoogleLoginRequest>({
+      query: body => ({
+        url: '/auth/google/login',
+        method: 'POST',
+        data: { ...body, role: 'creator' },
+        skipAuth: true,
+      }),
     }),
     verifyLogin2fa: builder.mutation<SessionTokenPair, Login2faVerifyRequest>({
       query: body => ({
@@ -54,6 +63,7 @@ export const authApi = createApi({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useGoogleLoginMutation,
   useVerifyLogin2faMutation,
   useRequestOtpMutation,
   useVerifyOtpMutation,

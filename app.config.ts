@@ -27,12 +27,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       eas: { projectId: expoProjectId },
       env: process.env.ENV ?? 'development',
       apiUrl: process.env.API_URL ?? 'https://example.com',
+      googleWebClientId: process.env.EXPO_WEB_CLIENT_ID,
       // add more env variables here...
     },
     plugins: [
       [
         '@react-native-google-signin/google-signin',
         {
+          // iosUrlScheme: process.env.EXPO_ISO_URL_SCREEN,
           iosUrlScheme: 'com.googleusercontent.apps.361563667577-oq9to7s2fvmb59tnrttbu8dvki0r9otk',
         },
       ],

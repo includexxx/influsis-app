@@ -81,6 +81,11 @@ export interface LoginRequest {
 
 export type LoginResponse = SessionTokenPair | { mfaRequired: true; preAuthToken: string };
 
+/** `POST /auth/google/login` body. No MFA branch for social login. */
+export interface GoogleLoginRequest {
+  idToken: string;
+}
+
 export interface Login2faVerifyRequest {
   preAuthToken: string;
   code: string;
