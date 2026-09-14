@@ -143,11 +143,12 @@ export default function SignInLanding() {
             icon={facebookIcon}
             onPress={continueWithProvider}
           />
-          <SocialAuthButton
+          {/* <SocialAuthButton
             label="Continue with Google"
             icon={googleIcon}
             onPress={continueWithProvider}
-          />
+          /> */}
+          <GoogleLoginButton />
         </View>
 
         <View style={styles.footer}>
@@ -163,4 +164,33 @@ export default function SignInLanding() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+// LoginScreen.tsx
+import React from 'react';
+import { Button, Alert } from 'react-native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { httpClient } from '@/services';
+
+export function GoogleLoginButton() {
+  const signIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
+
+      // Send idToken to your NestJS backend
+      const res = await httpClient.post('/auth/google', {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, role: 'creator' }),
+      });
+
+      console.log(res);
+    } catch (error: any) {
+      console.log(error, 'mh_______');
+      Alert.alert('Sign in failed', error.message);
+    }
+  };
+
+  return <SocialAuthButton label="Continue with Google" icon={googleIcon} onPress={signIn} />;
 }

@@ -5,9 +5,15 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthSlice } from '@/slices';
 import Provider from '@/providers';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // keep the splash screen visible while complete fetching resources
 SplashScreen.preventAutoHideAsync();
+
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_WEB_CLIENT_ID,
+  offlineAccess: true,
+});
 
 function Router() {
   const { dispatch, restoreSession } = useAuthSlice();
