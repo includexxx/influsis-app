@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { test, expect } from '@jest/globals';
 import { useForm } from 'react-hook-form';
 import { render, screen, fireEvent } from '@testing-library/react-native';
@@ -10,7 +11,11 @@ interface FormValues {
 
 function Harness({ error }: { error?: string } = {}) {
   const { control, setError } = useForm<FormValues>({ defaultValues: { name: '' } });
-  if (error) setError('name', { type: 'manual', message: error });
+
+  useEffect(() => {
+    if (error) setError('name', { type: 'manual', message: error });
+  }, [error, setError]);
+
   return (
     <OnboardingTextField control={control} name="name" label="Name" testID="onboarding-name" />
   );

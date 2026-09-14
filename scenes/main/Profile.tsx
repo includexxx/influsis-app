@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -77,7 +77,7 @@ export default function Profile() {
     removePersistData(DataPersistKeys.USER);
     dispatch(setUser(undefined));
     dispatch(signOut());
-    router.replace('/auth/sign-in');
+    router.replace('/auth');
   }
 
   return (

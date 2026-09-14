@@ -184,7 +184,12 @@ function GoogleLoginButton() {
         tokenExpires: res.tokenExpires,
       });
       dispatch(sessionEstablished(res.user));
-      router.replace('/home');
+
+      if (res?.user?.status === 'unverified') {
+        router.replace('/creator-onboarding');
+      } else {
+        router.replace('/home');
+      }
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
