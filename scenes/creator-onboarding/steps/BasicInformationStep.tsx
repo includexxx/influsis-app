@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,10 +38,14 @@ function genderLabel(value?: string): string {
   return GENDER_OPTIONS.find(option => option.value === value)?.label ?? '';
 }
 
+type BasicInformationStepProps = {
+  name?: string;
+};
+
 // Step 1 of the creator onboarding wizard - Basic Information (name, gender,
 // date of birth; requirements §3 Screen 1). `Next` stays greyed until the
 // schema passes, including the minimum-age check on date of birth.
-export default function BasicInformationStep() {
+export default function BasicInformationStep({ name }: BasicInformationStepProps) {
   const { basics, dispatch, saveBasics } = useCreatorOnboardingSlice();
   const { totalSteps, saveAndContinue } = useCreatorOnboardingStep();
 
@@ -57,14 +61,19 @@ export default function BasicInformationStep() {
   } = useForm<BasicInformationValues>({
     resolver: zodResolver(basicInformationSchema),
     mode: 'onChange',
-    defaultValues: basics ?? { name: '', gender: undefined, dateOfBirth: '' },
+    defaultValues: {
+      name: name || basics?.name || '',
+      gender: basics?.gender,
+      dateOfBirth: basics?.dateOfBirth ?? '',
+    },
   });
 
-  // The two bottom sheets read/write through the form via watch + setValue so
-  // they can render as siblings of the scroll area, not descendants of it -
-  // @gorhom/bottom-sheet positions against its parent and this project has no
-  // portal provider (see CustomSelectField's docblock; EditProfile does the
-  // same).
+  useEffect(() => {
+    if (name && !basics?.name) {
+      setValue('name', name);
+    }
+  }, [name, basics?.name, setValue]);
+
   const gender = watch('gender');
   const dateOfBirth = watch('dateOfBirth');
 

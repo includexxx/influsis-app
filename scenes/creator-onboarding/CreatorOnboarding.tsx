@@ -39,15 +39,20 @@ const STEP_COMPONENTS: Record<number, ComponentType> = {
 export default function CreatorOnboarding() {
   const { colors } = useTheme();
   const { currentStep, completed } = useCreatorOnboardingSlice();
-  const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+  const { data } = useGetMyProfileQuery();
 
-  // const { data } = useGetMyProfileQuery();
+  function renderStep() {
+    if (currentStep === 1) {
+      return <BasicInformationStep name={data?.profile.name} />;
+    }
 
-  // console.log(data, 'mh______');
+    const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+    return <StepComponent />;
+  }
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      {completed ? <OnboardingComplete /> : <StepComponent />}
+      {completed ? <OnboardingComplete /> : renderStep()}
     </SafeAreaView>
   );
 }
