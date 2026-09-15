@@ -8,12 +8,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: process.env.EXPO_NAME ?? 'Influsis',
     ios: {
       ...config.ios,
-      bundleIdentifier:
-        process.env.EXPO_IOS_BUNDLE_IDENTIFIER ?? 'com.watarumaeda.react-native-boilerplate',
+      bundleIdentifier: process.env.EXPO_IOS_BUNDLE_IDENTIFIER ?? 'com.influsis.native_dev',
     },
     android: {
       ...config.android,
-      package: process.env.EXPO_ANDROID_PACKAGE ?? 'com.watarumaeda.react_native_boilerplate',
+      package: process.env.EXPO_ANDROID_PACKAGE ?? 'com.influsis.native_dev',
     },
     web: {
       ...config.web,
@@ -28,9 +27,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       eas: { projectId: expoProjectId },
       env: process.env.ENV ?? 'development',
       apiUrl: process.env.API_URL ?? 'https://example.com',
+      googleWebClientId: process.env.EXPO_WEB_CLIENT_ID,
       // add more env variables here...
     },
     plugins: [
+      [
+        '@react-native-google-signin/google-signin',
+        {
+          // iosUrlScheme: process.env.EXPO_ISO_URL_SCREEN,
+          iosUrlScheme: 'com.googleusercontent.apps.361563667577-oq9to7s2fvmb59tnrttbu8dvki0r9otk',
+        },
+      ],
       'expo-router',
       'expo-asset',
       [

@@ -15,6 +15,7 @@ import PortfolioStep from './steps/PortfolioStep';
 import UsernameStep from './steps/UsernameStep';
 import PlaceholderStep from './steps/PlaceholderStep';
 import OnboardingComplete from './OnboardingComplete';
+import { useGetMyProfileQuery } from '@/services';
 
 // The private, post-registration creator onboarding wizard - one screen, the
 // active step chosen by `currentStep` in the `creatorOnboarding` slice. Every
@@ -38,11 +39,20 @@ const STEP_COMPONENTS: Record<number, ComponentType> = {
 export default function CreatorOnboarding() {
   const { colors } = useTheme();
   const { currentStep, completed } = useCreatorOnboardingSlice();
-  const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+  const { data } = useGetMyProfileQuery();
+
+  function renderStep() {
+    if (currentStep === 1) {
+      return <BasicInformationStep name={data?.profile.name} />;
+    }
+
+    const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+    return <StepComponent />;
+  }
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      {completed ? <OnboardingComplete /> : <StepComponent />}
+      {completed ? <OnboardingComplete /> : renderStep()}
     </SafeAreaView>
   );
 }

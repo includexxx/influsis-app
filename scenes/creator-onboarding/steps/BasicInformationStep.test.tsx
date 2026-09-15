@@ -3,7 +3,9 @@ import { ReactNode } from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
-import creatorOnboarding from '@/slices/creatorOnboarding.slice';
+import creatorOnboarding, { saveBasics } from '@/slices/creatorOnboarding.slice';
+
+import BasicInformationStep from './BasicInformationStep';
 
 // The real gender sheet / calendar are BottomSheet-based and exercised
 // elsewhere; here they're stand-ins that just emit a value, keeping this
@@ -42,14 +44,16 @@ jest.mock('@/components/elements/CalendarPicker', () => ({
   },
 }));
 
-import BasicInformationStep from './BasicInformationStep';
-
-function renderStep() {
+function renderStep(
+  props?: { name?: string },
+  setup?: (dispatch: ReturnType<typeof configureStore>['dispatch']) => void,
+) {
   const store = configureStore({ reducer: { creatorOnboarding } });
+  setup?.(store.dispatch);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
-  render(<BasicInformationStep />, { wrapper });
+  render(<BasicInformationStep {...props} />, { wrapper });
   return store;
 }
 
@@ -100,5 +104,37 @@ describe('<BasicInformationStep />', () => {
 
     expect(await screen.findByText(/at least 14/i)).toBeTruthy();
     expect(nextDisabled()).toBe(true);
+  });
+
+  test('pre-fills the name field from the `name` prop when no draft is saved', async () => {
+    renderStep({ name: 'Ayesha Rahman' });
+    expect(await screen.findByDisplayValue('Ayesha Rahman')).toBeTruthy();
+  });
+
+  test('the `name` prop takes precedence over a saved draft name', async () => {
+    renderStep({ name: 'Fetched Name' }, dispatch => {
+      dispatch(
+        saveBasics({
+          name: 'Drafted Name',
+          gender: 'female',
+          dateOfBirth: '2000-01-01T00:00:00.000Z',
+        }),
+      );
+    });
+    expect(await screen.findByDisplayValue('Fetched Name')).toBeTruthy();
+    expect(screen.queryByDisplayValue('Drafted Name')).toBeNull();
+  });
+
+  test('keeps the saved draft name when no `name` prop is given', async () => {
+    renderStep(undefined, dispatch => {
+      dispatch(
+        saveBasics({
+          name: 'Drafted Name',
+          gender: 'female',
+          dateOfBirth: '2000-01-01T00:00:00.000Z',
+        }),
+      );
+    });
+    expect(await screen.findByDisplayValue('Drafted Name')).toBeTruthy();
   });
 });

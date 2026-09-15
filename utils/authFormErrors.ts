@@ -10,6 +10,7 @@ const CODE_MESSAGES: Record<string, string> = {
   ACCOUNT_DEACTIVATED: 'This account has been deactivated.',
   ACCOUNT_PENDING_VERIFICATION: 'Verify your account to continue. Check your email for the code.',
   NETWORK_ERROR: 'Cannot reach the server. Check your connection and try again.',
+  FORBIDDEN: 'You do not have any access in Influsis App platform.',
 };
 
 /**

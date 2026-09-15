@@ -1,7 +1,10 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useTheme } from '@/hooks';
+import { useAuthSlice } from '@/slices';
+import { ApiError, setTokens, useGoogleLoginMutation } from '@/services';
 import { layoutStyle, cardStyle as sharedCard, textStyle as sharedText } from '@/styles';
 import Image from '@/components/elements/Image';
 import SocialAuthButton from '@/components/elements/SocialAuthButton';
@@ -143,11 +146,7 @@ export default function SignInLanding() {
             icon={facebookIcon}
             onPress={continueWithProvider}
           />
-          <SocialAuthButton
-            label="Continue with Google"
-            icon={googleIcon}
-            onPress={continueWithProvider}
-          />
+          <GoogleLoginButton />
         </View>
 
         <View style={styles.footer}>
@@ -162,5 +161,48 @@ export default function SignInLanding() {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function GoogleLoginButton() {
+  const { dispatch, sessionEstablished } = useAuthSlice();
+  const [googleLogin, { isLoading }] = useGoogleLoginMutation();
+
+  async function signIn() {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const result = await GoogleSignin.signIn();
+      if (result.type === 'cancelled') return;
+
+      const idToken = result.data.idToken;
+      if (!idToken) throw new Error('Google did not return an ID token.');
+
+      const res = await googleLogin({ idToken }).unwrap();
+      await setTokens({
+        token: res.token,
+        refreshToken: res.refreshToken,
+        tokenExpires: res.tokenExpires,
+      });
+      dispatch(sessionEstablished(res.user));
+
+      if (!res?.user?.isOnboardingComplete) {
+        router.replace('/creator-onboarding');
+      } else {
+        router.replace('/home');
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
+      Alert.alert('Sign in failed', message + '\n' + JSON.stringify(err, null, 2));
+    }
+  }
+
+  return (
+    <SocialAuthButton
+      label="Continue with Google"
+      icon={googleIcon}
+      onPress={signIn}
+      disabled={isLoading}
+    />
   );
 }

@@ -44,6 +44,7 @@ export interface AuthAccount {
   phoneVerified: boolean;
   twoFactorEnabled: boolean;
   handle: string | null;
+  isOnboardingComplete: boolean;
   profile: AuthProfileSummary | null;
 }
 
@@ -80,6 +81,11 @@ export interface LoginRequest {
 }
 
 export type LoginResponse = SessionTokenPair | { mfaRequired: true; preAuthToken: string };
+
+/** `POST /auth/google/login` body. No MFA branch for social login. */
+export interface GoogleLoginRequest {
+  idToken: string;
+}
 
 export interface Login2faVerifyRequest {
   preAuthToken: string;
