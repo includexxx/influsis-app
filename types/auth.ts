@@ -44,6 +44,7 @@ export interface AuthAccount {
   phoneVerified: boolean;
   twoFactorEnabled: boolean;
   handle: string | null;
+  isOnboardingComplete: boolean;
   profile: AuthProfileSummary | null;
 }
 

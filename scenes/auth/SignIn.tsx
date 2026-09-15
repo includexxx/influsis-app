@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
@@ -24,16 +25,31 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 8,
   },
-  formError: {
+  alert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+  },
+  alertText: {
+    flex: 1,
     fontSize: 14,
-    fontWeight: '600',
-    marginTop: 4,
+    fontWeight: '500',
+    lineHeight: 20,
   },
 });
 
 export default function SignIn() {
-  const { colors, palette } = useTheme();
+  const { colors, palette, isDark } = useTheme();
   const { dispatch, sessionEstablished } = useAuthSlice();
+  const alertBackground = isDark ? 'rgba(249, 112, 102, 0.14)' : palette.error[50];
+  const alertBorder = isDark ? 'rgba(249, 112, 102, 0.35)' : palette.error[200];
+  const alertText = isDark ? palette.error[300] : palette.error[700];
   const [login, { isLoading }] = useLoginMutation();
 
   const {
@@ -67,7 +83,12 @@ export default function SignIn() {
         tokenExpires: res.tokenExpires,
       });
       dispatch(sessionEstablished(res.user));
-      router.replace('/home');
+
+      if (!res?.user?.isOnboardingComplete) {
+        router.replace('/creator-onboarding');
+      } else {
+        router.replace('/home');
+      }
     } catch (err) {
       applyApiError(err, setError, ['identifier', 'password']);
     }
@@ -105,7 +126,19 @@ export default function SignIn() {
             </Text>
           </View>
           {errors.root?.message ? (
-            <Text style={[styles.formError, { color: colors.error }]}>{errors.root.message}</Text>
+            <View
+              accessibilityRole="alert"
+              style={[
+                styles.alert,
+                {
+                  backgroundColor: alertBackground,
+                  borderColor: alertBorder,
+                  borderLeftColor: colors.error,
+                },
+              ]}>
+              <Feather name="alert-circle" size={18} color={colors.error} />
+              <Text style={[styles.alertText, { color: alertText }]}>{errors.root.message}</Text>
+            </View>
           ) : null}
           <Button
             title="Sign in"

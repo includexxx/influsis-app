@@ -185,7 +185,7 @@ function GoogleLoginButton() {
       });
       dispatch(sessionEstablished(res.user));
 
-      if (res?.user?.status === 'unverified') {
+      if (!res?.user?.isOnboardingComplete) {
         router.replace('/creator-onboarding');
       } else {
         router.replace('/home');
