@@ -75,6 +75,23 @@ export interface RegisterRequest {
   password: string;
 }
 
+/**
+ * `data.verification` on a `201` from `POST /auth/register`: which step comes
+ * next. A creator always gets `method: 'otp'` - by `sms` when a phone was
+ * given, else by `email`.
+ */
+export interface RegisterVerification {
+  method: 'otp' | 'link';
+  channel: OtpChannel;
+  /** Normalized E.164 phone or lowercased email; pass back as `destination`. */
+  destination: string;
+  expiresInMinutes: number;
+}
+
+export interface RegisterResponse {
+  verification: RegisterVerification;
+}
+
 export interface LoginRequest {
   identifier: string;
   password: string;

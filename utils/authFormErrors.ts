@@ -5,10 +5,11 @@ type SetError<N extends string> = (name: N | 'root', error: { message: string })
 const GENERIC = 'Something went wrong. Please try again.';
 
 const CODE_MESSAGES: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'The email or password is incorrect.',
+  AUTH_INVALID_CREDENTIALS: 'The email/phone or password is incorrect.',
   ACCOUNT_SUSPENDED: 'This account has been suspended. Contact support for help.',
   ACCOUNT_DEACTIVATED: 'This account has been deactivated.',
-  ACCOUNT_PENDING_VERIFICATION: 'Verify your account to continue. Check your email for the code.',
+  ACCOUNT_PENDING_VERIFICATION:
+    'Verify your account to continue. Check your SMS or email for the code.',
   NETWORK_ERROR: 'Cannot reach the server. Check your connection and try again.',
   FORBIDDEN: 'You do not have any access in Influsis App platform.',
 };
@@ -41,9 +42,16 @@ export function applyApiError<N extends string>(
     return;
   }
 
-  if (err.code === 'ALREADY_EXISTS' && (fields as string[]).includes('email')) {
-    setError('email' as N, { message: 'An account with this email already exists.' });
-    return;
+  if (err.code === 'ALREADY_EXISTS') {
+    // The backend names the clashing field under `errors` (`phone` / `email`).
+    if (err.errors?.phone && (fields as string[]).includes('phone')) {
+      setError('phone' as N, { message: 'An account with this phone number already exists.' });
+      return;
+    }
+    if ((fields as string[]).includes('email')) {
+      setError('email' as N, { message: 'An account with this email already exists.' });
+      return;
+    }
   }
 
   const known = CODE_MESSAGES[err.code];

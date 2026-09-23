@@ -9,6 +9,7 @@ import {
   OtpVerifyRequest,
   OtpVerifyResponse,
   RegisterRequest,
+  RegisterResponse,
   ResetPasswordRequest,
   SessionTokenPair,
 } from '@/types';
@@ -19,7 +20,7 @@ export const authApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ['Me'],
   endpoints: builder => ({
-    register: builder.mutation<null, RegisterRequest>({
+    register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: body => ({ url: '/auth/register', method: 'POST', data: body, skipAuth: true }),
     }),
     login: builder.mutation<LoginResponse, LoginRequest>({

@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks';
 import { useRegisterMutation } from '@/services';
 import { signUpSchema, SignUpValues } from '@/utils/authSchemas';
 import { applyApiError } from '@/utils/authFormErrors';
+import { DEFAULT_DIAL_CODE, isE164, toE164 } from '@/utils/phone';
 import { layoutStyle, buttonStyle as sharedButton, textStyle as sharedText } from '@/styles';
 import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
 import Button from '@/components/elements/Button';
@@ -82,11 +83,40 @@ export default function SignUp() {
   async function onSubmit(values: SignUpValues) {
     clearErrors('root');
     const email = values.email.trim();
+    // The schema only checks the national digits; E.164 needs the dial code.
+    const phone = values.phone.trim()
+      ? toE164(selectedPhoneCountry?.dialCode ?? DEFAULT_DIAL_CODE, values.phone)
+      : '';
+    if (phone && !isE164(phone)) {
+      setError('phone', { message: 'Enter a valid phone number' });
+      return;
+    }
+
     try {
-      await registerCreator({ roleKey: 'creator', email, password: values.password }).unwrap();
-      router.push({ pathname: '/auth/verify-otp', params: { email } });
+      const { verification } = await registerCreator({
+        roleKey: 'creator',
+        password: values.password,
+        ...(phone ? { phone } : {}),
+        ...(email ? { email } : {}),
+      }).unwrap();
+
+      // The backend picks the channel (SMS when a phone was given) and hands
+      // back the normalized destination - use that, not our own, so the
+      // verify call hits the same key. Timestamps ride along as params so the
+      // OTP screen counts down to absolute times (see `useCountdown`).
+      const sentAt = Date.now();
+      router.push({
+        pathname: '/auth/verify-otp',
+        params: {
+          destination: verification.destination,
+          channel: verification.channel,
+          sentAt: String(sentAt),
+          expiresAt: String(sentAt + verification.expiresInMinutes * 60_000),
+          expiresInMinutes: String(verification.expiresInMinutes),
+        },
+      });
     } catch (err) {
-      applyApiError(err, setError, ['email', 'password']);
+      applyApiError(err, setError, ['email', 'phone', 'password']);
     }
   }
 
