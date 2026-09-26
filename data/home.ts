@@ -1,7 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 import { gigs as allGigs } from './gigs';
 import { creators as allCreators } from './creators';
-import { businesses as allBusinesses } from './businesses';
 
 // Mock content for the Home screen (scenes/main/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
@@ -9,18 +8,10 @@ import { businesses as allBusinesses } from './businesses';
 // scene file so the scene stays focused on layout/composition rather than
 // content, and so this data has one obvious place to eventually be replaced
 // by a real API response shape.
-
-// {id, source} pairs from the canonical business list (data/businesses.ts), picked
-// by id to reproduce the same five business-logo-1..5.jpg images in the same
-// order this row showed before - previously a plain `ImageSourcePropType[]`
-// with no id to link a tap to a business profile, the same "identity-less"
-// gap docs/screen/creator-profile/README.md describes fixing for
-// topRatedCreators below.
-const homeBusinessIds = ['business-2', 'business-1', 'business-12', 'business-4', 'business-3'];
-export const businessLogos = homeBusinessIds
-  .map(id => allBusinesses.find(business => business.id === id))
-  .filter((business): business is (typeof allBusinesses)[number] => !!business)
-  .map(({ id, source }) => ({ id, source }));
+//
+// "Business" itself no longer reads from here - scenes/home/components/
+// BusinessLogosSection.tsx fetches the real business directory instead
+// (scenes/business/api/businessDirectoryApi.ts).
 
 export interface PopularCampaign {
   id: string;
