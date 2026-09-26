@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -6,11 +6,23 @@ import { layoutStyle, businessDetailsStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import { useGetBusinessProfileQuery } from '@/scenes/business/api/businessDirectoryApi';
+import { getBusinessInitial } from '@/scenes/business/utils/businessAvatar';
 import {
   BusinessAvatar,
   BusinessDetailsSkeleton,
   BusinessesEmptyState,
 } from '@/scenes/business/components';
+
+const styles = StyleSheet.create({
+  bannerFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerFallbackText: {
+    fontSize: 48,
+    fontWeight: '600',
+  },
+});
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const globeIcon = require('@/assets/images/business-details/globe.png');
@@ -60,21 +72,32 @@ export default function BusinessDetails() {
           />
         ) : (
           <>
-            {business.coverUrl && (
-              <View style={businessDetailsStyle.bannerWrap}>
+            <View style={businessDetailsStyle.bannerWrap}>
+              {business.coverUrl ? (
                 <Image
                   source={{ uri: business.coverUrl }}
                   style={businessDetailsStyle.banner}
                   contentFit="cover"
                 />
-                <BusinessAvatar
-                  source={business.avatarUrl ? { uri: business.avatarUrl } : null}
-                  businessName={business.businessName}
-                  size={62}
-                  style={businessDetailsStyle.avatar}
-                />
-              </View>
-            )}
+              ) : (
+                <View
+                  style={[
+                    businessDetailsStyle.banner,
+                    styles.bannerFallback,
+                    { backgroundColor: palette.gray[50] },
+                  ]}>
+                  <Text style={[styles.bannerFallbackText, { color: palette.gray[400] }]}>
+                    {getBusinessInitial(business.businessName)}
+                  </Text>
+                </View>
+              )}
+              <BusinessAvatar
+                source={business.avatarUrl ? { uri: business.avatarUrl } : null}
+                businessName={business.businessName}
+                size={62}
+                style={businessDetailsStyle.avatar}
+              />
+            </View>
 
             <View style={businessDetailsStyle.content}>
               <View style={businessDetailsStyle.nameRow}>

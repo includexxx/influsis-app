@@ -15,14 +15,14 @@ const starIcon = require('@/assets/images/creators/star.png');
 const locationPinIcon = require('@/assets/images/creators/location-pin.png');
 
 export interface CreatorCardProps {
-  image: ImageSourcePropType;
+  image: ImageSourcePropType | null;
   name: string;
   verified?: boolean;
   topRated?: boolean;
   location: string;
   tags?: string[];
-  followers: string;
-  engagement: string;
+  followers?: string;
+  engagement?: string;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -38,6 +38,14 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 148,
+  },
+  imageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageFallbackText: {
+    fontSize: 48,
+    fontWeight: '600',
   },
   content: {
     paddingHorizontal: 12,
@@ -167,7 +175,15 @@ function CreatorCard({
       onPress={onPress}
       testID={testID}
       style={[styles.root, { borderColor: palette.gray[50], backgroundColor: colors.card }, style]}>
-      <Image source={image} style={styles.image} contentFit="cover" />
+      {image ? (
+        <Image source={image} style={styles.image} contentFit="cover" />
+      ) : (
+        <View style={[styles.image, styles.imageFallback, { backgroundColor: palette.gray[50] }]}>
+          <Text style={[styles.imageFallbackText, { color: palette.gray[400] }]}>
+            {name.trim().charAt(0).toUpperCase() || '?'}
+          </Text>
+        </View>
+      )}
       <View style={styles.content}>
         <View style={styles.nameRow}>
           <View style={styles.nameGroup}>
@@ -201,16 +217,26 @@ function CreatorCard({
               ))}
             </View>
           )}
-          <View style={styles.statsRow}>
-            <View style={styles.statColumn}>
-              <Text style={[styles.statValue, { color: colors.text.primary }]}>{followers}</Text>
-              <Text style={[styles.statLabel, { color: palette.gray[300] }]}>Followers</Text>
+          {(followers != null || engagement != null) && (
+            <View style={styles.statsRow}>
+              {followers != null && (
+                <View style={styles.statColumn}>
+                  <Text style={[styles.statValue, { color: colors.text.primary }]}>
+                    {followers}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: palette.gray[300] }]}>Followers</Text>
+                </View>
+              )}
+              {engagement != null && (
+                <View style={styles.statColumn}>
+                  <Text style={[styles.statValue, { color: colors.text.primary }]}>
+                    {engagement}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: palette.gray[300] }]}>Engagement</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.statColumn}>
-              <Text style={[styles.statValue, { color: colors.text.primary }]}>{engagement}</Text>
-              <Text style={[styles.statLabel, { color: palette.gray[300] }]}>Engagement</Text>
-            </View>
-          </View>
+          )}
         </View>
       </View>
     </Pressable>

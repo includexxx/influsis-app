@@ -1,40 +1,58 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle, creatorProfileStyle } from '@/styles';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
-import GigCard from '@/components/elements/GigCard';
-import StarRating from '@/components/elements/StarRating';
-import ReviewCard from '@/components/elements/ReviewCard';
-import { creators } from '@/data/creators';
-import { gigs } from '@/data/gigs';
+import { useGetCreatorProfileQuery } from '@/scenes/creator/api/creatorDirectoryApi';
+import { getCreatorInitial } from '@/scenes/creator/utils/creatorLocation';
+import {
+  CreatorAvatar,
+  CreatorProfileSkeleton,
+  CreatorsEmptyState,
+} from '@/scenes/creator/components';
 
 const verifiedCheckIcon = require('@/assets/images/creators/verified-check.png');
-const starHeaderIcon = require('@/assets/images/profile/star-header.png');
+
+const styles = StyleSheet.create({
+  bannerFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerFallbackText: {
+    fontSize: 48,
+    fontWeight: '600',
+  },
+});
 
 // The Creator Profile screen (Figma "Creator Profile Details - Business
-// Side_sample 2", node 6001:37822), pushed from any creator's tap -
-// Home's "Top Rated Creator" row (a Pressable CircleAvatar) and the full
-// /top-creators list (CreatorCard) both navigate here
-// (scenes/main/Home.tsx, scenes/main/TopCreators.tsx). Registered as a
-// dynamic route in the app/(details)/ route group
-// (app/(details)/creator/[id].tsx), the same "no tab bar" reasoning as
-// every other screen in that group. Looks the tapped creator up by id in
-// data/creators.ts, the canonical creator list every
-// creator-showing screen now shares - see
-// docs/screen/creator-profile/README.md.
+// Side_sample 2", node 6001:37822), pushed from any creator's tap - Home's
+// "Top Rated Creator" row and the full /top-creators list both navigate
+// here (scenes/home/components/TopRatedCreatorsSection.tsx,
+// scenes/main/TopCreators.tsx). Registered as a dynamic route in the
+// app/(details)/ route group (app/(details)/creator/[id].tsx), the same "no
+// tab bar" reasoning as every other screen in that group. Looks the tapped
+// creator up by userId via the public single-profile endpoint (RBAC API
+// group §E4, GET /creator-profiles/:userId), rather than the mock
+// data/creators.ts fixture this screen used before real backend wiring
+// started. That mock also showed "Active Gigs" and "Customer Review"
+// sections - the real endpoint doesn't project a creator's gigs or reviews,
+// so both are dropped rather than faked.
 export default function CreatorProfile() {
   const { colors, palette } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const creator = creators.find(item => item.id === id);
+  const {
+    data: creator,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetCreatorProfileQuery({ userId: id ?? '' }, { skip: !id });
 
-  if (!creator) {
+  if (!id || error?.code === 'NOT_FOUND') {
     return <Redirect href="/home" />;
   }
-
-  const activeGigs = gigs.filter(gig => creator.activeGigIds?.includes(gig.id));
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -43,117 +61,86 @@ export default function CreatorProfile() {
           <ScreenHeader title="Profile" onBack={() => router.back()} />
         </View>
 
-        {creator.bannerImage && (
-          <View style={creatorProfileStyle.bannerWrap}>
-            <Image
-              source={creator.bannerImage}
-              style={creatorProfileStyle.banner}
-              contentFit="cover"
-            />
-            {creator.avatar && (
-              <Image
-                source={creator.avatar}
-                style={creatorProfileStyle.avatar}
-                contentFit="cover"
-              />
-            )}
-          </View>
-        )}
-
-        <View style={creatorProfileStyle.content}>
-          <View style={creatorProfileStyle.nameRow}>
-            <Text style={[creatorProfileStyle.name, { color: colors.text.primary }]}>
-              {creator.name}
-            </Text>
-            {creator.verified && (
-              <Image
-                source={verifiedCheckIcon}
-                style={creatorProfileStyle.verifiedIcon}
-                contentFit="contain"
-              />
-            )}
-          </View>
-          {creator.bio && (
-            <Text style={[creatorProfileStyle.bio, { color: palette.gray[300] }]}>
-              {creator.bio}
-            </Text>
-          )}
-
-          {!!activeGigs.length && (
-            <View style={creatorProfileStyle.activeGigsSection}>
-              <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                Active Gigs
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={creatorProfileStyle.sectionHeaderGap}>
-                <View style={[creatorProfileStyle.row, creatorProfileStyle.gigsRowGap]}>
-                  {activeGigs.map(gig => (
-                    <GigCard
-                      key={gig.id}
-                      {...gig}
-                      style={creatorProfileStyle.gigCard}
-                      onPress={() => router.push(`/gig/${gig.id}`)}
-                    />
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
-          )}
-
-          {!!creator.categories?.length && (
-            <View style={creatorProfileStyle.tagsSection}>
-              <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                Tags
-              </Text>
-              <View
-                style={[creatorProfileStyle.tagRow, creatorProfileStyle.sectionHeaderGap]}>
-                {creator.categories.map(category => (
-                  <View
-                    key={category}
-                    style={[
-                      creatorProfileStyle.tagPill,
-                      { backgroundColor: palette.primary[50] },
-                    ]}>
-                    <Text style={[creatorProfileStyle.tagLabel, { color: palette.gray[500] }]}>
-                      {category}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {creator.customerRating != null && (
-            <View style={creatorProfileStyle.reviewsHeaderSection}>
-              <View style={creatorProfileStyle.reviewsSummaryRow}>
-                <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
-                  Customer Review
-                </Text>
-                <StarRating
-                  rating={creator.customerRating}
-                  maxStars={1}
-                  icon={starHeaderIcon}
-                  starSize={28}
-                  label={String(creator.customerRating)}
+        {isLoading ? (
+          <CreatorProfileSkeleton />
+        ) : isError || !creator ? (
+          <CreatorsEmptyState
+            variant="error"
+            onRetry={refetch}
+            style={creatorProfileStyle.content}
+          />
+        ) : (
+          <>
+            <View style={creatorProfileStyle.bannerWrap}>
+              {creator.coverUrl ? (
+                <Image
+                  source={{ uri: creator.coverUrl }}
+                  style={creatorProfileStyle.banner}
+                  contentFit="cover"
                 />
-              </View>
-
-              {!!creator.reviews?.length && (
+              ) : (
                 <View
                   style={[
-                    creatorProfileStyle.reviewsGap,
-                    creatorProfileStyle.sectionHeaderGap,
+                    creatorProfileStyle.banner,
+                    styles.bannerFallback,
+                    { backgroundColor: palette.gray[50] },
                   ]}>
-                  {creator.reviews.map(review => (
-                    <ReviewCard key={review.id} {...review} />
-                  ))}
+                  <Text style={[styles.bannerFallbackText, { color: palette.gray[400] }]}>
+                    {getCreatorInitial(creator.displayName)}
+                  </Text>
+                </View>
+              )}
+              <CreatorAvatar
+                source={creator.avatarUrl ? { uri: creator.avatarUrl } : null}
+                displayName={creator.displayName}
+                size={78}
+                style={creatorProfileStyle.avatar}
+              />
+            </View>
+
+            <View style={creatorProfileStyle.content}>
+              <View style={creatorProfileStyle.nameRow}>
+                <Text style={[creatorProfileStyle.name, { color: colors.text.primary }]}>
+                  {creator.displayName}
+                </Text>
+                {creator.verificationStatus === 'verified' && (
+                  <Image
+                    source={verifiedCheckIcon}
+                    style={creatorProfileStyle.verifiedIcon}
+                    contentFit="contain"
+                  />
+                )}
+              </View>
+              {creator.bio && (
+                <Text style={[creatorProfileStyle.bio, { color: palette.gray[300] }]}>
+                  {creator.bio}
+                </Text>
+              )}
+
+              {!!creator.categories.length && (
+                <View style={creatorProfileStyle.tagsSection}>
+                  <Text style={[creatorProfileStyle.sectionTitle, { color: colors.text.primary }]}>
+                    Tags
+                  </Text>
+                  <View style={[creatorProfileStyle.tagRow, creatorProfileStyle.sectionHeaderGap]}>
+                    {creator.categories.map(category => (
+                      <View
+                        key={category}
+                        style={[
+                          creatorProfileStyle.tagPill,
+                          { backgroundColor: palette.primary[50] },
+                        ]}>
+                        <Text style={[creatorProfileStyle.tagLabel, { color: palette.gray[500] }]}>
+                          {category}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               )}
             </View>
-          )}
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

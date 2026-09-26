@@ -13,7 +13,7 @@ import {
   TopGigsSection,
   TopRatedCreatorsSection,
 } from '@/scenes/home/components';
-import { popularCampaigns, gigs, topRatedCreators } from '@/data/home';
+import { popularCampaigns, gigs } from '@/data/home';
 
 // The Home tab of the main app shell (Figma "Home", node 6121:6522).
 // Sections are populated from data/home.ts mock content - no backend
@@ -60,7 +60,6 @@ export default function Home() {
         /> */}
 
         <TopRatedCreatorsSection
-          creators={topRatedCreators}
           onSeeAllPress={() => router.push('/top-creators')}
           onCreatorPress={id => router.push(`/creator/${id}`)}
         />

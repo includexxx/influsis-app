@@ -5,6 +5,12 @@ import { StyleSheet } from 'react-native';
 // is full-bleed (no horizontal padding) - see the scene file for how the
 // content below it applies its own padding instead of reusing
 // layoutStyle.scrollContent for the whole screen.
+//
+// The mock version of this screen also had "Active Gigs" and "Customer
+// Review" sections - dropped along with their styles once this screen moved
+// to the real single-profile endpoint (scenes/creator/api/
+// creatorDirectoryApi.ts), which doesn't project a creator's gigs or
+// reviews.
 export const creatorProfileStyle = StyleSheet.create({
   headerRow: {
     paddingHorizontal: 16,
@@ -59,33 +65,15 @@ export const creatorProfileStyle = StyleSheet.create({
     lineHeight: 30,
     fontWeight: '600',
   },
-  // Gap above each major section - confirmed from Figma's pixel positions
-  // (name/bio block bottom at y=446, "Active Gigs" top at y=462; gig row
-  // bottom at y=718, "Tags" top at y=742; tag pills bottom at y=808,
-  // "Customer Review" top at y=824).
-  activeGigsSection: {
-    marginTop: 16,
-  },
+  // Gap above the Tags section - confirmed from Figma's pixel positions
+  // (tag pills bottom at y=808, "Customer Review" top at y=824).
   tagsSection: {
     marginTop: 24,
   },
-  reviewsHeaderSection: {
-    marginTop: 16,
-  },
   // Gap between a section title and its content below it - confirmed from
-  // Figma's pixel positions (e.g. "Active Gigs" bottom at y=492, first gig
-  // card top at y=500).
+  // Figma's pixel positions.
   sectionHeaderGap: {
     marginTop: 8,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  gigsRowGap: {
-    gap: 8,
-  },
-  gigCard: {
-    width: 356,
   },
   tagRow: {
     flexDirection: 'row',
@@ -101,15 +89,5 @@ export const creatorProfileStyle = StyleSheet.create({
   tagLabel: {
     fontSize: 14,
     lineHeight: 21,
-  },
-  reviewsSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  // Vertical gap between stacked review cards - confirmed from Figma's
-  // pixel positions (cards at y=866/1074/1282, each 192px tall).
-  reviewsGap: {
-    gap: 16,
   },
 });
