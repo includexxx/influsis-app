@@ -70,6 +70,7 @@ export const campaignDetailsStyle = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     marginTop: 8,
+    textAlign: 'justify',
   },
   // Gap between a section title and its content below it (bullet list /
   // deliverable cards) - confirmed from Figma's pixel positions (e.g.

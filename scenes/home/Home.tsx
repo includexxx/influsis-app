@@ -1,21 +1,18 @@
-import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import AppHeader from '@/components/elements/AppHeader';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
-import { homeStyle } from './home.style';
-import AppHeader from '@/components/elements/AppHeader';
+import { router } from 'expo-router';
+import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  HomeSearchBar,
   ActiveCampaignsSection,
   BusinessLogosSection,
-  PopularCampaignsSection,
   CampaignsListSection,
   EarningsSection,
-  TopGigsSection,
+  HomeSearchBar,
   TopRatedCreatorsSection,
 } from './components';
-import { popularCampaigns, gigs } from '@/data/home';
+import { homeStyle } from './home.style';
 
 // The Home tab of the main app shell (Figma "Home", node 6121:6522).
 // Sections are populated from data/home.ts mock content - no backend
@@ -32,7 +29,7 @@ export default function Home() {
         showsVerticalScrollIndicator={false}>
         <AppHeader onNotificationPress={() => router.push('/notifications')} />
 
-        <HomeSearchBar onPress={() => router.push('/search')} style={{ marginTop: -16 }} />
+        {/* <HomeSearchBar onPress={() => router.push('/search')} style={{ marginTop: -16 }} /> */}
 
         <EarningsSection style={{ marginTop: -16 }} />
 
