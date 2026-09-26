@@ -77,6 +77,22 @@ describe('<CampaignCard />', () => {
     expect(screen.getAllByText('Applied').length).toBeGreaterThan(0);
   });
 
+  test('falls back to the business initial when the hero avatar is missing', () => {
+    render(
+      <CampaignCard
+        variant="hero"
+        image={null}
+        businessAvatar={null}
+        businessName="Dhaka Delights Ltd."
+        title="New Shop Opening"
+        price="BDT 6,000"
+        dueDate="10 Oct 2026"
+      />,
+    );
+    expect(screen.getByText('D')).not.toBeNull();
+    expect(screen.getByText('New Shop Opening')).not.toBeNull();
+  });
+
   test('calls onPress when tapped', () => {
     const onPress = jest.fn();
     render(

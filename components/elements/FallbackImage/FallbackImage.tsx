@@ -16,6 +16,9 @@ export interface FallbackImageProps {
   source: ImageSourcePropType | null | undefined;
   /** The name whose first letter is shown when there's no usable image. */
   name: string;
+  /** A bundled image shown instead of the initial when there's no usable
+   * `source` (e.g. a generic campaign cover). */
+  fallbackSource?: ImageSourcePropType;
   style?: StyleProp<ImageStyle>;
   contentFit?: ImageContentFit;
   testID?: string;
@@ -46,8 +49,16 @@ function sourceKey(source: FallbackImageProps['source']): unknown {
 // and when the URL fails to load (deleted upload, expired link, 404) - a
 // broken remote image would otherwise render as an empty box. The initial
 // scales with the box height so the same component serves 40px avatars and
-// full-width banners.
-function FallbackImage({ source, name, style, contentFit = 'cover', testID }: FallbackImageProps) {
+// full-width banners. Pass `fallbackSource` to show a bundled placeholder
+// image instead of the initial.
+function FallbackImage({
+  source,
+  name,
+  fallbackSource,
+  style,
+  contentFit = 'cover',
+  testID,
+}: FallbackImageProps) {
   const { palette } = useTheme();
   const [failed, setFailed] = useState(false);
   const key = sourceKey(source);
@@ -66,6 +77,10 @@ function FallbackImage({ source, name, style, contentFit = 'cover', testID }: Fa
         testID={testID}
       />
     );
+  }
+
+  if (fallbackSource) {
+    return <Image source={fallbackSource} style={style} contentFit={contentFit} testID={testID} />;
   }
 
   const height = StyleSheet.flatten(style)?.height;

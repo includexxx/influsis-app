@@ -1,11 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import { CampaignCardProps } from '@/components/elements/CampaignCard';
-import { CampaignFeedItem } from '../types/campaignFeed';
-
-// Shown in place of a campaign's cover photo when the business hasn't
-// uploaded one yet (`coverUrl: null`) - the same generic campaign hero image
-// the mock Home data used for this slot before real backend wiring started.
-export const FALLBACK_CAMPAIGN_COVER: ImageSourcePropType = require('@/assets/images/home/hero-campaign.jpg');
+import { resolveMediaUrl } from '@/utils/media';
+import { CampaignFeedEngagementSummary, CampaignFeedItem } from '../types/campaignFeed';
 
 const MONTH_LABELS = [
   'Jan',
@@ -42,22 +38,53 @@ export function formatCampaignPrice(budgetAmountMinor: number | null, currency: 
   return `${currency} ${formattedAmount}`;
 }
 
+// The status pill for a campaign this creator is already engaged with, so
+// the feed shows "Applied"/"Invited" without opening the campaign. The feed
+// only returns live engagements (pending, countered, accepted); anything
+// else, or no engagement, shows no pill.
+export function formatCampaignEngagementStatus(
+  engagement: CampaignFeedEngagementSummary | null,
+): string | undefined {
+  switch (engagement?.status) {
+    case 'pending':
+      return engagement.origin === 'invited' ? 'Invited' : 'Applied';
+    case 'countered':
+      return 'Countered';
+    case 'accepted':
+      return 'Accepted';
+    default:
+      return undefined;
+  }
+}
+
+// Remote media from the backend, with a dev-only `localhost` origin
+// rewritten to the app's API host (utils/media.ts) - without that, every
+// image URL the local backend returns is unreachable from a device or
+// emulator. `null` lets CampaignCard fall back on its own.
+function toRemoteSource(url: string | null): ImageSourcePropType | null {
+  const resolved = resolveMediaUrl(url);
+  return resolved ? { uri: resolved } : null;
+}
+
 export type CampaignFeedItemCardProps = Pick<
   CampaignCardProps,
-  'image' | 'businessAvatar' | 'businessName' | 'title' | 'price' | 'dueDate'
+  'image' | 'businessAvatar' | 'businessName' | 'title' | 'price' | 'dueDate' | 'status'
 >;
 
 // Maps a campaign feed row (CB1 or CB4 - both share the same shape) onto
 // CampaignCard's props. Neither feed has `tags`/`servicesDescription`/
 // `verified` fields (those are campaign-authoring concepts the creator-
 // facing feeds don't project), so they're left out rather than guessed.
+// The row's `avatarUrl` is the campaign's own avatar image; when it's missing
+// or broken, the card falls back to the business name's initial.
 export function mapCampaignFeedItemToCard(campaign: CampaignFeedItem): CampaignFeedItemCardProps {
   return {
-    image: campaign.coverUrl ? { uri: campaign.coverUrl } : FALLBACK_CAMPAIGN_COVER,
-    businessAvatar: campaign.avatarUrl ? { uri: campaign.avatarUrl } : undefined,
+    image: toRemoteSource(campaign.coverUrl),
+    businessAvatar: toRemoteSource(campaign.avatarUrl),
     businessName: campaign.businessName,
     title: campaign.title,
     price: formatCampaignPrice(campaign.budgetAmountMinor, campaign.currency),
     dueDate: formatCampaignDueDate(campaign.applicationDeadline),
+    status: formatCampaignEngagementStatus(campaign.myEngagement),
   };
 }

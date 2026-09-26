@@ -1,6 +1,12 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from '@/services/baseQuery';
-import { CampaignFeedItem, CampaignFeedPageArgs } from '../types/campaignFeed';
+import {
+  CampaignFeedDetail,
+  CampaignFeedFilteredPageArgs,
+  CampaignFeedFilters,
+  CampaignFeedItem,
+  CampaignFeedPageArgs,
+} from '../types/campaignFeed';
 
 // Shared by every "3 on Home, all on its own screen" campaign list: Home's
 // "Campaigns" and "Active Campaigns" previews (CampaignsListSection,
@@ -20,19 +26,33 @@ const RECOMMENDED_FEED_URL = '/feed/campaigns/recommended';
 //   campaigns ranked by category overlap with the creator's profile. Home's
 //   "Active Campaigns" preview (ActiveCampaignsSection) and the full Live
 //   Campaigns screen.
-// Both return the same row shape and take only page/limit here - neither
-// preview/full-list pair needs CB1's extra filters (q, category, platform,
-// city, budget, deadline, sort) yet.
+// Both return the same row shape. CB1 also takes the optional
+// CampaignFeedFilters (q, category, platform, city, budget, deadline, sort);
+// CB4 takes only page/limit.
+
+// Drops blank search text and an empty category list, so "no filter" sends
+// the same request (and hits the same RTK Query cache entry) as omitting it.
+function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageArgs) {
+  const trimmedQ = q?.trim();
+  const trimmedCity = city?.trim();
+  return {
+    ...rest,
+    ...(trimmedQ ? { q: trimmedQ } : {}),
+    ...(trimmedCity ? { city: trimmedCity } : {}),
+    ...(category?.length ? { category } : {}),
+  };
+}
+
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
   tagTypes: ['CampaignFeed'],
   endpoints: builder => ({
-    getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number }>({
-      query: ({ limit }) => ({
+    getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
+      query: args => ({
         url: CAMPAIGNS_FEED_URL,
         method: 'GET',
-        params: { page: 1, limit },
+        params: toFeedParams({ ...args, page: 1 }),
       }),
       providesTags: ['CampaignFeed'],
     }),
@@ -40,13 +60,22 @@ export const campaignFeedApi = createApi({
     // accumulates pages into one flat list itself, since services/http.ts
     // unwraps the response envelope and drops the backend's
     // `meta.hasNextPage` before RTK Query ever sees it.
-    getCampaignsFeedPage: builder.query<CampaignFeedItem[], CampaignFeedPageArgs>({
-      query: ({ page, limit }) => ({
+    getCampaignsFeedPage: builder.query<CampaignFeedItem[], CampaignFeedFilteredPageArgs>({
+      query: args => ({
         url: CAMPAIGNS_FEED_URL,
         method: 'GET',
-        params: { page, limit },
+        params: toFeedParams(args),
       }),
       providesTags: ['CampaignFeed'],
+    }),
+    // Campaign API group CB2 - one live campaign, the creator's view. 404
+    // (ApiError code NOT_FOUND) for anything not live or not a uuid.
+    getFeedCampaign: builder.query<CampaignFeedDetail, { id: string }>({
+      query: ({ id }) => ({
+        url: `${CAMPAIGNS_FEED_URL}/${encodeURIComponent(id)}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { id }) => [{ type: 'CampaignFeed', id }],
     }),
     getTopRecommendedCampaigns: builder.query<CampaignFeedItem[], { limit: number }>({
       query: ({ limit }) => ({
@@ -70,6 +99,7 @@ export const campaignFeedApi = createApi({
 export const {
   useGetTopCampaignsQuery,
   useGetCampaignsFeedPageQuery,
+  useGetFeedCampaignQuery,
   useGetTopRecommendedCampaignsQuery,
   useGetRecommendedCampaignsFeedPageQuery,
 } = campaignFeedApi;

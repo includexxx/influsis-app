@@ -1,13 +1,15 @@
 import { View, ScrollView, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
-import CampaignCard from '@/components/elements/CampaignCard';
 import {
   CAMPAIGNS_PREVIEW_LIMIT,
   useGetTopRecommendedCampaignsQuery,
 } from '@/scenes/campaigns/api/campaignFeedApi';
-import { mapCampaignFeedItemToCard } from '@/scenes/campaigns/utils/mapCampaignFeedItem';
-import { CampaignCardSkeleton, CampaignsEmptyState } from '@/scenes/campaigns/components';
+import {
+  CampaignCardSkeleton,
+  CampaignsEmptyState,
+  FeedCampaignCard,
+} from '@/scenes/campaigns/components';
 
 export interface ActiveCampaignsSectionProps {
   onSeeAllPress?: () => void;
@@ -58,12 +60,12 @@ function ActiveCampaignsSection({
                   <CampaignCardSkeleton key={index} variant="hero" style={styles.heroCard} />
                 ))
               : campaigns.map(item => (
-                  <CampaignCard
+                  <FeedCampaignCard
                     key={item.id}
+                    campaign={item}
                     variant="hero"
                     style={styles.heroCard}
-                    {...mapCampaignFeedItemToCard(item)}
-                    onPress={() => onCampaignPress?.(item.id)}
+                    onPress={onCampaignPress}
                   />
                 ))}
           </View>

@@ -1,11 +1,16 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, jest, test } from '@jest/globals';
 import { CampaignFeedItem } from '../types/campaignFeed';
 import {
-  FALLBACK_CAMPAIGN_COVER,
   formatCampaignDueDate,
+  formatCampaignEngagementStatus,
   formatCampaignPrice,
   mapCampaignFeedItemToCard,
 } from './mapCampaignFeedItem';
+
+jest.mock('@/utils/config', () => ({
+  __esModule: true,
+  default: { apiUrl: 'http://192.168.0.10:3001/api/v1' },
+}));
 
 const baseCampaign: CampaignFeedItem = {
   id: 'campaign-1',
@@ -67,13 +72,58 @@ describe('mapCampaignFeedItemToCard', () => {
     expect(result.dueDate).toBe('1 Oct 2026');
   });
 
-  test('falls back to a bundled cover image and no avatar when unset', () => {
+  test('leaves cover/avatar null when unset so the card falls back', () => {
     const result = mapCampaignFeedItemToCard({
       ...baseCampaign,
       coverUrl: null,
       avatarUrl: null,
     });
-    expect(result.image).toBe(FALLBACK_CAMPAIGN_COVER);
-    expect(result.businessAvatar).toBeUndefined();
+    expect(result.image).toBeNull();
+    expect(result.businessAvatar).toBeNull();
+  });
+
+  test('rewrites a local-dev localhost media URL onto the API host', () => {
+    const result = mapCampaignFeedItemToCard({
+      ...baseCampaign,
+      coverUrl: 'http://localhost:3001/uploads/campaign-images/cover.webp',
+      avatarUrl: 'http://127.0.0.1:3001/uploads/campaign-images/avatar.webp',
+    });
+    expect(result.image).toEqual({
+      uri: 'http://192.168.0.10:3001/uploads/campaign-images/cover.webp',
+    });
+    expect(result.businessAvatar).toEqual({
+      uri: 'http://192.168.0.10:3001/uploads/campaign-images/avatar.webp',
+    });
+  });
+
+  test('shows no status when the creator has no engagement', () => {
+    expect(mapCampaignFeedItemToCard(baseCampaign).status).toBeUndefined();
+  });
+});
+
+describe('formatCampaignEngagementStatus', () => {
+  test('labels a pending engagement by who started it', () => {
+    expect(
+      formatCampaignEngagementStatus({ id: 'e1', origin: 'requested', status: 'pending' }),
+    ).toBe('Applied');
+    expect(formatCampaignEngagementStatus({ id: 'e1', origin: 'invited', status: 'pending' })).toBe(
+      'Invited',
+    );
+  });
+
+  test('labels countered and accepted engagements', () => {
+    expect(
+      formatCampaignEngagementStatus({ id: 'e1', origin: 'requested', status: 'countered' }),
+    ).toBe('Countered');
+    expect(
+      formatCampaignEngagementStatus({ id: 'e1', origin: 'invited', status: 'accepted' }),
+    ).toBe('Accepted');
+  });
+
+  test('returns undefined for no engagement or an unknown status', () => {
+    expect(formatCampaignEngagementStatus(null)).toBeUndefined();
+    expect(
+      formatCampaignEngagementStatus({ id: 'e1', origin: 'requested', status: 'withdrawn' }),
+    ).toBeUndefined();
   });
 });

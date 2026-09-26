@@ -1,15 +1,20 @@
 import { View } from 'react-native';
 import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
-import CampaignCard from '@/components/elements/CampaignCard';
 import {
   CAMPAIGNS_PREVIEW_LIMIT,
   useGetTopCampaignsQuery,
 } from '@/scenes/campaigns/api/campaignFeedApi';
-import { mapCampaignFeedItemToCard } from '@/scenes/campaigns/utils/mapCampaignFeedItem';
-import { CampaignCardSkeleton, CampaignsEmptyState } from '@/scenes/campaigns/components';
+import {
+  CampaignCardSkeleton,
+  CampaignsEmptyState,
+  FeedCampaignCard,
+} from '@/scenes/campaigns/components';
+import { CampaignFeedFilters } from '@/scenes/campaigns/types/campaignFeed';
 
 export interface CampaignsListSectionProps {
+  /** Optional CB1 filters/sort; omitted, the backend default (newest first) applies. */
+  filters?: CampaignFeedFilters;
   onSeeAllPress?: () => void;
   onCampaignPress?: (id: string) => void;
 }
@@ -20,11 +25,19 @@ export interface CampaignsListSectionProps {
 // campaign with an open application deadline). "See all" pushes the full
 // virtualized list (scenes/campaigns/Campaigns.tsx), which reads the same
 // feed one page at a time.
-function CampaignsListSection({ onSeeAllPress, onCampaignPress }: CampaignsListSectionProps) {
-  const { data, isLoading, isError, refetch } = useGetTopCampaignsQuery({
+function CampaignsListSection({
+  filters,
+  onSeeAllPress,
+  onCampaignPress,
+}: CampaignsListSectionProps) {
+  const { currentData, isFetching, isError, refetch } = useGetTopCampaignsQuery({
+    ...filters,
     limit: CAMPAIGNS_PREVIEW_LIMIT,
   });
-  const campaigns = data ?? [];
+  // `currentData` + `isFetching` (not `data` + `isLoading`) so a filter change
+  // shows skeletons instead of the previous filter's campaigns.
+  const isLoading = isFetching && !currentData;
+  const campaigns = currentData ?? [];
 
   return (
     <View>
@@ -44,12 +57,7 @@ function CampaignsListSection({ onSeeAllPress, onCampaignPress }: CampaignsListS
                 <CampaignCardSkeleton key={index} variant="list" />
               ))
             : campaigns.map(item => (
-                <CampaignCard
-                  key={item.id}
-                  variant="list"
-                  {...mapCampaignFeedItemToCard(item)}
-                  onPress={() => onCampaignPress?.(item.id)}
-                />
+                <FeedCampaignCard key={item.id} campaign={item} onPress={onCampaignPress} />
               ))}
         </View>
       )}

@@ -15,13 +15,18 @@ import CalendarBadge from '../CalendarBadge';
 import StatusBadge from '../StatusBadge';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
+// Shown when a campaign has no cover photo, or its URL fails to load - the
+// same generic campaign hero image the mock Home data used for this slot.
+const defaultCover: ImageSourcePropType = require('@/assets/images/home/hero-campaign.jpg');
 
 export type CampaignCardVariant = 'hero' | 'list' | 'applied';
 
 export interface CampaignCardProps {
   variant?: CampaignCardVariant;
-  image: ImageSourcePropType;
-  businessAvatar?: ImageSourcePropType;
+  /** Cover photo; `null` (or a URL that fails to load) shows a generic cover. */
+  image: ImageSourcePropType | null;
+  /** Hero variant only; `null` (or a broken URL) shows the business initial. */
+  businessAvatar?: ImageSourcePropType | null;
   businessName?: string;
   title: string;
   verified?: boolean;
@@ -221,10 +226,11 @@ function CampaignCard({
       testID={testID}
       style={[isHero ? styles.hero : styles.list, { backgroundColor: colors.card }, style]}>
       <View style={styles.imageWrap}>
-        <Image
+        <FallbackImage
           source={image}
+          fallbackSource={defaultCover}
+          name={title}
           style={isHero ? styles.heroImage : styles.listImage}
-          contentFit="cover"
         />
         {!!tags?.length && (
           <View style={styles.tagRow}>

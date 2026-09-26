@@ -113,6 +113,58 @@ describe('campaignFeedApi', () => {
     expect(call.params).toEqual({ page: 2, limit: 10 });
   });
 
+  test('getCampaignsFeedPage sends CB1 filters and sort alongside page/limit', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([campaign])));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.getCampaignsFeedPage.initiate({
+          page: 1,
+          limit: 10,
+          q: '  food  ',
+          category: ['food', 'lifestyle'],
+          platform: 'instagram',
+          city: 'Dhaka',
+          budgetMin: 10000,
+          budgetMax: 500000,
+          deadlineBefore: '2026-10-31',
+          sort: '-budgetAmountMinor',
+        }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.params).toEqual({
+      page: 1,
+      limit: 10,
+      q: 'food',
+      category: ['food', 'lifestyle'],
+      platform: 'instagram',
+      city: 'Dhaka',
+      budgetMin: 10000,
+      budgetMax: 500000,
+      deadlineBefore: '2026-10-31',
+      sort: '-budgetAmountMinor',
+    });
+    expect(httpClient.getUri(call)).toContain('category=food&category=lifestyle');
+  });
+
+  test('blank search text and an empty category list are left out of the request', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([campaign])));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.getTopCampaigns.initiate({ limit: 3, q: '   ', category: [] }),
+      )
+      .unwrap();
+
+    expect(adapter.mock.calls[0][0].params).toEqual({ page: 1, limit: 3 });
+  });
+
   test('getTopRecommendedCampaigns GETs page 1 of /feed/campaigns/recommended with the given limit', async () => {
     await withToken();
     const store = makeStore();
@@ -142,6 +194,33 @@ describe('campaignFeedApi', () => {
     const call = adapter.mock.calls[0][0];
     expect(call.url).toBe('/feed/campaigns/recommended');
     expect(call.params).toEqual({ page: 2, limit: 10 });
+  });
+
+  test('getFeedCampaign GETs one campaign by id', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'campaign-1', title: 'X' })));
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getFeedCampaign.initiate({ id: 'campaign-1' }))
+      .unwrap();
+
+    expect(data).toEqual({ id: 'campaign-1', title: 'X' });
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/feed/campaigns/campaign-1');
+    expect(call.method).toBe('get');
+  });
+
+  test('getFeedCampaign surfaces a 404 as a NOT_FOUND ApiError', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, errorBody('NOT_FOUND', 404), 404));
+
+    const result = await store.dispatch(
+      campaignFeedApi.endpoints.getFeedCampaign.initiate({ id: 'missing' }),
+    );
+
+    expect((result.error as ApiError).code).toBe('NOT_FOUND');
   });
 
   test('a failed fetch surfaces as a result.error ApiError', async () => {

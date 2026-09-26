@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { FlatList, ListRenderItem, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -6,13 +5,20 @@ import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { liveCampaignStyle } from './liveCampaign.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
-import CampaignCard from '@/components/elements/CampaignCard';
-import { CampaignCardSkeleton, CampaignsEmptyState } from './components';
+import { CampaignCardSkeleton, CampaignsEmptyState, FeedCampaignCard } from './components';
 import { useRecommendedCampaignsFeed } from './hooks/useCampaignsFeed';
-import { mapCampaignFeedItemToCard } from './utils/mapCampaignFeedItem';
 import { CampaignFeedItem } from './types/campaignFeed';
 
 const INITIAL_SKELETON_COUNT = 4;
+
+// Module-level so FlatList rows get a stable `renderItem`/`onPress`.
+function openCampaign(id: string) {
+  router.push(`/campaign/${id}`);
+}
+
+const renderItem: ListRenderItem<CampaignFeedItem> = ({ item }) => (
+  <FeedCampaignCard campaign={item} onPress={openCampaign} />
+);
 
 // The Live Campaigns screen (Figma "Live campaigns", node 6111:6871), pushed
 // from the Home tab's "Active Campaigns" section "See all" link
@@ -35,17 +41,6 @@ export default function LiveCampaign() {
     loadMore,
     retry,
   } = useRecommendedCampaignsFeed();
-
-  const renderItem: ListRenderItem<CampaignFeedItem> = useCallback(
-    ({ item }) => (
-      <CampaignCard
-        variant="list"
-        {...mapCampaignFeedItemToCard(item)}
-        onPress={() => router.push(`/campaign/${item.id}`)}
-      />
-    ),
-    [],
-  );
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
