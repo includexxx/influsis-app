@@ -240,6 +240,45 @@ describe('campaignFeedApi', () => {
     expect(httpClient.getUri(call)).not.toContain('engagementStatus[]');
   });
 
+  test('getCreatorEarnings sums agreed fees of completed engagements across pages', async () => {
+    await withToken();
+    const store = makeStore();
+    const row = (agreedAmountMinor: number | null) => ({
+      id: 'e',
+      campaignId: 'c',
+      agreedAmountMinor,
+      currency: 'BDT',
+    });
+    adapter.mockImplementation(c => {
+      const { page } = c.params as { page: number };
+      const rows =
+        page === 1 ? Array.from({ length: 50 }, () => row(10000)) : [row(5000), row(null)];
+      return ok(c, envelope(rows));
+    });
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getCreatorEarnings.initiate())
+      .unwrap();
+
+    expect(data).toEqual({ totalMinor: 505000, currency: 'BDT', completedCount: 52 });
+    expect(adapter).toHaveBeenCalledTimes(2);
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/engagements');
+    expect(call.params).toEqual({ page: 1, limit: 50, engagementStatus: ['completed'] });
+  });
+
+  test('getCreatorEarnings is zero in BDT when nothing is completed', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getCreatorEarnings.initiate())
+      .unwrap();
+
+    expect(data).toEqual({ totalMinor: 0, currency: 'BDT', completedCount: 0 });
+  });
+
   test('a failed fetch surfaces as a result.error ApiError', async () => {
     await withToken();
     const store = makeStore();

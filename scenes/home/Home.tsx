@@ -11,6 +11,7 @@ import {
   BusinessLogosSection,
   PopularCampaignsSection,
   CampaignsListSection,
+  EarningsSection,
   TopGigsSection,
   TopRatedCreatorsSection,
 } from './components';
@@ -33,10 +34,11 @@ export default function Home() {
 
         <HomeSearchBar onPress={() => router.push('/search')} style={{ marginTop: -16 }} />
 
+        <EarningsSection style={{ marginTop: -16 }} />
+
         <ActiveCampaignsSection
           onSeeAllPress={() => router.push('/live-campaign')}
           onCampaignPress={id => router.push(`/campaign/${id}`)}
-          style={{ marginTop: -16 }}
         />
 
         <BusinessLogosSection

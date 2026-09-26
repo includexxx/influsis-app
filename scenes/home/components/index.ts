@@ -1,4 +1,5 @@
 export { default as HomeSearchBar } from './HomeSearchBar';
+export { default as EarningsSection } from './EarningsSection';
 export { default as ActiveCampaignsSection } from './ActiveCampaignsSection';
 export { default as BusinessLogosSection } from './BusinessLogosSection';
 export { default as PopularCampaignsSection } from './PopularCampaignsSection';

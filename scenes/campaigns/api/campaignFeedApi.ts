@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from '@/services/baseQuery';
+import { ApiError } from '@/services/http';
 import {
   CampaignFeedDetail,
   CampaignFeedFilteredPageArgs,
@@ -24,6 +25,18 @@ const MY_ENGAGEMENTS_URL = '/me/engagements';
 // (engagement status `accepted`). Pending applications, invitations, and
 // finished (`completed`) work are deliberately excluded.
 export const JOINED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['accepted'];
+
+// The backend's PaginationQueryDto caps `limit` at 50.
+const MAX_PAGE_SIZE = 50;
+// Stops a runaway loop if the backend ever ignores `page`.
+const MAX_EARNINGS_PAGES = 20;
+
+export interface CreatorEarnings {
+  /** Sum of `agreedAmountMinor` across completed engagements (minor units). */
+  totalMinor: number;
+  currency: string;
+  completedCount: number;
+}
 
 // Backs every screen that reads a creator campaign feed:
 // - campaign API group CB1 (GET /feed/campaigns) - every live campaign with
@@ -111,6 +124,38 @@ export const campaignFeedApi = createApi({
       }),
       providesTags: ['MyEngagements'],
     }),
+    // What the Home earnings card shows as "Total earned". There's no
+    // earnings/wallet endpoint yet, so this adds up the agreed fee of every
+    // completed engagement (GET /me/engagements?engagementStatus=completed),
+    // paging through all of them. It reflects work finished, not money paid
+    // out. Assumes one currency (the first row's; BDT when there are none).
+    getCreatorEarnings: builder.query<CreatorEarnings, void>({
+      async queryFn(_arg, _api, _extraOptions, baseQuery) {
+        let totalMinor = 0;
+        let completedCount = 0;
+        let currency: string | null = null;
+
+        for (let page = 1; page <= MAX_EARNINGS_PAGES; page++) {
+          const result = await baseQuery({
+            url: MY_ENGAGEMENTS_URL,
+            method: 'GET',
+            params: { page, limit: MAX_PAGE_SIZE, engagementStatus: ['completed'] },
+          });
+          if (result.error) return { error: result.error as ApiError };
+
+          const rows = result.data as MyEngagementItem[];
+          for (const row of rows) {
+            totalMinor += row.agreedAmountMinor ?? 0;
+            currency ??= row.currency;
+          }
+          completedCount += rows.length;
+          if (rows.length < MAX_PAGE_SIZE) break;
+        }
+
+        return { data: { totalMinor, currency: currency ?? 'BDT', completedCount } };
+      },
+      providesTags: ['MyEngagements'],
+    }),
     getMyEngagementsPage: builder.query<MyEngagementItem[], MyEngagementsPageArgs>({
       query: args => ({
         url: MY_ENGAGEMENTS_URL,
@@ -130,4 +175,5 @@ export const {
   useGetRecommendedCampaignsFeedPageQuery,
   useGetTopJoinedCampaignsQuery,
   useGetMyEngagementsPageQuery,
+  useGetCreatorEarningsQuery,
 } = campaignFeedApi;
