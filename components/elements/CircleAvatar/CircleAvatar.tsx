@@ -19,6 +19,8 @@ export interface CircleAvatarProps {
   label?: string;
   onPress?: () => void;
   onEditPress?: () => void;
+  /** Called when `source` fails to load, so a wrapper can swap in a fallback. */
+  onError?: () => void;
   style?: StyleProp<ImageStyle>;
   testID?: string;
 }
@@ -67,6 +69,7 @@ function CircleAvatar({
   label,
   onPress,
   onEditPress,
+  onError,
   style,
   testID,
 }: CircleAvatarProps) {
@@ -78,6 +81,7 @@ function CircleAvatar({
       source={source}
       style={[{ width: size, height: size, borderRadius: size / 2 }, style]}
       contentFit="cover"
+      onError={onError}
       testID={onPress || onEditPress ? undefined : testID}
     />
   );

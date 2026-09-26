@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
+import FallbackImage from '../FallbackImage';
 import CalendarBadge from '../CalendarBadge';
 import StatusBadge from '../StatusBadge';
 
@@ -258,8 +259,12 @@ function CampaignCard({
           </>
         ) : isHero ? (
           <View style={styles.avatarTitleRow}>
-            {businessAvatar && (
-              <Image source={businessAvatar} style={styles.avatar} contentFit="cover" />
+            {(businessAvatar || businessName) && (
+              <FallbackImage
+                source={businessAvatar}
+                name={businessName ?? ''}
+                style={styles.avatar}
+              />
             )}
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
               {title}

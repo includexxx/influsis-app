@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 });
 
 // A business's circular logo, falling back to an initial-letter circle when
-// `avatarUrl` is null - there's no generic "no logo" illustration asset in
+// `avatarUrl` is null or fails to load (broken/expired link) - there's no generic "no logo" illustration asset in
 // this project (see scenes/business/utils/businessAvatar.ts). Wraps the
 // shared CircleAvatar rather than replacing it, so the "has a real photo"
 // case looks identical everywhere CircleAvatar already renders a business.
@@ -51,14 +52,22 @@ function BusinessAvatar({
   testID,
 }: BusinessAvatarProps) {
   const { colors, palette } = useTheme();
+  const [failed, setFailed] = useState(false);
+  const sourceUri = source && typeof source === 'object' && 'uri' in source ? source.uri : source;
 
-  if (source) {
+  // A new URL gets a fresh chance to load.
+  useEffect(() => {
+    setFailed(false);
+  }, [sourceUri]);
+
+  if (source && !failed) {
     return (
       <CircleAvatar
         source={source}
         label={label}
         size={size}
         onPress={onPress}
+        onError={() => setFailed(true)}
         style={style}
         testID={testID}
       />

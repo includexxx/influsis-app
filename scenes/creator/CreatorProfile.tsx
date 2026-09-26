@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -6,22 +6,11 @@ import { layoutStyle } from '@/styles';
 import { creatorProfileStyle } from './creatorProfile.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
+import FallbackImage from '@/components/elements/FallbackImage';
 import { useGetCreatorProfileQuery } from './api/creatorDirectoryApi';
-import { getCreatorInitial } from './utils/creatorLocation';
 import { CreatorAvatar, CreatorProfileSkeleton, CreatorsEmptyState } from './components';
 
 const verifiedCheckIcon = require('@/assets/images/creators/verified-check.png');
-
-const styles = StyleSheet.create({
-  bannerFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bannerFallbackText: {
-    fontSize: 48,
-    fontWeight: '600',
-  },
-});
 
 // The Creator Profile screen (Figma "Creator Profile Details - Business
 // Side_sample 2", node 6001:37822), pushed from any creator's tap - Home's
@@ -69,24 +58,11 @@ export default function CreatorProfile() {
         ) : (
           <>
             <View style={creatorProfileStyle.bannerWrap}>
-              {creator.coverUrl ? (
-                <Image
-                  source={{ uri: creator.coverUrl }}
-                  style={creatorProfileStyle.banner}
-                  contentFit="cover"
-                />
-              ) : (
-                <View
-                  style={[
-                    creatorProfileStyle.banner,
-                    styles.bannerFallback,
-                    { backgroundColor: palette.gray[50] },
-                  ]}>
-                  <Text style={[styles.bannerFallbackText, { color: palette.gray[400] }]}>
-                    {getCreatorInitial(creator.displayName)}
-                  </Text>
-                </View>
-              )}
+              <FallbackImage
+                source={creator.coverUrl ? { uri: creator.coverUrl } : null}
+                name={creator.displayName}
+                style={creatorProfileStyle.banner}
+              />
               <CreatorAvatar
                 source={creator.avatarUrl ? { uri: creator.avatarUrl } : null}
                 displayName={creator.displayName}

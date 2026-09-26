@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -6,20 +6,9 @@ import { layoutStyle } from '@/styles';
 import { businessDetailsStyle } from './businessDetails.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
+import FallbackImage from '@/components/elements/FallbackImage';
 import { useGetBusinessProfileQuery } from './api/businessDirectoryApi';
-import { getBusinessInitial } from './utils/businessAvatar';
 import { BusinessAvatar, BusinessDetailsSkeleton, BusinessesEmptyState } from './components';
-
-const styles = StyleSheet.create({
-  bannerFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bannerFallbackText: {
-    fontSize: 48,
-    fontWeight: '600',
-  },
-});
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const globeIcon = require('@/assets/images/business-details/globe.png');
@@ -70,24 +59,11 @@ export default function BusinessDetails() {
         ) : (
           <>
             <View style={businessDetailsStyle.bannerWrap}>
-              {business.coverUrl ? (
-                <Image
-                  source={{ uri: business.coverUrl }}
-                  style={businessDetailsStyle.banner}
-                  contentFit="cover"
-                />
-              ) : (
-                <View
-                  style={[
-                    businessDetailsStyle.banner,
-                    styles.bannerFallback,
-                    { backgroundColor: palette.gray[50] },
-                  ]}>
-                  <Text style={[styles.bannerFallbackText, { color: palette.gray[400] }]}>
-                    {getBusinessInitial(business.businessName)}
-                  </Text>
-                </View>
-              )}
+              <FallbackImage
+                source={business.coverUrl ? { uri: business.coverUrl } : null}
+                name={business.businessName}
+                style={businessDetailsStyle.banner}
+              />
               <BusinessAvatar
                 source={business.avatarUrl ? { uri: business.avatarUrl } : null}
                 businessName={business.businessName}

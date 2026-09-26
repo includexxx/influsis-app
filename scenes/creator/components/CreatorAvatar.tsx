@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
 });
 
 // A creator's circular avatar, falling back to an initial-letter circle when
-// `avatarUrl` is null - there's no generic "no photo" illustration asset in
+// `avatarUrl` is null or fails to load (broken/expired link) - there's no generic "no photo" illustration asset in
 // this project (same reasoning as scenes/business/components/BusinessAvatar.tsx).
 function CreatorAvatar({
   source,
@@ -42,10 +43,24 @@ function CreatorAvatar({
   testID,
 }: CreatorAvatarProps) {
   const { palette } = useTheme();
+  const [failed, setFailed] = useState(false);
+  const sourceUri = source && typeof source === 'object' && 'uri' in source ? source.uri : source;
 
-  if (source) {
+  // A new URL gets a fresh chance to load.
+  useEffect(() => {
+    setFailed(false);
+  }, [sourceUri]);
+
+  if (source && !failed) {
     return (
-      <CircleAvatar source={source} size={size} onPress={onPress} style={style} testID={testID} />
+      <CircleAvatar
+        source={source}
+        size={size}
+        onPress={onPress}
+        onError={() => setFailed(true)}
+        style={style}
+        testID={testID}
+      />
     );
   }
 
