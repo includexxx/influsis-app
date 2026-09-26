@@ -1,6 +1,6 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { PopularCampaign } from '@/data/home';
-import { homeStyle } from '@/styles';
+import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
 import CampaignMiniCard from '@/components/elements/CampaignMiniCard';
 

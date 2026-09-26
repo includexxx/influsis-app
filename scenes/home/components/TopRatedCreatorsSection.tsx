@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { homeStyle } from '@/styles';
+import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
 import {
   CREATORS_PREVIEW_LIMIT,
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 // Home screen's "Top Rated Creator" avatar row (Figma node 6121:6533) - the
 // first CREATORS_PREVIEW_LIMIT creators from the directory (RBAC API group
 // §E3, GET /creator-profiles). "See all" pushes the full virtualized list
-// (scenes/main/TopCreators.tsx), which reads the same directory one page at
+// (scenes/creator/TopCreators.tsx), which reads the same directory one page at
 // a time.
 function TopRatedCreatorsSection({ onSeeAllPress, onCreatorPress }: TopRatedCreatorsSectionProps) {
   const { data, isLoading, isError, refetch } = useGetTopCreatorsQuery({

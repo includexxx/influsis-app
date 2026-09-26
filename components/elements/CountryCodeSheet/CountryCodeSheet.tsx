@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 });
 
 // Searchable country + dial-code list in a BottomSheet, opened by the Edit
-// Profile screen's Phone Number flag (scenes/main/EditProfile.tsx). A
+// Profile screen's Phone Number flag (scenes/profile/EditProfile.tsx). A
 // separate component from `OptionSheet` rather than another of its variants:
 // this list is the full ~250-country dataset, so it needs a search field,
 // and its rows are two-column (country name left, dial code right) instead

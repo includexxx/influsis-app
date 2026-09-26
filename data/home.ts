@@ -1,7 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import { gigs as allGigs } from './gigs';
 
-// Mock content for the Home screen (scenes/main/Home.tsx), standing in for
+// Mock content for the Home screen (scenes/home/Home.tsx), standing in for
 // a real campaigns/gigs API - see docs/screen/home/README.md "Scope notes"
 // and docs/PRD.md §2.2/§4.1 (no backend exists yet). Kept separate from the
 // scene file so the scene stays focused on layout/composition rather than

@@ -3,7 +3,7 @@ export interface Faq {
   answer: string;
 }
 
-// Mock content for the Help Center screen (scenes/main/HelpCenter.tsx,
+// Mock content for the Help Center screen (scenes/profile/HelpCenter.tsx,
 // Figma "Help Center", node 6027:8303). Figma's own answer copy is literal
 // "Lorem ipsum dolor sit amet..." placeholder text on every item, and its
 // 6th question is the unfinished placeholder title "Question" - real copy

@@ -1,6 +1,6 @@
 import { Animated, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks';
-import { creatorProfileStyle } from '@/styles';
+import { creatorProfileStyle } from '../creatorProfile.style';
 import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
 
 const styles = StyleSheet.create({
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 });
 
 // Loading placeholder for the Creator Profile screen, shaped like its real
-// layout (styles/creatorProfile.ts): full-bleed banner with an overlapping
+// layout (scenes/creator/creatorProfile.style.ts): full-bleed banner with an overlapping
 // avatar, then name/bio lines and a row of tag placeholders.
 function CreatorProfileSkeleton() {
   const { palette } = useTheme();

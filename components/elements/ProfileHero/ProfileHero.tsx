@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 });
 
 // The dark editorial hero band shared by the profile read view
-// (scenes/main/MyProfile.tsx) and its edit form (scenes/main/EditProfile.tsx)
+// (scenes/profile/MyProfile.tsx) and its edit form (scenes/profile/EditProfile.tsx)
 // — a fixed dark gradient with a soft brand-pink orb, replacing the plain
 // `ScreenHeader` those screens used before. Deliberately just the band
 // itself: each caller positions its own avatar overlapping the boundary

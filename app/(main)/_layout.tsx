@@ -92,7 +92,7 @@ export default function MainLayout() {
           tabBarLabel: ({ focused }) => <TabBarLabel label="Profile" focused={focused} />,
         }}
       />
-      {/* Reached via the Home tab's search bar (scenes/main/Home.tsx). Not
+      {/* Reached via the Home tab's search bar (scenes/home/Home.tsx). Not
           a tab bar destination (Figma's Search screen has no matching tab
           icon), but the tab bar itself stays visible on this screen per
           Figma (docs/screen/search) - registering it inside this group
@@ -100,7 +100,7 @@ export default function MainLayout() {
           without a tab bar) keeps that shell intact. */}
       <Tabs.Screen name="search" options={{ href: null }} />
       {/* The Balance screen, reached from the Profile tab's "Ballance" row
-          (scenes/main/Profile.tsx). Registered here for the same reason as
+          (scenes/profile/Profile.tsx). Registered here for the same reason as
           /search: Figma's frame (node 6402:5295) keeps a Tab Bar instance
           mounted at y=848, so the shell has to stay intact - see
           docs/screen/balance/README.md. */}

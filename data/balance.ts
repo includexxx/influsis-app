@@ -1,6 +1,6 @@
 import { BalanceSummary, PaymentMethodOption } from '@/types';
 
-// Mock content for the Balance screen (scenes/main/Balance.tsx, Figma
+// Mock content for the Balance screen (scenes/balance/Balance.tsx, Figma
 // "Balance" node 6402:5295), standing in for a real payouts API the same
 // way every other screen's data file does (see docs/PRD.md §2.2/§4.1) -
 // there is no backend, so the amounts below are Figma's own literal values

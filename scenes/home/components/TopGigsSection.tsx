@@ -1,6 +1,6 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Gig } from '@/types';
-import { homeStyle } from '@/styles';
+import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
 import GigCard from '@/components/elements/GigCard';
 

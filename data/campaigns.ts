@@ -63,7 +63,7 @@ const detailFields = {
   applicationDeadline: 'Feb 28, 2024',
 };
 
-// Originally this file's only content (Campaigns screen, scenes/main/
+// Originally this file's only content (Campaigns screen, scenes/campaigns/
 // Campaigns.tsx, and Business Details' "Ongoing Campaign" section via
 // data/businesses.ts's campaignIds) - see docs/screen/campaigns/README.md
 // "Scope notes" for why all four cards share the same "Bkash Branding
@@ -200,7 +200,7 @@ export const homeCampaigns: Campaign[] = [
   },
 ];
 
-// Originally data/liveCampaigns.ts (Live Campaigns screen, scenes/main/
+// Originally data/liveCampaigns.ts (Live Campaigns screen, scenes/campaigns/
 // LiveCampaign.tsx) - moved here for the same reason, re-exported from
 // data/liveCampaigns.ts so that scene's import is unchanged. See
 // docs/screen/live-campaign/README.md "Scope notes" for why seven of the
@@ -298,7 +298,7 @@ export const liveCampaigns: Campaign[] = [
 ];
 
 // Originally data/search.ts's searchResults (Search screen result cards,
-// scenes/main/Search.tsx) - moved here for the same reason, re-exported
+// scenes/search/Search.tsx) - moved here for the same reason, re-exported
 // from data/search.ts so that scene's import is unchanged.
 export const searchResults: Campaign[] = [
   {
@@ -337,7 +337,7 @@ export const searchResults: Campaign[] = [
 ];
 
 // Every campaign shown anywhere in the app, concatenated - what Campaign
-// Details (scenes/main/CampaignDetails.tsx) looks a tapped id up in.
+// Details (scenes/campaigns/CampaignDetails.tsx) looks a tapped id up in.
 export const allCampaigns: Campaign[] = [
   ...campaigns,
   ...activeCampaigns,

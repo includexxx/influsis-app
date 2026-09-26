@@ -1,1 +1,1 @@
-export { Order as default } from '@/scenes/main';
+export { Order as default } from '@/scenes/order';

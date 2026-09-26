@@ -1,7 +1,7 @@
 import { ChatDateGroup, Conversation } from '@/types';
 
-// Mock content for the Messages tab (scenes/main/Message.tsx) and its chat
-// detail screen (scenes/main/ChatDetails.tsx), standing in for a real
+// Mock content for the Messages tab (scenes/message/Message.tsx) and its chat
+// detail screen (scenes/message/ChatDetails.tsx), standing in for a real
 // messaging API - see docs/screen/message/README.md "Scope notes" and
 // docs/PRD.md §2.2/§4.1 (no backend exists yet). Figma's "Message" list
 // (node 6279:8097) shows 8 named threads, all sharing the same preview

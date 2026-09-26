@@ -1,7 +1,7 @@
 import { palette } from '@/theme';
 import { Order } from '@/types';
 
-// Mock content for the Order screen (scenes/main/Order.tsx, Figma
+// Mock content for the Order screen (scenes/order/Order.tsx, Figma
 // "Order_Campaign" - nodes 6212:5540 "Campaign" tab, 6212:5843 "Gig order"
 // tab, 6212:6024 "Completed" tab, 6403:5508 "Cancelled" tab) - standing in
 // for a real orders API, same as every other screen (see docs/PRD.md
@@ -53,7 +53,7 @@ const cancelledBadge = {
   statusTextColor: palette.primary[400],
 };
 
-// Order Details screen fields (scenes/main/OrderDetails.tsx, Figma node
+// Order Details screen fields (scenes/order/OrderDetails.tsx, Figma node
 // 6040:8515) - shows a single example order (a verified business, a delivery
 // date, 3 deliverables, 3 requirements) applied identically to every order
 // below rather than inventing distinct detail content Figma doesn't

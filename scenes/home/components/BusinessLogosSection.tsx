@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { homeStyle } from '@/styles';
+import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
 import {
   BUSINESSES_PREVIEW_LIMIT,
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 // Home screen's "Business" logo row (Figma node 6770:6071) - the first
 // BUSINESSES_PREVIEW_LIMIT businesses from the directory (RBAC API group
 // §E1, GET /business-profiles). "See all" pushes the full virtualized grid
-// (scenes/main/Businesses.tsx), which reads the same directory one page at
+// (scenes/business/Businesses.tsx), which reads the same directory one page at
 // a time.
 function BusinessLogosSection({ onSeeAllPress, onBusinessPress }: BusinessLogosSectionProps) {
   const { data, isLoading, isError, refetch } = useGetTopBusinessesQuery({

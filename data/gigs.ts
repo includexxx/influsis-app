@@ -2,7 +2,7 @@ import { Gig, GigService } from '@/types';
 
 // Canonical gig list - the single source of truth for every screen that
 // shows gigs (Home's "Top Gigs" row via data/home.ts, the full list at
-// data/topGigs.ts, and the Gig Details screen at scenes/main/GigDetails.tsx,
+// data/topGigs.ts, and the Gig Details screen at scenes/gig/GigDetails.tsx,
 // which looks a gig up here by the `id` in its `/gig/[id]` route param).
 // Consolidated into one shared list - rather than the two separate,
 // non-overlapping id namespaces Home and Top Gigs each had before Gig

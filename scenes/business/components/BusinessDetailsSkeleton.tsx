@@ -1,6 +1,6 @@
 import { Animated, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks';
-import { businessDetailsStyle } from '@/styles';
+import { businessDetailsStyle } from '../businessDetails.style';
 import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
 
 const styles = StyleSheet.create({
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 });
 
 // Loading placeholder for the Business Details screen, shaped like its real
-// layout (styles/businessDetails.ts): full-bleed banner with an overlapping
+// layout (scenes/business/businessDetails.style.ts): full-bleed banner with an overlapping
 // circular avatar, then name/website/description lines.
 function BusinessDetailsSkeleton() {
   const { palette } = useTheme();

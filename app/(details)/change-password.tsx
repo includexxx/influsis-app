@@ -1,1 +1,1 @@
-export { ChangePassword as default } from '@/scenes/main';
+export { ChangePassword as default } from '@/scenes/profile';

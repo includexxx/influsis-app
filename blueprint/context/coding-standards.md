@@ -22,10 +22,11 @@
 
 ## Routing (Expo Router v6)
 
-- Route files under `app/` stay minimal and re-export a scene component:
-  `export { Home as default } from '@/scenes/main';`
-- Screens live in `scenes/<group>/` (`auth`, `main`, `onboarding`,
-  `profile-verification`), not in `app/`
+- Route files under `app/` stay minimal and re-export a scene component from
+  its feature barrel: `export { Home as default } from '@/scenes/home';`
+- Screens live in `scenes/<feature>/`, grouped by feature area (`home`,
+  `campaigns`, `business`, `creator`, `gig`, `order`, `message`, `profile`,
+  `balance`, `withdraw`, `auth`, `onboarding`, ...), not in `app/`
 - Route groups: `(auth)` pre-login, `(details)` stacked detail/sub screens,
   `(main)` the post-login Tabs shell
 - Dynamic routes for item/collection pages (`campaign/[id].tsx`, `order/[id].tsx`)
@@ -35,12 +36,23 @@
 - Reusable UI: `components/elements/<ComponentName>/` with
   `<ComponentName>.tsx`, `index.ts`, and a co-located `<ComponentName>.test.tsx`
 - Layout chrome (tab bar icons/labels, etc.): `components/layouts/`
-- Screens: `scenes/<group>/<ScreenName>.tsx`
+- Feature folders: `scenes/<feature>/` holds everything one feature area
+  owns, following the same shape everywhere (see `scenes/business/`):
+  - `<ScreenName>.tsx` - the screen(s), plus a co-located `<ScreenName>.test.tsx`
+  - `<name>.style.ts` - that screen's styles, exporting `<name>Style`
+  - `index.ts` - barrel of the feature's screens, re-exported by `app/` routes
+  - `api/` (RTK Query slices), `components/` (feature-only UI pieces),
+    `hooks/`, `types/`, `utils/` - only the subfolders the feature needs
+- A feature may import another feature's module by absolute path
+  (`@/scenes/creator/creatorProfile.style`); imports within the same feature
+  are relative
 - Route files: `app/<route>.tsx` (thin re-export only)
 - Redux slices: `slices/<feature>.slice.ts`, aggregated in `slices/index.ts`
-- API calls: `services/<feature>.service.ts` - never call an API directly from
-  a component
-- Per-screen styles: `styles/<screenName>.ts` (camelCase, matches the screen)
+- API calls: `services/<feature>.service.ts` for app-wide APIs (auth,
+  profiles), or `scenes/<feature>/api/` for feature-owned RTK Query slices -
+  never call an API directly from a component
+- Shared style fragments used across features or by `components/elements`:
+  `styles/` (`layout`, `button`, `card`, `text`, `profileStep`)
 - Types: `types/<feature>.ts` (PascalCase exports), aggregated in `types/index.ts`
 - Mock data (placeholder until the backend exists): `data/<feature>.ts`
 - Design tokens: `theme/` (colors, fonts, images, radius, shadows, spacing)
@@ -58,7 +70,8 @@
 
 - `StyleSheet.create` for all styles - no inline style objects, no CSS-in-JS
   library
-- Styles live in a per-screen module under `styles/`, imported into the scene
+- Per-screen styles live next to the screen as `scenes/<feature>/<name>.style.ts`;
+  only cross-cutting fragments go in the shared `styles/` barrel
 - Colors, fonts, spacing, radius, and shadows come from `@/theme`, never
   hardcoded literals
 - Automatic light/dark mode via `useColorScheme` (`hooks/useColorScheme.ts`);

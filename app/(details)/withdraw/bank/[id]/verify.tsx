@@ -1,1 +1,1 @@
-export { WithdrawBankVerify as default } from '@/scenes/main';
+export { WithdrawBankVerify as default } from '@/scenes/withdraw';

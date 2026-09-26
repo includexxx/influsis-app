@@ -1,6 +1,6 @@
 import { NotificationItem } from '@/types';
 
-// Mock content for the Notifications screen (scenes/main/Notifications.tsx),
+// Mock content for the Notifications screen (scenes/notifications/Notifications.tsx),
 // standing in for a real notifications API - see
 // docs/screen/notifications/README.md "Scope notes" and docs/PRD.md §2.2/§4.1
 // (no backend exists yet). Split into the two groups Figma shows: recent

@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import { homeStyle } from '@/styles';
+import { homeStyle } from '../home.style';
 import SectionHeader from '@/components/elements/SectionHeader';
 import CampaignCard from '@/components/elements/CampaignCard';
 import {

@@ -1,1 +1,1 @@
-export { CreateGigPricing as default } from '@/scenes/main';
+export { CreateGigPricing as default } from '@/scenes/gig';

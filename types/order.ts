@@ -21,7 +21,7 @@ export interface OrderDeliverable {
 // (Figma node 6040:8590). `icon` names which of the two extracted glyphs to
 // show - kept as a narrow key rather than an `ImageSourcePropType` here so
 // `data/orders.ts` doesn't need to `require()` image assets just to
-// describe timeline content; `scenes/main/OrderDeliver.tsx` resolves it to
+// describe timeline content; `scenes/order/OrderDeliver.tsx` resolves it to
 // the actual asset. `muted` reproduces Figma's own 3rd timeline item, whose
 // action text is a lighter `rgba(0,0,0,0.7)` than the other two.
 export interface OrderActivityEvent {
@@ -41,9 +41,9 @@ export interface OrderTrackerStep {
   completed?: boolean;
 }
 
-// A single order row on the Order screen (scenes/main/Order.tsx) and, when
+// A single order row on the Order screen (scenes/order/Order.tsx) and, when
 // its detail fields are set, the Order Details screen it's tapped into
-// (scenes/main/OrderDetails.tsx). Distinct from `Campaign`
+// (scenes/order/OrderDetails.tsx). Distinct from `Campaign`
 // (types/campaign.ts) and `AppliedCampaign` (types/application.ts) - this
 // shows who the order was placed with and its due/ordered dates, not
 // campaign-detail fields like tags.
