@@ -268,7 +268,7 @@ function CampaignCard({
             {(businessAvatar || businessName) && (
               <FallbackImage
                 source={businessAvatar}
-                name={businessName ?? ''}
+                name={businessName ?? title}
                 style={styles.avatar}
               />
             )}

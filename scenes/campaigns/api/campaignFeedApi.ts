@@ -7,6 +7,7 @@ import {
   CampaignFeedItem,
   CampaignFeedPageArgs,
 } from '../types/campaignFeed';
+import { EngagementStatus, MyEngagementItem, MyEngagementsPageArgs } from '../types/myEngagement';
 
 // Shared by every "3 on Home, all on its own screen" campaign list: Home's
 // "Campaigns" and "Active Campaigns" previews (CampaignsListSection,
@@ -17,6 +18,12 @@ export const CAMPAIGNS_FEED_PAGE_SIZE = 10;
 
 const CAMPAIGNS_FEED_URL = '/feed/campaigns';
 const RECOMMENDED_FEED_URL = '/feed/campaigns/recommended';
+const MY_ENGAGEMENTS_URL = '/me/engagements';
+
+// "Joined" = the business and creator agreed terms and the work is on
+// (engagement status `accepted`). Pending applications, invitations, and
+// finished (`completed`) work are deliberately excluded.
+export const JOINED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['accepted'];
 
 // Backs every screen that reads a creator campaign feed:
 // - campaign API group CB1 (GET /feed/campaigns) - every live campaign with
@@ -46,7 +53,7 @@ function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageAr
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CampaignFeed'],
+  tagTypes: ['CampaignFeed', 'MyEngagements'],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
       query: args => ({
@@ -93,6 +100,25 @@ export const campaignFeedApi = createApi({
       }),
       providesTags: ['CampaignFeed'],
     }),
+    // Campaign API group CF2 (GET /me/engagements) filtered to joined
+    // campaigns - Home's "Active Campaigns" preview and the full Live
+    // Campaigns screen.
+    getTopJoinedCampaigns: builder.query<MyEngagementItem[], { limit: number }>({
+      query: ({ limit }) => ({
+        url: MY_ENGAGEMENTS_URL,
+        method: 'GET',
+        params: { page: 1, limit, engagementStatus: JOINED_ENGAGEMENT_STATUSES },
+      }),
+      providesTags: ['MyEngagements'],
+    }),
+    getMyEngagementsPage: builder.query<MyEngagementItem[], MyEngagementsPageArgs>({
+      query: args => ({
+        url: MY_ENGAGEMENTS_URL,
+        method: 'GET',
+        params: args,
+      }),
+      providesTags: ['MyEngagements'],
+    }),
   }),
 });
 
@@ -102,4 +128,6 @@ export const {
   useGetFeedCampaignQuery,
   useGetTopRecommendedCampaignsQuery,
   useGetRecommendedCampaignsFeedPageQuery,
+  useGetTopJoinedCampaignsQuery,
+  useGetMyEngagementsPageQuery,
 } = campaignFeedApi;

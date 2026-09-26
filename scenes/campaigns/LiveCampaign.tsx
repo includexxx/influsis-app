@@ -5,9 +5,9 @@ import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { liveCampaignStyle } from './liveCampaign.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
-import { CampaignCardSkeleton, CampaignsEmptyState, FeedCampaignCard } from './components';
-import { useRecommendedCampaignsFeed } from './hooks/useCampaignsFeed';
-import { CampaignFeedItem } from './types/campaignFeed';
+import { CampaignCardSkeleton, CampaignsEmptyState, JoinedCampaignCard } from './components';
+import { useJoinedCampaigns } from './hooks/useCampaignsFeed';
+import { MyEngagementItem } from './types/myEngagement';
 
 const INITIAL_SKELETON_COUNT = 4;
 
@@ -16,8 +16,8 @@ function openCampaign(id: string) {
   router.push(`/campaign/${id}`);
 }
 
-const renderItem: ListRenderItem<CampaignFeedItem> = ({ item }) => (
-  <FeedCampaignCard campaign={item} onPress={openCampaign} />
+const renderItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
+  <JoinedCampaignCard engagement={item} onPress={openCampaign} />
 );
 
 // The Live Campaigns screen (Figma "Live campaigns", node 6111:6871), pushed
@@ -25,10 +25,9 @@ const renderItem: ListRenderItem<CampaignFeedItem> = ({ item }) => (
 // (scenes/home/components/ActiveCampaignsSection.tsx). Registered in the
 // app/(details)/ route group (outside the (main) Tabs group) since Figma
 // shows no tab bar on this screen, the same reasoning as /notifications.
-// Shows every campaign from the creator's recommended feed (campaign API
-// group CB4, GET /feed/campaigns/recommended) via a virtualized FlatList,
-// rather than the mock data/liveCampaigns.ts fixture this screen used
-// before real backend wiring started.
+// Shows every campaign the logged-in creator has joined (campaign API group
+// CF2, GET /me/engagements?engagementStatus=accepted) via a virtualized
+// FlatList, or a "you haven't joined any campaigns" message.
 export default function LiveCampaign() {
   const { colors } = useTheme();
   const {
@@ -40,7 +39,7 @@ export default function LiveCampaign() {
     hasMore,
     loadMore,
     retry,
-  } = useRecommendedCampaignsFeed();
+  } = useJoinedCampaigns();
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -69,7 +68,7 @@ export default function LiveCampaign() {
             showsVerticalScrollIndicator={false}
             onEndReachedThreshold={0.4}
             onEndReached={hasMore ? loadMore : undefined}
-            ListEmptyComponent={<CampaignsEmptyState variant="empty" />}
+            ListEmptyComponent={<CampaignsEmptyState variant="noJoined" />}
             ListFooterComponent={
               isLoadingMore ? (
                 <CampaignCardSkeleton variant="list" />

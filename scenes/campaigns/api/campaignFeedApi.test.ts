@@ -223,6 +223,23 @@ describe('campaignFeedApi', () => {
     expect((result.error as ApiError).code).toBe('NOT_FOUND');
   });
 
+  test('getTopJoinedCampaigns GETs page 1 of /me/engagements filtered to accepted', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getTopJoinedCampaigns.initiate({ limit: 3 }))
+      .unwrap();
+
+    expect(data).toEqual([]);
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/engagements');
+    expect(call.params).toEqual({ page: 1, limit: 3, engagementStatus: ['accepted'] });
+    expect(httpClient.getUri(call)).toContain('engagementStatus=accepted');
+    expect(httpClient.getUri(call)).not.toContain('engagementStatus[]');
+  });
+
   test('a failed fetch surfaces as a result.error ApiError', async () => {
     await withToken();
     const store = makeStore();

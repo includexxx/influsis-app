@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CAMPAIGNS_FEED_PAGE_SIZE,
+  JOINED_ENGAGEMENT_STATUSES,
   useGetCampaignsFeedPageQuery,
-  useGetRecommendedCampaignsFeedPageQuery,
+  useGetMyEngagementsPageQuery,
 } from '../api/campaignFeedApi';
 import { CampaignFeedFilters, CampaignFeedItem, CampaignFeedPageArgs } from '../types/campaignFeed';
+import { MyEngagementItem } from '../types/myEngagement';
 
-export interface UseCampaignsFeedResult {
-  campaigns: CampaignFeedItem[];
+export interface UseCampaignsFeedResult<T = CampaignFeedItem> {
+  campaigns: T[];
   isInitialLoading: boolean;
   isLoadingMore: boolean;
   isInitialError: boolean;
@@ -17,8 +19,8 @@ export interface UseCampaignsFeedResult {
   retry: () => void;
 }
 
-type UseFeedPageQuery<F extends object> = (args: CampaignFeedPageArgs & F) => {
-  currentData?: CampaignFeedItem[];
+type UseFeedPageQuery<T, F extends object> = (args: CampaignFeedPageArgs & F) => {
+  currentData?: T[];
   isFetching: boolean;
   isError: boolean;
   refetch: () => void;
@@ -36,14 +38,14 @@ type UseFeedPageQuery<F extends object> = (args: CampaignFeedPageArgs & F) => {
 // read because `data` keeps returning the previous args' result while the
 // next page or a new filter set loads. Changing `filters` starts over from
 // page 1.
-function useCampaignFeedPages<F extends object>(
-  useFeedPageQuery: UseFeedPageQuery<F>,
+function useCampaignFeedPages<T, F extends object>(
+  useFeedPageQuery: UseFeedPageQuery<T, F>,
   filters: F,
-): UseCampaignsFeedResult {
+): UseCampaignsFeedResult<T> {
   const filtersKey = JSON.stringify(filters);
   const [appliedFiltersKey, setAppliedFiltersKey] = useState(filtersKey);
   const [page, setPage] = useState(1);
-  const [pages, setPages] = useState<CampaignFeedItem[][]>([]);
+  const [pages, setPages] = useState<T[][]>([]);
   const [hasMore, setHasMore] = useState(true);
 
   if (appliedFiltersKey !== filtersKey) {
@@ -89,6 +91,7 @@ function useCampaignFeedPages<F extends object>(
 }
 
 const NO_FILTERS = {};
+const JOINED_FILTERS = { engagementStatus: JOINED_ENGAGEMENT_STATUSES };
 
 // The full Campaigns screen - every live campaign with an open application
 // deadline (campaign API group CB1, GET /feed/campaigns), optionally narrowed
@@ -99,8 +102,9 @@ export function useCampaignsFeed(
   return useCampaignFeedPages(useGetCampaignsFeedPageQuery, filters);
 }
 
-// The full Live Campaigns screen - the creator's recommended feed (campaign
-// API group CB4, GET /feed/campaigns/recommended). CB4 takes no filters.
-export function useRecommendedCampaignsFeed(): UseCampaignsFeedResult {
-  return useCampaignFeedPages(useGetRecommendedCampaignsFeedPageQuery, NO_FILTERS);
+// The full Live Campaigns screen - the logged-in creator's joined campaigns
+// (campaign API group CF2, GET /me/engagements?engagementStatus=accepted).
+// Each item is an engagement carrying a campaign summary.
+export function useJoinedCampaigns(): UseCampaignsFeedResult<MyEngagementItem> {
+  return useCampaignFeedPages(useGetMyEngagementsPageQuery, JOINED_FILTERS);
 }
