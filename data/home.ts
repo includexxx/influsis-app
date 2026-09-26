@@ -10,12 +10,6 @@ import { businesses as allBusinesses } from './businesses';
 // content, and so this data has one obvious place to eventually be replaced
 // by a real API response shape.
 
-// Both re-exported from the canonical campaign list (data/campaigns.ts) -
-// see docs/screen/campaign-details/README.md "Data consolidation" for why
-// this moved out of a local literal array.
-export { activeCampaigns } from './campaigns';
-export { homeCampaigns as campaigns } from './campaigns';
-
 // {id, source} pairs from the canonical business list (data/businesses.ts), picked
 // by id to reproduce the same five business-logo-1..5.jpg images in the same
 // order this row showed before - previously a plain `ImageSourcePropType[]`

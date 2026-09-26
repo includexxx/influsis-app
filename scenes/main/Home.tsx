@@ -1,58 +1,26 @@
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle, homeStyle } from '@/styles';
-import Image from '@/components/elements/Image';
 import AppHeader from '@/components/elements/AppHeader';
-import SectionHeader from '@/components/elements/SectionHeader';
-import CampaignCard from '@/components/elements/CampaignCard';
-import CampaignMiniCard from '@/components/elements/CampaignMiniCard';
-import GigCard from '@/components/elements/GigCard';
-import CircleAvatar from '@/components/elements/CircleAvatar';
 import {
-  activeCampaigns,
-  businessLogos,
-  popularCampaigns,
-  campaigns,
-  gigs,
-  topRatedCreators,
-} from '@/data/home';
-
-const searchIcon = require('@/assets/images/home/search.png');
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 54,
-    borderRadius: 67,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-  searchIcon: {
-    width: 20,
-    height: 20,
-  },
-  searchPlaceholder: {
-    fontSize: 16,
-  },
-  heroCard: {
-    width: 370,
-  },
-});
+  HomeSearchBar,
+  ActiveCampaignsSection,
+  BusinessLogosSection,
+  PopularCampaignsSection,
+  CampaignsListSection,
+  TopGigsSection,
+  TopRatedCreatorsSection,
+} from '@/scenes/home/components';
+import { businessLogos, popularCampaigns, gigs, topRatedCreators } from '@/data/home';
 
 // The Home tab of the main app shell (Figma "Home", node 6121:6522).
 // Sections are populated from data/home.ts mock content - no backend
 // exists yet (docs/PRD.md §2.2/§4.1) - see docs/screen/home/README.md for
 // the full scope notes.
 export default function Home() {
-  const { colors, palette } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -62,126 +30,41 @@ export default function Home() {
         showsVerticalScrollIndicator={false}>
         <AppHeader onNotificationPress={() => router.push('/notifications')} />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Search your campaign"
-          onPress={() => router.push('/search')}
-          style={[
-            styles.searchBar,
-            { borderColor: palette.gray[50], backgroundColor: palette.gray[25], marginTop: -16 },
-          ]}>
-          <Image source={searchIcon} style={styles.searchIcon} contentFit="contain" />
-          <Text style={[styles.searchPlaceholder, { color: palette.gray[300] }]}>
-            Search your campaign
-          </Text>
-        </Pressable>
+        <HomeSearchBar onPress={() => router.push('/search')} style={{ marginTop: -16 }} />
 
-        <View style={{ marginTop: -16 }}>
-          <SectionHeader
-            title="Active Campaigns"
-            onSeeAllPress={() => router.push('/live-campaign')}
-            style={homeStyle.sectionHeaderGap}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={[styles.row, homeStyle.horizontalListGap]}>
-              {activeCampaigns.map(item => (
-                <CampaignCard
-                  key={item.id}
-                  variant="hero"
-                  style={styles.heroCard}
-                  {...item}
-                  onPress={() => router.push(`/campaign/${item.id}`)}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        <ActiveCampaignsSection
+          onSeeAllPress={() => router.push('/live-campaign')}
+          onCampaignPress={id => router.push(`/campaign/${id}`)}
+          style={{ marginTop: -16 }}
+        />
 
-        <View>
-          <SectionHeader
-            title="Business"
-            onSeeAllPress={() => router.push('/businesses')}
-            style={homeStyle.sectionHeaderGap}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={[styles.row, homeStyle.avatarListGap]}>
-              {businessLogos.map(item => (
-                <CircleAvatar
-                  key={item.id}
-                  source={item.source}
-                  onPress={() => router.push(`/business/${item.id}`)}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        <BusinessLogosSection
+          businesses={businessLogos}
+          onSeeAllPress={() => router.push('/businesses')}
+          onBusinessPress={id => router.push(`/business/${id}`)}
+        />
 
-        <View>
-          <SectionHeader
-            title="Popular Campaigns"
-            style={homeStyle.sectionHeaderGap}
-            onSeeAllPress={() => router.push('/campaigns')}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={[styles.row, homeStyle.horizontalListGap]}>
-              {popularCampaigns.map(item => (
-                <CampaignMiniCard key={item.id} {...item} />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        {/* <PopularCampaignsSection
+          campaigns={popularCampaigns}
+          onSeeAllPress={() => router.push('/campaigns')}
+        /> */}
 
-        <View>
-          <SectionHeader
-            title="Campaigns"
-            onSeeAllPress={() => router.push('/campaigns')}
-            style={homeStyle.sectionHeaderGap}
-          />
-          <View style={homeStyle.campaignListGap}>
-            {campaigns.map(item => (
-              <CampaignCard
-                key={item.id}
-                variant="list"
-                {...item}
-                onPress={() => router.push(`/campaign/${item.id}`)}
-              />
-            ))}
-          </View>
-        </View>
+        <CampaignsListSection
+          onSeeAllPress={() => router.push('/campaigns')}
+          onCampaignPress={id => router.push(`/campaign/${id}`)}
+        />
 
-        <View>
-          <SectionHeader
-            title="Top Gigs"
-            onSeeAllPress={() => router.push('/top-gigs')}
-            style={homeStyle.sectionHeaderGap}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={[styles.row, homeStyle.horizontalListGap]}>
-              {gigs.map(item => (
-                <GigCard key={item.id} {...item} onPress={() => router.push(`/gig/${item.id}`)} />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        {/* <TopGigsSection
+          gigs={gigs}
+          onSeeAllPress={() => router.push('/top-gigs')}
+          onGigPress={id => router.push(`/gig/${id}`)}
+        /> */}
 
-        <View>
-          <SectionHeader
-            title="Top Rated Creator"
-            onSeeAllPress={() => router.push('/top-creators')}
-            style={homeStyle.sectionHeaderGap}
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={[styles.row, homeStyle.avatarListGap]}>
-              {topRatedCreators.map(item => (
-                <CircleAvatar
-                  key={item.id}
-                  source={item.image}
-                  onPress={() => router.push(`/creator/${item.id}`)}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        <TopRatedCreatorsSection
+          creators={topRatedCreators}
+          onSeeAllPress={() => router.push('/top-creators')}
+          onCreatorPress={id => router.push(`/creator/${id}`)}
+        />
       </ScrollView>
     </SafeAreaView>
   );
