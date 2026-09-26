@@ -4,7 +4,7 @@ import EmptyState from '@/components/elements/EmptyState';
 import SearchIllustration from '@/components/elements/SearchIllustration';
 import Button from '@/components/elements/Button';
 
-export type CampaignsStatusVariant = 'empty' | 'noJoined' | 'error';
+export type CampaignsStatusVariant = 'empty' | 'noJoined' | 'noBusinessCampaigns' | 'error';
 
 export interface CampaignsEmptyStateProps {
   variant?: CampaignsStatusVariant;
@@ -21,6 +21,10 @@ const COPY: Record<CampaignsStatusVariant, { title: string; description: string 
   noJoined: {
     title: "You haven't joined any campaigns",
     description: 'Campaigns you join will show up here. Apply to a campaign to get started.',
+  },
+  noBusinessCampaigns: {
+    title: 'No ongoing campaigns',
+    description: "This business doesn't have any live campaigns right now. Check back later.",
   },
   error: {
     title: 'Something went wrong',

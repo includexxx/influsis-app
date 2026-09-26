@@ -50,6 +50,9 @@ export type CampaignFeedSort = CampaignFeedSortColumn | `-${CampaignFeedSortColu
 // these. `budgetMin` > `budgetMax` is rejected with 422 VALIDATION_FAILED
 // rather than returning an empty page.
 export interface CampaignFeedFilters {
+  /** One business's campaigns - its user id (the `:userId` of
+   * GET /business-profiles/:userId). */
+  businessId?: string;
   /** Searches title, description, and promoting items (case-insensitive). */
   q?: string;
   /** Category keys; a campaign matching any of them is included. */

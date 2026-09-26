@@ -8,7 +8,12 @@ import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import FallbackImage from '@/components/elements/FallbackImage';
 import { useGetBusinessProfileQuery } from './api/businessDirectoryApi';
-import { BusinessAvatar, BusinessDetailsSkeleton, BusinessesEmptyState } from './components';
+import {
+  BusinessAvatar,
+  BusinessCampaignsSection,
+  BusinessDetailsSkeleton,
+  BusinessesEmptyState,
+} from './components';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const globeIcon = require('@/assets/images/business-details/globe.png');
@@ -22,10 +27,11 @@ const globeIcon = require('@/assets/images/business-details/globe.png');
 // every other screen in that group. Looks the tapped business up by userId
 // via the public single-profile endpoint (RBAC API group §E2, GET
 // /business-profiles/:userId), rather than the mock data/businesses.ts
-// fixture this screen used before real backend wiring started. That mock
-// also showed an "Ongoing Campaign" section for the business - the real
-// endpoint doesn't project a business's campaigns, so that section is
-// dropped rather than faked.
+// fixture this screen used before real backend wiring started. The profile
+// endpoint doesn't project the business's campaigns, so the "Ongoing
+// Campaign" section below it loads them separately from the creator feed
+// narrowed to this business (GET /feed/campaigns?businessId=) - see
+// components/BusinessCampaignsSection.tsx.
 export default function BusinessDetails() {
   const { colors, palette } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -104,6 +110,8 @@ export default function BusinessDetails() {
                   {business.description}
                 </Text>
               )}
+
+              <BusinessCampaignsSection businessId={id} />
             </View>
           </>
         )}

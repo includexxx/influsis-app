@@ -151,6 +151,28 @@ describe('campaignFeedApi', () => {
     expect(httpClient.getUri(call)).toContain('category=food&category=lifestyle');
   });
 
+  test('getCampaignsFeedPage sends businessId to list one business campaigns', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([campaign])));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.getCampaignsFeedPage.initiate({
+          page: 1,
+          limit: 10,
+          businessId: 'business-1',
+        }),
+      )
+      .unwrap();
+
+    expect(adapter.mock.calls[0][0].params).toEqual({
+      page: 1,
+      limit: 10,
+      businessId: 'business-1',
+    });
+  });
+
   test('blank search text and an empty category list are left out of the request', async () => {
     await withToken();
     const store = makeStore();
