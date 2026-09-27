@@ -20,6 +20,8 @@ export interface CampaignRequestCardProps {
   time: string;
   onAccept?: () => void;
   onDecline?: () => void;
+  /** Tapping the row outside the Accept/Decline buttons. */
+  onPress?: () => void;
   /** Dims and disables both buttons, e.g. while a response is being sent. */
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -97,6 +99,7 @@ function CampaignRequestCard({
   time,
   onAccept,
   onDecline,
+  onPress,
   disabled = false,
   style,
   testID,
@@ -104,7 +107,10 @@ function CampaignRequestCard({
   const { colors, palette } = useTheme();
 
   return (
-    <View
+    <Pressable
+      accessibilityRole={onPress ? 'button' : undefined}
+      disabled={!onPress}
+      onPress={onPress}
       style={[styles.root, getShadowStyle('sm'), { backgroundColor: colors.card }, style]}
       testID={testID}>
       <FallbackImage source={avatar} name={businessName} style={styles.avatar} />
@@ -144,7 +150,7 @@ function CampaignRequestCard({
           </Pressable>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

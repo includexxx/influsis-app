@@ -9,8 +9,10 @@ import { campaignFeedApi } from './api/campaignFeedApi';
 import { MyEngagementItem } from './types/myEngagement';
 import Applications from './Applications';
 
+const mockPush = jest.fn();
+
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), back: jest.fn() },
+  router: { push: (...args: unknown[]) => mockPush(...args), back: jest.fn() },
 }));
 
 jest.mock('@/services/http', () => {
@@ -28,6 +30,12 @@ jest.mock('@/services/http', () => {
 });
 
 const mockRequest = request as jest.MockedFunction<typeof request>;
+
+// request() is generic over its resolved type; the mocks return plain values.
+function answerWith(handler: (cfg: RequestConfig) => unknown) {
+  mockRequest.mockImplementation((async (cfg: unknown) =>
+    handler(cfg as RequestConfig)) as typeof request);
+}
 
 type RequestConfig = { url: string; method?: string; params?: { origin?: string } };
 
@@ -70,8 +78,7 @@ const invitation = engagement({
 
 // Answers each GET /me/engagements by `origin`.
 function mockLists({ applied, invited }: { applied: unknown; invited: unknown }) {
-  mockRequest.mockImplementation(async cfg => {
-    const { params } = cfg as RequestConfig;
+  answerWith(({ params }) => {
     const result = params?.origin === 'invited' ? invited : applied;
     if (result instanceof Error) throw result;
     return result;
@@ -98,6 +105,7 @@ function renderScreen() {
 beforeEach(() => {
   jest.useFakeTimers();
   mockRequest.mockReset();
+  mockPush.mockReset();
 });
 
 afterEach(() => {
@@ -126,6 +134,21 @@ describe('<Applications />', () => {
     );
   });
 
+  test('tapping an application or an invitation opens the campaign details', async () => {
+    mockLists({
+      applied: [application],
+      invited: [{ ...invitation, campaignId: 'campaign-2' }],
+    });
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('application-app-1'));
+    expect(mockPush).toHaveBeenLastCalledWith('/campaign/campaign-1');
+
+    fireEvent.press(screen.getByTestId('applications-tab-request'));
+    fireEvent.press(await screen.findByTestId('campaign-request-inv-1'));
+    expect(mockPush).toHaveBeenLastCalledWith('/campaign/campaign-2');
+  });
+
   test('shows an empty state when there are no applications', async () => {
     mockLists({ applied: [], invited: [] });
     renderScreen();
@@ -149,10 +172,7 @@ describe('<Applications />', () => {
     fireEvent.press(screen.getByTestId('applications-tab-request'));
     expect(await screen.findByText("You're invited to join Pathao Summer Push")).toBeTruthy();
 
-    mockRequest.mockImplementation(async cfg => {
-      const { method } = cfg as RequestConfig;
-      return method === 'POST' ? { id: 'inv-1', status: 'declined' } : [];
-    });
+    answerWith(({ method }) => (method === 'POST' ? { id: 'inv-1', status: 'declined' } : []));
     await act(async () => {
       fireEvent.press(screen.getByTestId('campaign-request-inv-1-decline'));
     });

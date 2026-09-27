@@ -57,7 +57,8 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
 //
 // Both tabs read campaign API group CF2 (GET /me/engagements): "Applied" is
 // `origin=requested` in any status, "Request" is `origin=invited` still
-// `pending`. Accept/Decline call CF4/CF5; an answered invitation is hidden
+// `pending`. Tapping either row opens the campaign's details
+// (/campaign/:id). Accept/Decline call CF4/CF5; an answered invitation is hidden
 // right away since only the current page refetches on invalidation.
 export default function Applications() {
   const { colors } = useTheme();
@@ -110,6 +111,7 @@ export default function Applications() {
           disabled={pendingId !== null}
           onAccept={() => respond(item, 'accept')}
           onDecline={() => respond(item, 'decline')}
+          onPress={() => openCampaign(item.campaignId)}
           testID={`campaign-request-${item.id}`}
         />
       );

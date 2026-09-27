@@ -40,4 +40,23 @@ describe('<CampaignRequestCard />', () => {
     fireEvent.press(screen.getByTestId('campaign-request-decline'));
     expect(onDecline).toHaveBeenCalledTimes(1);
   });
+  test('calls onPress when the row is tapped, but not for Accept', () => {
+    const onPress = jest.fn();
+    const onAccept = jest.fn();
+    render(
+      <CampaignRequestCard
+        avatar={avatar}
+        businessName="KFC"
+        time="5 min ago"
+        onPress={onPress}
+        onAccept={onAccept}
+        testID="campaign-request"
+      />,
+    );
+    fireEvent.press(screen.getByTestId('campaign-request'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    fireEvent.press(screen.getByTestId('campaign-request-accept'));
+    expect(onAccept).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
 });
