@@ -39,10 +39,33 @@ export interface MyEngagementItem {
   pitch: string | null;
   proposedAmountMinor: number | null;
   agreedAmountMinor: number | null;
+  /** The newest offer in the thread. For an invitation this is the
+   * business's opening offer, which never lands on `proposedAmountMinor`. */
+  latestOfferAmountMinor: number | null;
+  latestOfferNote: string | null;
   currency: string;
   crossedIntentAt: string | null;
   createdAt: string;
   campaign: EngagementCampaignSummary | null;
+}
+
+// One round of an engagement's negotiation thread.
+export interface EngagementOffer {
+  id: string;
+  roundNo: number;
+  senderType: 'business' | 'creator';
+  amountMinor: number;
+  currency: string;
+  note: string | null;
+  status: string;
+  createdAt: string;
+}
+
+// Campaign API group CF3, GET /me/engagements/:engagementId - only the
+// fields this app reads. Accepting an invitation needs the id of the
+// business's pending offer, which the CF2 list rows don't carry.
+export interface MyEngagementDetail extends Omit<MyEngagementItem, 'campaign'> {
+  offers: EngagementOffer[];
 }
 
 export interface MyEngagementsPageArgs {

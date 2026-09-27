@@ -1,16 +1,13 @@
-import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
+import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
 
-export type CampaignCardSkeletonVariant = 'hero' | 'list';
+export type CampaignCardSkeletonVariant = 'hero' | 'list' | 'applied';
 
 export interface CampaignCardSkeletonProps {
   variant?: CampaignCardSkeletonVariant;
   style?: StyleProp<ViewStyle>;
 }
-
-const PULSE_DURATION_MS = 700;
-const MIN_OPACITY = 0.4;
 
 const styles = StyleSheet.create({
   hero: {
@@ -34,6 +31,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 20,
     paddingBottom: 14,
+    gap: 10,
+  },
+  contentApplied: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 20,
     gap: 10,
   },
   avatarTitleRow: {
@@ -75,33 +78,15 @@ const styles = StyleSheet.create({
 });
 
 // Loading placeholder shaped like CampaignCard (components/elements/
-// CampaignCard) in the same `hero`/`list` variants, so a preview section and
-// its full-list screen don't jump in size once real data replaces it. A
-// single shared opacity pulse (same technique as scenes/onboarding/
-// Intro.tsx's dot animation) drives every block.
+// CampaignCard) in the same `hero`/`list`/`applied` variants, so a preview
+// section and its full-list screen don't jump in size once real data
+// replaces it. A single shared opacity pulse (useSkeletonPulse) drives every
+// block.
 function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonProps) {
   const { colors, palette } = useTheme();
-  const opacity = useRef(new Animated.Value(MIN_OPACITY)).current;
+  const opacity = useSkeletonPulse();
   const isHero = variant === 'hero';
-
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: PULSE_DURATION_MS,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: MIN_OPACITY,
-          duration: PULSE_DURATION_MS,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [opacity]);
+  const isApplied = variant === 'applied';
 
   function block(blockStyle: StyleProp<ViewStyle>, key: string) {
     return (
@@ -117,23 +102,33 @@ function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonP
       style={[isHero ? styles.hero : styles.list, { backgroundColor: colors.card }, style]}
       testID="campaign-card-skeleton">
       {block(isHero ? styles.heroImage : styles.listImage, 'image')}
-      <View style={styles.content}>
-        {isHero ? (
-          <View style={styles.avatarTitleRow}>
-            {block(styles.avatar, 'avatar')}
-            {block(styles.titleBlock, 'title')}
+      {isApplied ? (
+        <View style={styles.contentApplied}>
+          <View style={styles.footerRow}>
+            {block(styles.dateBlock, 'date')}
+            {block(styles.priceBlock, 'price')}
           </View>
-        ) : (
-          <>
-            {block(styles.titleBlock, 'title')}
-            {block(styles.businessNameBlock, 'businessName')}
-          </>
-        )}
-        <View style={styles.footerRow}>
-          {block(styles.priceBlock, 'price')}
-          {block(styles.dateBlock, 'date')}
+          {block(styles.titleBlock, 'title')}
         </View>
-      </View>
+      ) : (
+        <View style={styles.content}>
+          {isHero ? (
+            <View style={styles.avatarTitleRow}>
+              {block(styles.avatar, 'avatar')}
+              {block(styles.titleBlock, 'title')}
+            </View>
+          ) : (
+            <>
+              {block(styles.titleBlock, 'title')}
+              {block(styles.businessNameBlock, 'businessName')}
+            </>
+          )}
+          <View style={styles.footerRow}>
+            {block(styles.priceBlock, 'price')}
+            {block(styles.dateBlock, 'date')}
+          </View>
+        </View>
+      )}
     </View>
   );
 }

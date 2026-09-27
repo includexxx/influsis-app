@@ -26,4 +26,15 @@ export const applicationsStyle = StyleSheet.create({
   requestListGap: {
     gap: 10,
   },
+  // The same two gaps as FlatList separators (a FlatList's
+  // contentContainerStyle `gap` would also space out its header).
+  appliedSeparator: {
+    height: spacing.lg,
+  },
+  requestSeparator: {
+    height: 10,
+  },
+  footer: {
+    marginTop: spacing.lg,
+  },
 });

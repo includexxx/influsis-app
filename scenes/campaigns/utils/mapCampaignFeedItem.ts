@@ -3,7 +3,7 @@ import { CampaignCardProps } from '@/components/elements/CampaignCard';
 import { resolveMediaUrl } from '@/utils/media';
 import { CampaignFeedEngagementSummary, CampaignFeedItem } from '../types/campaignFeed';
 
-const MONTH_LABELS = [
+export const MONTH_LABELS = [
   'Jan',
   'Feb',
   'Mar',

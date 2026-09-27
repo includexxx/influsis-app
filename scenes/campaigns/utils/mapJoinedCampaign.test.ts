@@ -16,6 +16,8 @@ const engagement: MyEngagementItem = {
   pitch: null,
   proposedAmountMinor: 500000,
   agreedAmountMinor: 550000,
+  latestOfferAmountMinor: null,
+  latestOfferNote: null,
   currency: 'BDT',
   crossedIntentAt: null,
   createdAt: '2026-09-26T10:00:00.000Z',

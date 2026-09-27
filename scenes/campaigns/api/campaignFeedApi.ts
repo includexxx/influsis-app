@@ -8,7 +8,12 @@ import {
   CampaignFeedItem,
   CampaignFeedPageArgs,
 } from '../types/campaignFeed';
-import { EngagementStatus, MyEngagementItem, MyEngagementsPageArgs } from '../types/myEngagement';
+import {
+  EngagementStatus,
+  MyEngagementDetail,
+  MyEngagementItem,
+  MyEngagementsPageArgs,
+} from '../types/myEngagement';
 
 // Shared by every "3 on Home, all on its own screen" campaign list: Home's
 // "Campaigns" and "Active Campaigns" previews (CampaignsListSection,
@@ -25,6 +30,9 @@ const MY_ENGAGEMENTS_URL = '/me/engagements';
 // (engagement status `accepted`). Pending applications, invitations, and
 // finished (`completed`) work are deliberately excluded.
 export const JOINED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['accepted'];
+// The Applications screen's "Request" tab - invitations from a business the
+// creator hasn't answered yet.
+export const PENDING_INVITATION_STATUSES: EngagementStatus[] = ['pending'];
 
 // The backend's PaginationQueryDto caps `limit` at 50.
 const MAX_PAGE_SIZE = 50;
@@ -164,6 +172,51 @@ export const campaignFeedApi = createApi({
       }),
       providesTags: ['MyEngagements'],
     }),
+    // Campaign API group CF4 - accepts a business invitation. CF4 needs the
+    // id of the business's pending offer, which list rows don't carry, so
+    // this reads the engagement (CF3) first to find it.
+    acceptMyEngagement: builder.mutation<MyEngagementDetail, { engagementId: string }>({
+      async queryFn({ engagementId }, _api, _extraOptions, baseQuery) {
+        const url = `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}`;
+        const detail = await baseQuery({ url, method: 'GET' });
+        if (detail.error) return { error: detail.error as ApiError };
+
+        const offer = (detail.data as MyEngagementDetail).offers.find(
+          item => item.senderType === 'business' && item.status === 'pending',
+        );
+        if (!offer) {
+          return {
+            error: new ApiError({
+              code: 'OFFER_NOT_PENDING',
+              statusCode: 409,
+              message: 'This invitation no longer has an offer to accept.',
+            }),
+          };
+        }
+
+        const result = await baseQuery({
+          url: `${url}/accept`,
+          method: 'POST',
+          data: { offerId: offer.id },
+        });
+        if (result.error) return { error: result.error as ApiError };
+        return { data: result.data as MyEngagementDetail };
+      },
+      invalidatesTags: ['MyEngagements', 'CampaignFeed'],
+    }),
+    // Campaign API group CF5 - declines a business invitation. `reason` is
+    // required by the backend but may be empty.
+    declineMyEngagement: builder.mutation<
+      MyEngagementDetail,
+      { engagementId: string; reason?: string }
+    >({
+      query: ({ engagementId, reason = '' }) => ({
+        url: `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/decline`,
+        method: 'POST',
+        data: { reason },
+      }),
+      invalidatesTags: ['MyEngagements', 'CampaignFeed'],
+    }),
   }),
 });
 
@@ -176,4 +229,6 @@ export const {
   useGetTopJoinedCampaignsQuery,
   useGetMyEngagementsPageQuery,
   useGetCreatorEarningsQuery,
+  useAcceptMyEngagementMutation,
+  useDeclineMyEngagementMutation,
 } = campaignFeedApi;

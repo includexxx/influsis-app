@@ -313,4 +313,66 @@ describe('campaignFeedApi', () => {
     expect(result.error).toBeInstanceOf(ApiError);
     expect((result.error as ApiError).code).toBe('INTERNAL_ERROR');
   });
+  test('acceptMyEngagement reads the engagement, then accepts the business offer', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => {
+      if (c.method === 'get') {
+        return ok(
+          c,
+          envelope({
+            id: 'eng-1',
+            offers: [
+              { id: 'offer-old', senderType: 'business', status: 'superseded' },
+              { id: 'offer-2', senderType: 'business', status: 'pending' },
+            ],
+          }),
+        );
+      }
+      return ok(c, envelope({ id: 'eng-1', status: 'accepted', offers: [] }));
+    });
+
+    await store
+      .dispatch(campaignFeedApi.endpoints.acceptMyEngagement.initiate({ engagementId: 'eng-1' }))
+      .unwrap();
+
+    expect(adapter.mock.calls[0][0].url).toBe('/me/engagements/eng-1');
+    const accept = adapter.mock.calls[1][0];
+    expect(accept.url).toBe('/me/engagements/eng-1/accept');
+    expect(accept.method).toBe('post');
+    expect(JSON.parse(accept.data as string)).toEqual({ offerId: 'offer-2' });
+  });
+
+  test('acceptMyEngagement fails without a POST when no business offer is pending', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c =>
+      ok(
+        c,
+        envelope({ id: 'eng-1', offers: [{ id: 'o', senderType: 'creator', status: 'pending' }] }),
+      ),
+    );
+
+    const result = await store.dispatch(
+      campaignFeedApi.endpoints.acceptMyEngagement.initiate({ engagementId: 'eng-1' }),
+    );
+
+    expect((result as { error?: ApiError }).error?.code).toBe('OFFER_NOT_PENDING');
+    expect(adapter).toHaveBeenCalledTimes(1);
+  });
+
+  test('declineMyEngagement POSTs an empty reason by default', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'declined' })));
+
+    await store
+      .dispatch(campaignFeedApi.endpoints.declineMyEngagement.initiate({ engagementId: 'eng-1' }))
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/engagements/eng-1/decline');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(call.data as string)).toEqual({ reason: '' });
+  });
 });

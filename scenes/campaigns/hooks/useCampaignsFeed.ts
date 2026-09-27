@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CAMPAIGNS_FEED_PAGE_SIZE,
   JOINED_ENGAGEMENT_STATUSES,
+  PENDING_INVITATION_STATUSES,
   useGetCampaignsFeedPageQuery,
   useGetMyEngagementsPageQuery,
 } from '../api/campaignFeedApi';
@@ -92,6 +93,11 @@ function useCampaignFeedPages<T, F extends object>(
 
 const NO_FILTERS = {};
 const JOINED_FILTERS = { engagementStatus: JOINED_ENGAGEMENT_STATUSES };
+const APPLIED_FILTERS = { origin: 'requested' as const };
+const REQUEST_FILTERS = {
+  origin: 'invited' as const,
+  engagementStatus: PENDING_INVITATION_STATUSES,
+};
 
 // The full Campaigns screen - every live campaign with an open application
 // deadline (campaign API group CB1, GET /feed/campaigns), optionally narrowed
@@ -107,4 +113,16 @@ export function useCampaignsFeed(
 // Each item is an engagement carrying a campaign summary.
 export function useJoinedCampaigns(): UseCampaignsFeedResult<MyEngagementItem> {
   return useCampaignFeedPages(useGetMyEngagementsPageQuery, JOINED_FILTERS);
+}
+
+// The Applications screen's "Applied" tab - every campaign the logged-in
+// creator asked to join, in any status (GET /me/engagements?origin=requested).
+export function useMyApplications(): UseCampaignsFeedResult<MyEngagementItem> {
+  return useCampaignFeedPages(useGetMyEngagementsPageQuery, APPLIED_FILTERS);
+}
+
+// The Applications screen's "Request" tab - business invitations the creator
+// hasn't answered yet (GET /me/engagements?origin=invited&engagementStatus=pending).
+export function useCampaignRequests(): UseCampaignsFeedResult<MyEngagementItem> {
+  return useCampaignFeedPages(useGetMyEngagementsPageQuery, REQUEST_FILTERS);
 }
