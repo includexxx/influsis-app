@@ -1,3 +1,4 @@
+export { default as ApplyCampaignSkeleton } from './ApplyCampaignSkeleton';
 export { default as CampaignCardSkeleton } from './CampaignCardSkeleton';
 export { default as CampaignRequestCardSkeleton } from './CampaignRequestCardSkeleton';
 export { default as CampaignDetailsSkeleton } from './CampaignDetailsSkeleton';

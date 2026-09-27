@@ -45,8 +45,22 @@ export const applyCampaignStyle = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
-  fileList: {
-    gap: spacing.sm,
+  // Multi-line pitch input - same height as scenes/gig/createGig.style.ts's
+  // `textarea`.
+  textarea: {
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  currency: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: spacing.sm,
+  },
+  rootError: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    marginTop: -spacing.md,
   },
   // Tighter gap between the two Portfolio Links fields - 8px per Figma,
   // matching scenes/gig/createGig.style.ts's `featureList`.

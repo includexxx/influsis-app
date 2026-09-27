@@ -9,6 +9,7 @@ import {
   CampaignFeedPageArgs,
 } from '../types/campaignFeed';
 import {
+  ApplyToCampaignArgs,
   EngagementStatus,
   MyEngagementDetail,
   MyEngagementItem,
@@ -172,6 +173,19 @@ export const campaignFeedApi = createApi({
       }),
       providesTags: ['MyEngagements'],
     }),
+    // Campaign API group CF1 - the creator asks to join a live campaign.
+    // 201 for a new application; 200 when it merged with a business
+    // invitation that landed at the same time, or repeated an earlier
+    // submit (services/http.ts drops the `meta.createdNew` that tells them
+    // apart). Invalidates the feed so the campaign's "Applied" badge shows.
+    applyToCampaign: builder.mutation<MyEngagementDetail, ApplyToCampaignArgs>({
+      query: ({ campaignId, ...body }) => ({
+        url: `${CAMPAIGNS_FEED_URL}/${encodeURIComponent(campaignId)}/apply`,
+        method: 'POST',
+        data: body,
+      }),
+      invalidatesTags: ['MyEngagements', 'CampaignFeed'],
+    }),
     // Campaign API group CF4 - accepts a business invitation. CF4 needs the
     // id of the business's pending offer, which list rows don't carry, so
     // this reads the engagement (CF3) first to find it.
@@ -229,6 +243,7 @@ export const {
   useGetTopJoinedCampaignsQuery,
   useGetMyEngagementsPageQuery,
   useGetCreatorEarningsQuery,
+  useApplyToCampaignMutation,
   useAcceptMyEngagementMutation,
   useDeclineMyEngagementMutation,
 } = campaignFeedApi;

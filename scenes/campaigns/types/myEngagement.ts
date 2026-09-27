@@ -76,3 +76,26 @@ export interface MyEngagementsPageArgs {
   origin?: EngagementOrigin;
   q?: string;
 }
+
+// Where an application came from (backend CAMPAIGN_APPLICATION_SOURCES).
+export type EngagementSource =
+  | 'suggestion'
+  | 'search'
+  | 'saved_list'
+  | 'profile'
+  | 'feed'
+  | 'direct_link'
+  | 'gig';
+
+// Campaign API group CF1, POST /feed/campaigns/:id/apply.
+export interface ApplyToCampaignArgs {
+  campaignId: string;
+  /** 1-2000 characters. */
+  pitch: string;
+  /** The creator's asking rate, a positive integer in minor units. */
+  proposedAmountMinor: number;
+  /** Up to 10 URLs. Validated by the backend, then discarded - not stored. */
+  portfolioUrls?: string[];
+  /** Backend default: `direct_link`. */
+  source?: EngagementSource;
+}

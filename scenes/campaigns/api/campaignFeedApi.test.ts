@@ -375,4 +375,29 @@ describe('campaignFeedApi', () => {
     expect(call.method).toBe('post');
     expect(JSON.parse(call.data as string)).toEqual({ reason: '' });
   });
+  test('applyToCampaign POSTs the pitch and rate to /feed/campaigns/:id/apply', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'pending' }), 201));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.applyToCampaign.initiate({
+          campaignId: 'campaign-1',
+          pitch: 'I post food reels',
+          proposedAmountMinor: 450000,
+          portfolioUrls: ['https://instagram.com/me'],
+        }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/feed/campaigns/campaign-1/apply');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(call.data as string)).toEqual({
+      pitch: 'I post food reels',
+      proposedAmountMinor: 450000,
+      portfolioUrls: ['https://instagram.com/me'],
+    });
+  });
 });

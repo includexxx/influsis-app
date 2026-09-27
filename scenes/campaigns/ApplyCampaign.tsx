@@ -2,33 +2,23 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { nanoid } from '@reduxjs/toolkit';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@/hooks';
 import { layoutStyle, buttonStyle as sharedButton } from '@/styles';
 import { applyCampaignStyle } from './applyCampaign.style';
-import { allCampaigns } from '@/data/campaigns';
 import Image from '@/components/elements/Image';
-import TextField from '@/components/elements/TextField';
-import FilePicker from '@/components/elements/FilePicker';
-import FileUploadItem from '@/components/elements/FileUploadItem';
+import ControlledTextField from '@/components/elements/ControlledTextField';
 import Button from '@/components/elements/Button';
 import SuccessSheet from '@/components/elements/SuccessSheet';
+import { useApplyToCampaignMutation, useGetFeedCampaignQuery } from './api/campaignFeedApi';
+import { ApplyCampaignSkeleton, CampaignsEmptyState } from './components';
+import { CampaignFeedDetail } from './types/campaignFeed';
+import { formatCampaignEngagementStatus, formatCampaignPrice } from './utils/mapCampaignFeedItem';
+import { applyDefaultValues, applySchema, ApplyValues, toApplyPayload } from './utils/applySchema';
+import { applyApplicationError } from './utils/applyErrors';
 
 const backChevronIcon = require('@/assets/images/icons/back-chevron.png');
-
-interface PortfolioFile {
-  id: string;
-  name: string;
-  sizeLabel: string;
-  included: boolean;
-}
-
-function formatFileSize(bytes?: number): string {
-  if (!bytes) return '';
-  const kb = bytes / 1024;
-  return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
-}
 
 // The Apply Campaign screen (Figma "Apply campaign", node 6011:8293 /
 // 6393:7254 / 6393:7407) - pushed from Campaign Details' "Apply Now"
@@ -36,50 +26,26 @@ function formatFileSize(bytes?: number): string {
 // (app/(details)/campaign/[id]/apply.tsx, path `/campaign/[id]/apply`)
 // alongside the existing `/campaign/[id]` route, the same "no tab bar"
 // `(details)` group reasoning. See docs/screen/apply-campaign/README.md.
+//
+// Reads the campaign from CB2 (GET /feed/campaigns/:id, the same cached
+// query Campaign Details used) and submits CF1 (POST /feed/campaigns/:id/
+// apply) with a pitch and an asking rate, both required by the backend.
+// Figma's "Showcase your top work" file upload is left out: CF1 has no file
+// field, so picked files would never reach the business. The portfolio
+// links are sent, though the backend currently validates and discards them.
 export default function ApplyCampaign() {
-  const { colors, palette } = useTheme();
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const campaign = allCampaigns.find(item => item.id === id);
+  const {
+    data: campaign,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetFeedCampaignQuery({ id: id ?? '' }, { skip: !id });
 
-  const [files, setFiles] = useState<PortfolioFile[]>([]);
-  const [linkOne, setLinkOne] = useState('');
-  const [linkTwo, setLinkTwo] = useState('');
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-
-  if (!campaign) {
+  if (!id || error?.code === 'NOT_FOUND') {
     return <Redirect href="/home" />;
-  }
-
-  const canApply = files.length > 0 && !!(linkOne.trim() || linkTwo.trim());
-
-  async function handlePickFiles() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-
-    const picked = result.assets.map(asset => ({
-      id: nanoid(),
-      name: asset.fileName ?? 'Image',
-      sizeLabel: formatFileSize(asset.fileSize) || '—',
-      included: true,
-    }));
-    setFiles(prev => [...prev, ...picked]);
-  }
-
-  function toggleFileIncluded(fileId: string) {
-    setFiles(prev =>
-      prev.map(file => (file.id === fileId ? { ...file, included: !file.included } : file)),
-    );
-  }
-
-  function handleApply() {
-    setIsSuccessOpen(true);
   }
 
   return (
@@ -99,57 +65,109 @@ export default function ApplyCampaign() {
         </Pressable>
       </View>
 
+      {isLoading ? (
+        <ApplyCampaignSkeleton />
+      ) : isError || !campaign ? (
+        <CampaignsEmptyState variant="error" onRetry={refetch} style={applyCampaignStyle.content} />
+      ) : (
+        <ApplyForm campaign={campaign} />
+      )}
+    </SafeAreaView>
+  );
+}
+
+function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
+  const { colors, palette } = useTheme();
+  const [applyToCampaign] = useApplyToCampaignMutation();
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const engagementStatus = formatCampaignEngagementStatus(campaign.myEngagement);
+
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = useForm<ApplyValues>({
+    resolver: zodResolver(applySchema),
+    defaultValues: applyDefaultValues,
+  });
+
+  async function onSubmit(values: ApplyValues) {
+    clearErrors('root');
+    try {
+      await applyToCampaign({ campaignId: campaign.id, ...toApplyPayload(values) }).unwrap();
+      setIsSuccessOpen(true);
+    } catch (err) {
+      applyApplicationError(err, setError);
+    }
+  }
+
+  const recapFieldStyle = [applyCampaignStyle.recapField, { backgroundColor: palette.gray[25] }];
+  const recapTextStyle = [applyCampaignStyle.recapText, { color: palette.gray[400] }];
+
+  return (
+    <>
       <ScrollView
         style={layoutStyle.screen}
         contentContainerStyle={applyCampaignStyle.content}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <View style={applyCampaignStyle.sectionBlock}>
           <Text style={[applyCampaignStyle.heading, { color: colors.text.primary }]}>
             Make your application
           </Text>
 
-          <View style={[applyCampaignStyle.recapField, { backgroundColor: palette.gray[25] }]}>
-            <Text style={[applyCampaignStyle.recapText, { color: palette.gray[400] }]}>
-              {campaign.title}
-            </Text>
+          <View style={recapFieldStyle}>
+            <Text style={recapTextStyle}>{campaign.title}</Text>
           </View>
 
-          {campaign.about && (
-            <View style={[applyCampaignStyle.recapField, { backgroundColor: palette.gray[25] }]}>
-              <Text style={[applyCampaignStyle.recapText, { color: palette.gray[400] }]}>
-                {campaign.about}
+          {campaign.description && (
+            <View style={recapFieldStyle}>
+              <Text style={recapTextStyle} numberOfLines={4}>
+                {campaign.description}
               </Text>
             </View>
           )}
 
-          {campaign.budget && (
-            <View style={[applyCampaignStyle.recapField, { backgroundColor: palette.gray[25] }]}>
-              <Text style={[applyCampaignStyle.recapText, { color: palette.gray[400] }]}>
-                {campaign.budget}
-              </Text>
-            </View>
-          )}
+          <View style={recapFieldStyle}>
+            <Text style={recapTextStyle}>
+              {`Budget: ${formatCampaignPrice(campaign.budgetAmountMinor, campaign.currency)}`}
+            </Text>
+          </View>
         </View>
 
         <View style={applyCampaignStyle.sectionBlock}>
           <Text style={[applyCampaignStyle.sectionTitle, { color: colors.text.primary }]}>
-            Showcase your top work
+            Your pitch
           </Text>
-          <FilePicker onPress={handlePickFiles} testID="portfolio-file-picker" />
-          {!!files.length && (
-            <View style={applyCampaignStyle.fileList}>
-              {files.map(file => (
-                <FileUploadItem
-                  key={file.id}
-                  name={file.name}
-                  sizeLabel={file.sizeLabel}
-                  included={file.included}
-                  onToggleIncluded={() => toggleFileIncluded(file.id)}
-                  testID={`portfolio-file-${file.id}`}
-                />
-              ))}
-            </View>
-          )}
+          <ControlledTextField
+            control={control}
+            name="pitch"
+            placeholder="Why are you a good fit for this campaign?"
+            multiline
+            maxLength={2000}
+            inputStyle={applyCampaignStyle.textarea}
+            testID="apply-pitch"
+          />
+        </View>
+
+        <View style={applyCampaignStyle.sectionBlock}>
+          <Text style={[applyCampaignStyle.sectionTitle, { color: colors.text.primary }]}>
+            Your rate
+          </Text>
+          <ControlledTextField
+            control={control}
+            name="amount"
+            placeholder="How much do you want for this campaign?"
+            keyboardType="decimal-pad"
+            leftAdornment={
+              <Text style={[applyCampaignStyle.currency, { color: colors.text.primary }]}>
+                {campaign.currency}
+              </Text>
+            }
+            testID="apply-amount"
+          />
         </View>
 
         <View style={applyCampaignStyle.sectionBlock}>
@@ -157,29 +175,41 @@ export default function ApplyCampaign() {
             Portfolio Links
           </Text>
           <View style={applyCampaignStyle.linkList}>
-            <TextField
+            <ControlledTextField
+              control={control}
+              name="linkOne"
               placeholder="Add social media or portfolio links"
-              value={linkOne}
-              onChangeText={setLinkOne}
               autoCapitalize="none"
+              keyboardType="url"
               testID="portfolio-link-one"
             />
-            <TextField
+            <ControlledTextField
+              control={control}
+              name="linkTwo"
               placeholder="Add social media or portfolio links"
-              value={linkTwo}
-              onChangeText={setLinkTwo}
               autoCapitalize="none"
+              keyboardType="url"
               testID="portfolio-link-two"
             />
           </View>
         </View>
 
+        {errors.root?.message ? (
+          <Text
+            accessibilityRole="alert"
+            style={[applyCampaignStyle.rootError, { color: colors.error }]}>
+            {errors.root.message}
+          </Text>
+        ) : null}
+
+        {/* Already applied or invited: the backend would 409 a second apply. */}
         <Button
-          title="Apply Now"
+          title={engagementStatus ?? 'Apply Now'}
           titleStyle={sharedButton.primaryTitle}
           style={sharedButton.primary}
-          onPress={handleApply}
-          disabled={!canApply}
+          onPress={handleSubmit(onSubmit)}
+          isLoading={isSubmitting}
+          disabled={!!engagementStatus || isSubmitting}
           testID="apply-now-button"
         />
       </ScrollView>
@@ -195,9 +225,12 @@ export default function ApplyCampaign() {
             setIsSuccessOpen(false);
             router.back();
           }}
-          onClose={() => setIsSuccessOpen(false)}
+          onClose={() => {
+            setIsSuccessOpen(false);
+            router.back();
+          }}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 }
