@@ -18,18 +18,35 @@ export interface CreatorDirectoryItem {
   updatedAt: string;
 }
 
+export interface CreatorPublicPlatform {
+  /** facebook | instagram | youtube | tiktok */
+  platform: string;
+  /** Bare handle, not a URL. */
+  handle: string | null;
+}
+
+export interface CreatorPublicPortfolioItem {
+  url: string;
+  /** Free text (instagram, youtube, tiktok, others, ...). */
+  platform: string;
+  /** Absolute URL, or null. */
+  thumbnailUrl: string | null;
+}
+
 // Mirrors the backend's CreatorProfilePublicDto (RBAC API group §E4, GET
-// /creator-profiles/:userId - the public single-profile page). Unlike the
-// business profile, a creator's contact details aren't in the public
-// listing at all except `email`/`phone`, which the backend documents as the
-// creator-facing presence rather than personal contact info.
+// /creator-profiles/:userId - the public single-profile page): the
+// creator-facing presence only. Unlike a business profile, a creator's
+// contact and personal details (email, phone, date of birth, gender,
+// address, postal code) are never public, and `deliverables` is owner-only.
 export interface CreatorProfilePublic {
   userId: string;
   displayName: string;
   bio: string | null;
-  email: string | null;
-  phone: string | null;
   categories: string[];
+  subcategories: string[];
+  languages: string[];
+  platforms: CreatorPublicPlatform[];
+  portfolio: CreatorPublicPortfolioItem[];
   country: string | null;
   state: string | null;
   city: string | null;

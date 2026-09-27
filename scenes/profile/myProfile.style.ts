@@ -136,6 +136,12 @@ export const myProfileStyle = StyleSheet.create({
   credDivider: {
     width: 1,
   },
+  // One column plus the divider before it (CredStrip in
+  // components/ProfileSections.tsx).
+  credColumnWrap: {
+    flex: 1,
+    flexDirection: 'row',
+  },
 
   // --- Repeating section pattern -----------------------------------------
   // The icon + label row itself is `IconSectionHeader` (components/elements/
@@ -161,6 +167,16 @@ export const myProfileStyle = StyleSheet.create({
   tagLabel: {
     fontSize: 13,
     fontWeight: '500',
+  },
+  // Outlined chip for a social platform (+ handle), tappable when it links out.
+  socialChip: {
+    height: 30,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
 
   // --- Location card -------------------------------------------------------
