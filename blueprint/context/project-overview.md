@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash d2553ec73d7930c76f2f55c9368851ac23f58287e4a69f279bca004f438c33e5 -->
+<!-- blueprint:source-hash 8894dc5bff359f3a67c0804e15a0dfc4dce0cbe5c714ed2d4c6c7ae695894684 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -69,18 +69,25 @@ registration OTP, password reset, TOTP second factor, token refresh, and route
 guarding - on axios (with a refresh interceptor), RTK Query, and
 react-hook-form + zod.
 
-**Next up - item 20, creator onboarding wizard.** One private
-post-registration route hosting a multi-step form that captures everything the
-matching engine, public profile, and verification queue need: basics,
-location, categories with subcategories, languages, deliverables, profile and
-cover photos, portfolio entries, and a unique handle. It replaces the item-2
-profile-verification wizard, which captured no location, subcategories,
-deliverables, portfolio, or photos. Split into 20a-20g. Its only server call
-today is the public handle-availability check; there is **no submit endpoint
-yet**, so Finish assembles the `FormData` payload and `console.log`s it.
+**Items 20-22 (creator onboarding wizard, bio step, onboarding UI polish) are
+complete.** A ten-step private post-registration wizard replaces the item-2
+profile-verification flow.
 
-Every product screen outside auth still runs on `data/*.ts` mock fixtures
-until later items.
+**Shipped outside the numbered plan (`feat/live-campaigns`):** the campaign
+feed (`CB1`/`CB4`), campaign details, Apply (`CF1`), and the Applications
+screen's Applied/Request tabs (`CF2`) with quick Accept/Decline of invitations
+(`CF4`/`CF5`) - `scenes/campaigns/api/campaignFeedApi.ts`.
+
+**Next up - item 23, negotiate from an Offer screen.** Tapping an Applied or
+Request row opens `(details)/engagement/[id]`: campaign summary, the offer
+thread (`CF3`), "Rounds left", and Accept (`CF4`) / Counter (`CG2`) / Decline
+(`CF5`) / Withdraw my offer (`CG3`) / Withdraw application (`CF6`), gated by
+engagement status, the pending offer's sender (backend turn rule) and
+`roundsRemaining`. The Request tab also lists `countered` invitations. Escrow
+funding (backend 19) and messaging-hosted offers (22) are out of scope.
+
+Other product screens (orders, gigs, messaging, balance) still run on
+`data/*.ts` mock fixtures.
 
 ## Data model
 
@@ -127,6 +134,10 @@ mock types where they'll carry over directly.
 - `id`, `campaignId` (-> Campaign), `creatorId` (-> Creator), `appliedDate`
 - **CampaignRequest** variant: a business-initiated invite (`businessId`,
   `time`), accept/decline only
+- Real API shape: the backend engagement (`MyEngagementItem` /
+  `MyEngagementDetail`, `scenes/campaigns/types/myEngagement.ts`) - `origin`
+  invited|requested, `status` pending|countered|accepted|declined|withdrawn|
+  expired|completed|cancelled, and an `offers[]` negotiation thread (item 23)
 
 ### Order
 

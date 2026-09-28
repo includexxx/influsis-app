@@ -10,6 +10,8 @@ import {
 } from '../types/campaignFeed';
 import {
   ApplyToCampaignArgs,
+  CloseEngagementArgs,
+  CounterOfferArgs,
   EngagementStatus,
   MyEngagementDetail,
   MyEngagementItem,
@@ -26,14 +28,16 @@ export const CAMPAIGNS_FEED_PAGE_SIZE = 10;
 const CAMPAIGNS_FEED_URL = '/feed/campaigns';
 const RECOMMENDED_FEED_URL = '/feed/campaigns/recommended';
 const MY_ENGAGEMENTS_URL = '/me/engagements';
+const ENGAGEMENTS_URL = '/engagements';
 
 // "Joined" = the business and creator agreed terms and the work is on
 // (engagement status `accepted`). Pending applications, invitations, and
 // finished (`completed`) work are deliberately excluded.
 export const JOINED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['accepted'];
 // The Applications screen's "Request" tab - invitations from a business the
-// creator hasn't answered yet.
-export const PENDING_INVITATION_STATUSES: EngagementStatus[] = ['pending'];
+// creator hasn't accepted or declined yet: still `pending`, or `countered`
+// (mid-negotiation), so a negotiation in progress stays reachable.
+export const PENDING_INVITATION_STATUSES: EngagementStatus[] = ['pending', 'countered'];
 
 // The backend's PaginationQueryDto caps `limit` at 50.
 const MAX_PAGE_SIZE = 50;
@@ -75,7 +79,7 @@ function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageAr
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CampaignFeed', 'MyEngagements'],
+  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement'],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
       query: args => ({
@@ -220,19 +224,79 @@ export const campaignFeedApi = createApi({
     }),
     // Campaign API group CF5 - declines a business invitation. `reason` is
     // required by the backend but may be empty.
-    declineMyEngagement: builder.mutation<
-      MyEngagementDetail,
-      { engagementId: string; reason?: string }
-    >({
+    declineMyEngagement: builder.mutation<MyEngagementDetail, CloseEngagementArgs>({
       query: ({ engagementId, reason = '' }) => ({
         url: `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/decline`,
         method: 'POST',
         data: { reason },
       }),
-      invalidatesTags: ['MyEngagements', 'CampaignFeed'],
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
+    }),
+    // Campaign API group CF3 - one engagement with its whole negotiation
+    // thread; backs the Offer screen.
+    getMyEngagement: builder.query<MyEngagementDetail, { engagementId: string }>({
+      query: ({ engagementId }) => ({
+        url: `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { engagementId }) => [
+        { type: 'MyEngagement', id: engagementId },
+      ],
+    }),
+    // Campaign API group CF4 with an explicit offer id - the Offer screen
+    // already holds the thread, so it accepts exactly the offer it showed. A
+    // stale id (the business countered meanwhile) is a 409 OFFER_NOT_PENDING.
+    acceptOffer: builder.mutation<MyEngagementDetail, { engagementId: string; offerId: string }>({
+      query: ({ engagementId, offerId }) => ({
+        url: `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/accept`,
+        method: 'POST',
+        data: { offerId },
+      }),
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
+    }),
+    // Campaign API group CG2 - counter-offer. The response envelope's
+    // `meta.roundsRemaining` is dropped by services/http.ts; the engagement
+    // itself carries both round counters.
+    sendCounterOffer: builder.mutation<MyEngagementDetail, CounterOfferArgs>({
+      query: ({ engagementId, amountMinor, note }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/offers`,
+        method: 'POST',
+        data: note ? { amountMinor, note } : { amountMinor },
+      }),
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
+    }),
+    // Campaign API group CG3 - withdraws the creator's own un-answered offer.
+    withdrawOffer: builder.mutation<MyEngagementDetail, { engagementId: string; offerId: string }>({
+      query: ({ engagementId, offerId }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/offers/${encodeURIComponent(offerId)}/withdraw`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
+    }),
+    // Campaign API group CF6 - the creator withdraws their own application.
+    withdrawMyEngagement: builder.mutation<MyEngagementDetail, CloseEngagementArgs>({
+      query: ({ engagementId, reason = '' }) => ({
+        url: `${MY_ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/withdraw`,
+        method: 'POST',
+        data: { reason },
+      }),
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
     }),
   }),
 });
+
+// Every negotiation mutation changes the engagement, its row in the CF2
+// lists, and the feed's "Applied" badge. Nothing is invalidated on error - the
+// Offer screen refetches explicitly after a 409.
+function engagementTags(error: unknown, engagementId: string) {
+  return error
+    ? []
+    : [
+        { type: 'MyEngagement' as const, id: engagementId },
+        'MyEngagements' as const,
+        'CampaignFeed' as const,
+      ];
+}
 
 export const {
   useGetTopCampaignsQuery,
@@ -246,4 +310,9 @@ export const {
   useApplyToCampaignMutation,
   useAcceptMyEngagementMutation,
   useDeclineMyEngagementMutation,
+  useGetMyEngagementQuery,
+  useAcceptOfferMutation,
+  useSendCounterOfferMutation,
+  useWithdrawOfferMutation,
+  useWithdrawMyEngagementMutation,
 } = campaignFeedApi;

@@ -11,6 +11,24 @@ describe('<CampaignRequestCard />', () => {
     expect(screen.getByText('5 min ago')).not.toBeNull();
   });
 
+  test('hides Accept/Decline when showActions is false, keeping the row tappable', () => {
+    const onPress = jest.fn();
+    render(
+      <CampaignRequestCard
+        avatar={avatar}
+        businessName="KFC"
+        time="5 min ago"
+        onPress={onPress}
+        showActions={false}
+        testID="campaign-request"
+      />,
+    );
+    expect(screen.queryByTestId('campaign-request-accept')).toBeNull();
+    expect(screen.queryByTestId('campaign-request-decline')).toBeNull();
+    fireEvent.press(screen.getByTestId('campaign-request'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
   test('calls onAccept when Accept is tapped', () => {
     const onAccept = jest.fn();
     render(

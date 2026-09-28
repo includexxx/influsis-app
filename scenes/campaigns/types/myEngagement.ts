@@ -50,6 +50,16 @@ export interface MyEngagementItem {
 }
 
 // One round of an engagement's negotiation thread.
+// Offer statuses (backend CAMPAIGN_APPLICATION_OFFER_STATUSES). At most one
+// offer per engagement is `pending` at a time.
+export type EngagementOfferStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'superseded'
+  | 'withdrawn'
+  | 'expired';
+
 export interface EngagementOffer {
   id: string;
   roundNo: number;
@@ -57,15 +67,43 @@ export interface EngagementOffer {
   amountMinor: number;
   currency: string;
   note: string | null;
-  status: string;
+  status: EngagementOfferStatus;
   createdAt: string;
 }
 
 // Campaign API group CF3, GET /me/engagements/:engagementId - only the
-// fields this app reads. Accepting an invitation needs the id of the
-// business's pending offer, which the CF2 list rows don't carry.
+// fields this app reads. `offers` is the whole negotiation thread; a round is
+// one offer, so `negotiationRoundLimit - negotiationRoundCount` is how many
+// more offers either side may still send. `nextAction`/`escrowFundingDeadline`
+// are computed by the backend once `accepted`.
 export interface MyEngagementDetail extends Omit<MyEngagementItem, 'campaign'> {
   offers: EngagementOffer[];
+  negotiationRoundLimit: number;
+  negotiationRoundCount: number;
+  /** The business's licensing-tier cost on top of the agreed price. */
+  licensingMarkupMinor: number | null;
+  acceptedAt: string | null;
+  closedAt: string | null;
+  closeReason: string | null;
+  nextAction: 'fund_escrow' | null;
+  escrowFundingDeadline: string | null;
+}
+
+// Campaign API group CG2, POST /engagements/:id/offers. `senderType` is
+// derived by the backend from who is calling, never sent.
+export interface CounterOfferArgs {
+  engagementId: string;
+  /** Positive integer, minor units. */
+  amountMinor: number;
+  /** Up to 2000 characters. */
+  note?: string;
+}
+
+// CF5 decline / CF6 withdraw. `reason` is required by the backend but may be
+// empty.
+export interface CloseEngagementArgs {
+  engagementId: string;
+  reason?: string;
 }
 
 export interface MyEngagementsPageArgs {

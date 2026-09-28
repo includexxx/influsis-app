@@ -129,12 +129,16 @@ describe('<Applications />', () => {
     expect(params).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ origin: 'requested', page: 1 }),
-        expect.objectContaining({ origin: 'invited', engagementStatus: ['pending'], page: 1 }),
+        expect.objectContaining({
+          origin: 'invited',
+          engagementStatus: ['pending', 'countered'],
+          page: 1,
+        }),
       ]),
     );
   });
 
-  test('tapping an application or an invitation opens the campaign details', async () => {
+  test('tapping an application or an invitation opens its Offer screen', async () => {
     mockLists({
       applied: [application],
       invited: [{ ...invitation, campaignId: 'campaign-2' }],
@@ -142,11 +146,31 @@ describe('<Applications />', () => {
     renderScreen();
 
     fireEvent.press(await screen.findByTestId('application-app-1'));
-    expect(mockPush).toHaveBeenLastCalledWith('/campaign/campaign-1');
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: '/engagement/[id]',
+      params: { id: 'app-1', title: 'Bkash Branding Campaign' },
+    });
 
     fireEvent.press(screen.getByTestId('applications-tab-request'));
     fireEvent.press(await screen.findByTestId('campaign-request-inv-1'));
-    expect(mockPush).toHaveBeenLastCalledWith('/campaign/campaign-2');
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: '/engagement/[id]',
+      params: { id: 'inv-1', title: 'Pathao Summer Push' },
+    });
+  });
+
+  test('a countered invitation shows no quick Accept/Decline', async () => {
+    mockLists({
+      applied: [],
+      invited: [invitation, { ...invitation, id: 'inv-2', status: 'countered' }],
+    });
+    renderScreen();
+    fireEvent.press(screen.getByTestId('applications-tab-request'));
+
+    expect(await screen.findByTestId('campaign-request-inv-2')).toBeTruthy();
+    expect(screen.getByTestId('campaign-request-inv-1-accept')).toBeTruthy();
+    expect(screen.queryByTestId('campaign-request-inv-2-accept')).toBeNull();
+    expect(screen.queryByTestId('campaign-request-inv-2-decline')).toBeNull();
   });
 
   test('shows an empty state when there are no applications', async () => {

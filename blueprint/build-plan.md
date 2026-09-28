@@ -268,3 +268,26 @@ cleaned-up checkbox version before generating the project overview.
       spacing rhythm, consistent field labels, and shared section / helper /
       counter / error text styles. Visual consistency and polish only - no new
       screens, data, or copy rewrites.
+
+## Campaign negotiation
+
+Backend features **18c**-**18k** (invite/apply, negotiation, accept/decline,
+env-configured round cap + turn rule) shipped in `../backend`; the app already
+reads `CF2`, applies with `CF1`, and accepts/declines invitations from the
+Request tab (`CF4`/`CF5`). The item below adds the creator side of the
+negotiation. See `../backend/docs/features/campaign/NEGOTIATION_AND_DELIVERABLES_BRIEF.md`.
+
+- [ ] 23. **Negotiate from an Offer screen (backend 18d/18e/18k `CF3`-`CF6`,
+      `CG2`, `CG3`)** - tapping an Applied or Request row opens a new
+      `(details)/engagement/[id]` screen: campaign summary with a link to the
+      campaign, the offer thread from `GET /me/engagements/:id` (round, sender,
+      amount, note, status), "Rounds left: N", and Accept (the business's
+      pending offer, by `offerId`) / Counter (`POST /engagements/:id/offers`,
+      BDT amount + optional note) / Decline (optional reason) / Withdraw my
+      offer (`POST .../offers/:offerId/withdraw`) / Withdraw application
+      (`CF6`, own requests only), each enabled from the engagement status, the
+      pending offer's sender and `roundsRemaining` (mirrors the backend turn
+      rule). The Request tab also lists `countered` invitations so a negotiation
+      in progress stays reachable; its quick Accept/Decline stay. Every `409`
+      refetches and shows the server message. Out of scope: escrow funding
+      (backend 19), negotiation inside messaging (backend 22).

@@ -24,6 +24,11 @@ export interface CampaignRequestCardProps {
   onPress?: () => void;
   /** Dims and disables both buttons, e.g. while a response is being sent. */
   disabled?: boolean;
+  /**
+   * Renders the Accept/Decline pair (default). `false` hides it, e.g. for an
+   * invitation already mid-negotiation, which is answered on its Offer screen.
+   */
+  showActions?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -101,6 +106,7 @@ function CampaignRequestCard({
   onDecline,
   onPress,
   disabled = false,
+  showActions = true,
   style,
   testID,
 }: CampaignRequestCardProps) {
@@ -119,36 +125,38 @@ function CampaignRequestCard({
           {message ?? `${businessName} invited you to join a Campaign`}
         </Text>
         <Text style={[styles.time, { color: palette.gray[300] }]}>{time}</Text>
-        <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Accept ${businessName}'s invitation`}
-            accessibilityState={{ disabled }}
-            disabled={disabled}
-            onPress={onAccept}
-            style={[
-              styles.actionButton,
-              { backgroundColor: palette.gray[900] },
-              disabled && styles.disabled,
-            ]}
-            testID={testID ? `${testID}-accept` : undefined}>
-            <Text style={[styles.actionLabel, { color: palette.white }]}>Accept</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Decline ${businessName}'s invitation`}
-            accessibilityState={{ disabled }}
-            disabled={disabled}
-            onPress={onDecline}
-            style={[
-              styles.actionButton,
-              { backgroundColor: palette.gray[50] },
-              disabled && styles.disabled,
-            ]}
-            testID={testID ? `${testID}-decline` : undefined}>
-            <Text style={[styles.actionLabel, { color: palette.gray[900] }]}>Decline</Text>
-          </Pressable>
-        </View>
+        {showActions ? (
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Accept ${businessName}'s invitation`}
+              accessibilityState={{ disabled }}
+              disabled={disabled}
+              onPress={onAccept}
+              style={[
+                styles.actionButton,
+                { backgroundColor: palette.gray[900] },
+                disabled && styles.disabled,
+              ]}
+              testID={testID ? `${testID}-accept` : undefined}>
+              <Text style={[styles.actionLabel, { color: palette.white }]}>Accept</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Decline ${businessName}'s invitation`}
+              accessibilityState={{ disabled }}
+              disabled={disabled}
+              onPress={onDecline}
+              style={[
+                styles.actionButton,
+                { backgroundColor: palette.gray[50] },
+                disabled && styles.disabled,
+              ]}
+              testID={testID ? `${testID}-decline` : undefined}>
+              <Text style={[styles.actionLabel, { color: palette.gray[900] }]}>Decline</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );

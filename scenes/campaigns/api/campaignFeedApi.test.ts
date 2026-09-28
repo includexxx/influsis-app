@@ -375,6 +375,133 @@ describe('campaignFeedApi', () => {
     expect(call.method).toBe('post');
     expect(JSON.parse(call.data as string)).toEqual({ reason: '' });
   });
+
+  test('getMyEngagement GETs /me/engagements/:id', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', offers: [] })));
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getMyEngagement.initiate({ engagementId: 'eng-1' }))
+      .unwrap();
+
+    expect(data).toEqual({ id: 'eng-1', offers: [] });
+    expect(adapter.mock.calls[0][0].url).toBe('/me/engagements/eng-1');
+    expect(adapter.mock.calls[0][0].method).toBe('get');
+  });
+
+  test('acceptOffer POSTs the given offer id straight to CF4', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'accepted' })));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.acceptOffer.initiate({
+          engagementId: 'eng-1',
+          offerId: 'offer-3',
+        }),
+      )
+      .unwrap();
+
+    expect(adapter).toHaveBeenCalledTimes(1);
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/engagements/eng-1/accept');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(call.data as string)).toEqual({ offerId: 'offer-3' });
+  });
+
+  test('sendCounterOffer POSTs the amount and note, omitting an empty note', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'countered' }), 201));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.sendCounterOffer.initiate({
+          engagementId: 'eng-1',
+          amountMinor: 2_500_000,
+          note: 'Two reels take a full day.',
+        }),
+      )
+      .unwrap();
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.sendCounterOffer.initiate({
+          engagementId: 'eng-1',
+          amountMinor: 2_400_000,
+        }),
+      )
+      .unwrap();
+
+    const [withNote, withoutNote] = adapter.mock.calls.map(([c]) => c);
+    expect(withNote.url).toBe('/engagements/eng-1/offers');
+    expect(withNote.method).toBe('post');
+    expect(JSON.parse(withNote.data as string)).toEqual({
+      amountMinor: 2_500_000,
+      note: 'Two reels take a full day.',
+    });
+    expect(JSON.parse(withoutNote.data as string)).toEqual({ amountMinor: 2_400_000 });
+  });
+
+  test('sendCounterOffer surfaces the 409 code from the backend', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, errorBody('NEGOTIATION_LIMIT_REACHED', 409), 409));
+
+    const result = await store.dispatch(
+      campaignFeedApi.endpoints.sendCounterOffer.initiate({
+        engagementId: 'eng-1',
+        amountMinor: 100,
+      }),
+    );
+
+    const error = (result as { error?: ApiError }).error;
+    expect(error?.code).toBe('NEGOTIATION_LIMIT_REACHED');
+    expect(error?.statusCode).toBe(409);
+  });
+
+  test('withdrawOffer POSTs to the offer withdraw path with no body', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'pending' })));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.withdrawOffer.initiate({ engagementId: 'eng-1', offerId: 'o-1' }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/offers/o-1/withdraw');
+    expect(call.method).toBe('post');
+    expect(call.data).toBeUndefined();
+  });
+
+  test('withdrawMyEngagement POSTs the reason to CF6, empty by default', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'withdrawn' })));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.withdrawMyEngagement.initiate({
+          engagementId: 'eng-1',
+          reason: 'Took another booking.',
+        }),
+      )
+      .unwrap();
+    await store
+      .dispatch(campaignFeedApi.endpoints.withdrawMyEngagement.initiate({ engagementId: 'eng-2' }))
+      .unwrap();
+
+    const [first, second] = adapter.mock.calls.map(([c]) => c);
+    expect(first.url).toBe('/me/engagements/eng-1/withdraw');
+    expect(first.method).toBe('post');
+    expect(JSON.parse(first.data as string)).toEqual({ reason: 'Took another booking.' });
+    expect(JSON.parse(second.data as string)).toEqual({ reason: '' });
+  });
+
   test('applyToCampaign POSTs the pitch and rate to /feed/campaigns/:id/apply', async () => {
     await withToken();
     const store = makeStore();

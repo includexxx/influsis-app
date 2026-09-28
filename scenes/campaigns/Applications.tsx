@@ -26,9 +26,14 @@ type ApplicationsTab = 'applied' | 'request';
 
 const INITIAL_SKELETON_COUNT = 4;
 
-// Module-level so FlatList rows get a stable `renderItem`/`onPress`.
-function openCampaign(campaignId: string) {
-  router.push(`/campaign/${campaignId}`);
+// Module-level so FlatList rows get a stable `renderItem`/`onPress`. Opens the
+// Offer screen for the engagement; the campaign title rides along because the
+// engagement endpoint (CF3) carries no campaign summary.
+function openOffer(item: MyEngagementItem) {
+  router.push({
+    pathname: '/engagement/[id]',
+    params: { id: item.id, title: item.campaign?.title ?? '' },
+  });
 }
 
 function AppliedSeparator() {
@@ -43,7 +48,7 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
   <CampaignCard
     variant="applied"
     {...mapApplicationToCard(item)}
-    onPress={() => openCampaign(item.campaignId)}
+    onPress={() => openOffer(item)}
     testID={`application-${item.id}`}
   />
 );
@@ -57,8 +62,10 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
 //
 // Both tabs read campaign API group CF2 (GET /me/engagements): "Applied" is
 // `origin=requested` in any status, "Request" is `origin=invited` still
-// `pending`. Tapping either row opens the campaign's details
-// (/campaign/:id). Accept/Decline call CF4/CF5; an answered invitation is hidden
+// `pending` or `countered` (mid-negotiation). Tapping either row opens its
+// Offer screen (/engagement/:id), where the creator negotiates. Quick
+// Accept/Decline (CF4/CF5) show only on `pending` invitations - a `countered`
+// one is answered on its Offer screen. An answered invitation is hidden
 // right away since only the current page refetches on invalidation.
 export default function Applications() {
   const { colors } = useTheme();
@@ -109,9 +116,10 @@ export default function Applications() {
           message={row.message}
           time={row.time}
           disabled={pendingId !== null}
+          showActions={item.status === 'pending'}
           onAccept={() => respond(item, 'accept')}
           onDecline={() => respond(item, 'decline')}
-          onPress={() => openCampaign(item.campaignId)}
+          onPress={() => openOffer(item)}
           testID={`campaign-request-${item.id}`}
         />
       );

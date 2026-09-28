@@ -122,7 +122,8 @@ export function useMyApplications(): UseCampaignsFeedResult<MyEngagementItem> {
 }
 
 // The Applications screen's "Request" tab - business invitations the creator
-// hasn't answered yet (GET /me/engagements?origin=invited&engagementStatus=pending).
+// hasn't accepted or declined yet, including ones mid-negotiation
+// (GET /me/engagements?origin=invited&engagementStatus=pending&engagementStatus=countered).
 export function useCampaignRequests(): UseCampaignsFeedResult<MyEngagementItem> {
   return useCampaignFeedPages(useGetMyEngagementsPageQuery, REQUEST_FILTERS);
 }
