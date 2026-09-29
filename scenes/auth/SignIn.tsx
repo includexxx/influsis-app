@@ -66,7 +66,7 @@ export default function SignIn() {
     formState: { errors, isSubmitting },
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { identifier: '', password: '' },
+    defaultValues: { identifier: 'creator1@test.com', password: 'pass1234' },
   });
 
   async function onSubmit(values: SignInValues) {
