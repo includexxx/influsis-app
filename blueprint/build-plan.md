@@ -277,7 +277,7 @@ reads `CF2`, applies with `CF1`, and accepts/declines invitations from the
 Request tab (`CF4`/`CF5`). The item below adds the creator side of the
 negotiation. See `../backend/docs/features/campaign/NEGOTIATION_AND_DELIVERABLES_BRIEF.md`.
 
-- [ ] 23. **Negotiate from an Offer screen (backend 18d/18e/18k `CF3`-`CF6`,
+- [x] 23. **Negotiate from an Offer screen (backend 18d/18e/18k `CF3`-`CF6`,
       `CG2`, `CG3`)** - tapping an Applied or Request row opens a new
       `(details)/engagement/[id]` screen: campaign summary with a link to the
       campaign, the offer thread from `GET /me/engagements/:id` (round, sender,
