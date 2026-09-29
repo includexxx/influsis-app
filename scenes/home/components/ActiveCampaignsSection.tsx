@@ -1,5 +1,6 @@
 import { View, ScrollView, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { homeStyle } from '../home.style';
+import { MyEngagementItem } from '@/scenes/campaigns/types/myEngagement';
 import SectionHeader from '@/components/elements/SectionHeader';
 import {
   CAMPAIGNS_PREVIEW_LIMIT,
@@ -13,7 +14,8 @@ import {
 
 export interface ActiveCampaignsSectionProps {
   onSeeAllPress?: () => void;
-  onCampaignPress?: (id: string) => void;
+  /** Called with the joined engagement - Home opens its deliverables. */
+  onCampaignPress?: (engagement: MyEngagementItem) => void;
   style?: StyleProp<ViewStyle>;
 }
 

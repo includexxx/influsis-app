@@ -8,6 +8,7 @@ import {
   CampaignFeedItem,
   CampaignFeedPageArgs,
 } from '../types/campaignFeed';
+import { DeliverablePiece, DeliverableSubmission, RecordPostedArgs } from '../types/deliverables';
 import {
   ApplyToCampaignArgs,
   CloseEngagementArgs,
@@ -79,7 +80,7 @@ function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageAr
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement'],
+  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement', 'Deliverables'],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
       query: args => ({
@@ -284,6 +285,29 @@ export const campaignFeedApi = createApi({
       }),
       invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
     }),
+    // Campaign API group CI1 - the accepted engagement's pieces and each
+    // piece's submission history. Submitting (CI2) is multipart for images,
+    // so it lives in ./submitDeliverable.ts and invalidates this tag itself.
+    getEngagementDeliverables: builder.query<DeliverablePiece[], { engagementId: string }>({
+      query: ({ engagementId }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/deliverables`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { engagementId }) => [
+        { type: 'Deliverables', id: engagementId },
+      ],
+    }),
+    // Campaign API group CI4 - where approved content went live. 409 until
+    // the piece is approved.
+    recordPosted: builder.mutation<DeliverableSubmission, RecordPostedArgs>({
+      query: ({ engagementId, pieceId, livePostUrl }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/deliverables/${encodeURIComponent(pieceId)}/posted`,
+        method: 'POST',
+        data: { livePostUrl },
+      }),
+      invalidatesTags: (_result, error, { engagementId }) =>
+        error ? [] : [{ type: 'Deliverables' as const, id: engagementId }],
+    }),
   }),
 });
 
@@ -317,4 +341,6 @@ export const {
   useSendCounterOfferMutation,
   useWithdrawOfferMutation,
   useWithdrawMyEngagementMutation,
+  useGetEngagementDeliverablesQuery,
+  useRecordPostedMutation,
 } = campaignFeedApi;

@@ -310,7 +310,7 @@ and `../platform-context/api-contracts/campaigns.md` (`EngagementScopeItemDto`, 
       `CF1` `scope` only when changed. `422` scope errors show per row; `409`
       keeps today's refetch + server message. Out of scope: delivering work
       (item 25), escrow, messaging.
-- [ ] 25. **Deliver the work (backend 18g/18h/18m `CI1`, `CI2`, `CI4`)** - an
+- [x] 25. **Deliver the work (backend 18g/18h/18m `CI1`, `CI2`, `CI4`)** - an
       accepted engagement's deliverables screen lists its pieces (`CI1`: status,
       due date, revisions left, submission history with the business's review
       reasons); a piece awaiting delivery or with changes requested can be

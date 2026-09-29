@@ -25,7 +25,8 @@ The Home tab of the main app shell (`app/(main)`, see [`docs/screen/main/README.
   ├─ tap "See all" on Campaigns    → /campaigns (docs/screen/campaigns/README.md)
   ├─ tap "See all" on Top Gigs     → /top-gigs (docs/screen/top-gigs/README.md)
   ├─ tap "See all" on Top Rated Creator → /top-creators (docs/screen/top-creators/README.md)
-  ├─ tap a CampaignCard            → /campaign/[id] (docs/screen/campaign-details/README.md)
+  ├─ tap a CampaignCard            → /campaign/[id] (docs/screen/campaign-details/README.md);
+  │                                   an Active Campaigns card → /engagement/[id]/deliverables (item 25)
   ├─ tap a business logo              → /business/[id] (docs/screen/business-details/README.md)
   ├─ tap a CampaignMiniCard        → (no campaign-detail screen yet - inert)
   ├─ tap a GigCard                 → /gig/[id] (docs/screen/gig-details/README.md)

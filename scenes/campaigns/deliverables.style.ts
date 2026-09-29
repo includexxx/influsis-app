@@ -1,0 +1,101 @@
+import { StyleSheet } from 'react-native';
+import { palette, radius } from '@/theme';
+
+// Shared by the Deliverables list (DeliverablesScreen.tsx) and one piece's
+// screen (DeliverablePieceScreen.tsx). Content uses layoutStyle.scrollContent's
+// 16px gutter; sections are separated by `gap`, like the Offer screen.
+export const deliverablesStyle = StyleSheet.create({
+  headerGap: { marginBottom: 8 },
+  content: { gap: 16, paddingBottom: 24 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  title: { flex: 1, fontSize: 20, lineHeight: 28, fontWeight: '600' },
+  linkText: { fontSize: 14, lineHeight: 21, fontWeight: '600', color: palette.primary[500] },
+  sectionTitle: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+  hintText: { fontSize: 14, lineHeight: 21 },
+  banner: {
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  successBanner: { backgroundColor: palette.success[50] },
+  successText: { color: palette.success[700], fontSize: 14, lineHeight: 21, fontWeight: '500' },
+  warningBanner: { backgroundColor: palette.warning[50] },
+  warningText: { color: palette.warning[700], fontSize: 14, lineHeight: 21 },
+  errorBanner: { backgroundColor: palette.error[50] },
+  errorText: { color: palette.error[700], fontSize: 14, lineHeight: 21 },
+  row: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 6,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  rowTitle: { flex: 1, fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  meta: { fontSize: 13, lineHeight: 19 },
+  overdue: { color: palette.error[600], fontWeight: '600' },
+  form: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: 16,
+    gap: 12,
+  },
+  toggle: { flexDirection: 'row', gap: 8 },
+  toggleOption: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  toggleOptionActive: {
+    backgroundColor: palette.primary[25],
+    borderColor: palette.primary[500],
+  },
+  toggleText: { fontSize: 14, fontWeight: '600' },
+  pickButton: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: radius.md,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  thumbnail: { width: 96, height: 96, borderRadius: radius.md },
+  fieldError: { color: palette.error[600], fontSize: 12, lineHeight: 18 },
+  multiline: { minHeight: 88, textAlignVertical: 'top' },
+  primaryButton: { backgroundColor: palette.primary[500], borderRadius: 999 },
+  primaryTitle: { color: palette.white, fontWeight: '600' },
+  historyItem: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: 12,
+    gap: 4,
+  },
+  lateTag: {
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    fontSize: 12,
+    fontWeight: '500',
+    color: palette.error[700],
+    backgroundColor: palette.error[50],
+  },
+  reviewBox: {
+    borderRadius: radius.sm,
+    padding: 8,
+    backgroundColor: palette.gray[25],
+  },
+});

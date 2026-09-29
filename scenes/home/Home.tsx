@@ -13,6 +13,7 @@ import {
   TopRatedCreatorsSection,
 } from './components';
 import { homeStyle } from './home.style';
+import { openDeliverables } from '@/scenes/campaigns/utils/openDeliverables';
 
 // The Home tab of the main app shell (Figma "Home", node 6121:6522).
 // Sections are populated from data/home.ts mock content - no backend
@@ -35,7 +36,9 @@ export default function Home() {
 
         <ActiveCampaignsSection
           onSeeAllPress={() => router.push('/live-campaign')}
-          onCampaignPress={id => router.push(`/campaign/${id}`)}
+          onCampaignPress={engagement =>
+            openDeliverables({ id: engagement.id, title: engagement.campaign?.title })
+          }
         />
 
         <BusinessLogosSection

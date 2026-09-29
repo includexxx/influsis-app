@@ -55,6 +55,7 @@ dialog. Rules: `../backend/docs/features/campaign/NEGOTIATION_AND_DELIVERABLES_B
 | Counter | `pending`/`countered`, rounds left > 0, pending offer isn't the creator's own | `POST /engagements/:id/offers` `{ amountMinor, note?, scope? }` (CG2) |
 | Withdraw my offer | `pending`/`countered`, pending offer is the creator's own | `POST /engagements/:id/offers/:offerId/withdraw` (CG3) |
 | Decline | `pending`/`countered`, `origin: invited` | `POST /me/engagements/:id/decline` `{ reason }` (CF5) |
+| Deliver work | engagement `accepted` or `completed` | opens `/engagement/[id]/deliverables` (item 25, `docs/screen/deliverables/README.md`) |
 | Withdraw application | `pending`/`countered`, `origin: requested` | `POST /me/engagements/:id/withdraw` `{ reason }` (CF6) |
 
 The rules mirror the backend (18d/18e/18k): one pending offer at a time; a

@@ -8,16 +8,19 @@ import ScreenHeader from '@/components/elements/ScreenHeader';
 import { CampaignCardSkeleton, CampaignsEmptyState, JoinedCampaignCard } from './components';
 import { useJoinedCampaigns } from './hooks/useCampaignsFeed';
 import { MyEngagementItem } from './types/myEngagement';
+import { openDeliverables } from './utils/openDeliverables';
 
 const INITIAL_SKELETON_COUNT = 4;
 
-// Module-level so FlatList rows get a stable `renderItem`/`onPress`.
-function openCampaign(id: string) {
-  router.push(`/campaign/${id}`);
+// Module-level so FlatList rows get a stable `renderItem`/`onPress`. A
+// joined campaign opens the creator's deliverables for it (item 25); that
+// screen links on to the campaign itself.
+function openEngagement(engagement: MyEngagementItem) {
+  openDeliverables({ id: engagement.id, title: engagement.campaign?.title });
 }
 
 const renderItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
-  <JoinedCampaignCard engagement={item} onPress={openCampaign} />
+  <JoinedCampaignCard engagement={item} onPress={openEngagement} />
 );
 
 // The Live Campaigns screen (Figma "Live campaigns", node 6111:6871), pushed

@@ -52,6 +52,7 @@ import {
   scopePairKey,
   validateScope,
 } from './utils/scope';
+import { openDeliverables } from './utils/openDeliverables';
 
 type Action = 'accept' | 'counter' | 'withdrawOffer' | 'decline' | 'withdrawApplication';
 type Form = 'counter' | 'decline' | 'withdrawApplication' | null;
@@ -352,6 +353,17 @@ export default function OfferScreen() {
 
           {data.status === 'accepted' && data.agreedAmountMinor !== null ? (
             <AcceptedSummary detail={data} />
+          ) : null}
+
+          {data.status === 'accepted' || data.status === 'completed' ? (
+            <Button
+              title="Deliver work"
+              style={s.primaryButton}
+              titleStyle={s.primaryTitle}
+              onPress={() => openDeliverables({ id: engagementId, title })}
+              accessibilityLabel="Deliver work"
+              testID="offer-deliver-work"
+            />
           ) : null}
 
           {!state.isNegotiable && data.closeReason ? (

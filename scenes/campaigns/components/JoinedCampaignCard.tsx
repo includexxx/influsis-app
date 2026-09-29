@@ -7,8 +7,8 @@ import { MyEngagementItem } from '../types/myEngagement';
 export interface JoinedCampaignCardProps {
   engagement: MyEngagementItem;
   variant?: Exclude<CampaignCardVariant, 'applied'>;
-  /** Called with the campaign's id (not the engagement's). */
-  onPress?: (campaignId: string) => void;
+  /** Called with the joined engagement (item 25: rows open its deliverables). */
+  onPress?: (engagement: MyEngagementItem) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -26,7 +26,7 @@ function JoinedCampaignCard({
     <CampaignCard
       variant={variant}
       {...mapJoinedCampaignToCard(engagement)}
-      onPress={onPress ? () => onPress(engagement.campaignId) : undefined}
+      onPress={onPress ? () => onPress(engagement) : undefined}
       style={style}
       testID={`joined-campaign-${engagement.id}`}
     />

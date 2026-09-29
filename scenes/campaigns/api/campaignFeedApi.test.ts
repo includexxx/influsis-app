@@ -5,6 +5,7 @@ import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { ApiError, httpClient } from '@/services/http';
 import { clearTokens, setTokens } from '@/services/tokenStore';
 import { campaignFeedApi } from './campaignFeedApi';
+import { submitDeliverable } from './submitDeliverable';
 import { CampaignFeedItem } from '../types/campaignFeed';
 
 const campaign: CampaignFeedItem = {
@@ -572,5 +573,81 @@ describe('campaignFeedApi', () => {
       proposedAmountMinor: 450000,
       scope,
     });
+  });
+  test('getEngagementDeliverables GETs the engagement pieces (CI1)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.getEngagementDeliverables.initiate({ engagementId: 'eng-1' }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/deliverables');
+    expect(call.method).toBe('get');
+  });
+
+  test('recordPosted POSTs the live post URL (CI4)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' })));
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.recordPosted.initiate({
+          engagementId: 'eng-1',
+          pieceId: 'piece-1',
+          livePostUrl: 'https://instagram.com/p/live',
+        }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/posted');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(call.data as string)).toEqual({
+      livePostUrl: 'https://instagram.com/p/live',
+    });
+  });
+
+  test('submitDeliverable sends a link as JSON with a trimmed caption (CI2)', async () => {
+    await withToken();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' }), 201));
+
+    await submitDeliverable({
+      engagementId: 'eng-1',
+      pieceId: 'piece-1',
+      kind: 'link',
+      externalUrl: ' https://youtube.com/shorts/1 ',
+      caption: '  First cut  ',
+    });
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/submissions');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(call.data as string)).toEqual({
+      externalUrl: 'https://youtube.com/shorts/1',
+      caption: 'First cut',
+    });
+  });
+
+  test('submitDeliverable sends an image as multipart with a file part (CI2)', async () => {
+    await withToken();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' }), 201));
+
+    await submitDeliverable({
+      engagementId: 'eng-1',
+      pieceId: 'piece-1',
+      kind: 'image',
+      image: { uri: 'file:///photo.jpg', fileName: 'photo.jpg', mimeType: 'image/jpeg' },
+    });
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/submissions');
+    expect(call.data).toBeInstanceOf(FormData);
+    expect(String(call.headers?.['Content-Type'])).toContain('multipart/form-data');
   });
 });

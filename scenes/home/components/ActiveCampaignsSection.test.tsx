@@ -60,7 +60,7 @@ function makeStore() {
   });
 }
 
-function renderSection(onCampaignPress?: (id: string) => void) {
+function renderSection(onCampaignPress?: (engagement: MyEngagementItem) => void) {
   store = makeStore();
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
@@ -94,7 +94,7 @@ describe('<ActiveCampaignsSection />', () => {
     );
 
     fireEvent.press(screen.getByTestId('joined-campaign-e1'));
-    expect(onCampaignPress).toHaveBeenCalledWith('c1');
+    expect(onCampaignPress).toHaveBeenCalledWith(expect.objectContaining({ id: 'e1' }));
   });
 
   test("shows a message when the creator hasn't joined any campaigns", async () => {

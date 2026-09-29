@@ -312,4 +312,28 @@ describe('<OfferScreen />', () => {
 
     expect(await screen.findByText('duplicate platform/type - send count instead')).toBeTruthy();
   });
+  test('offers Deliver work only once accepted or completed (item 25)', async () => {
+    answerWith(() =>
+      engagement({
+        status: 'accepted',
+        agreedAmountMinor: 2_000_000,
+        offers: [offer(1, 'business', 'accepted', 2_000_000)],
+      }),
+    );
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-deliver-work'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/engagement/[id]/deliverables',
+      params: { id: 'eng-1', title: 'Pathao Summer Push' },
+    });
+  });
+
+  test('hides Deliver work while negotiating', async () => {
+    answerWith(() => engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }));
+    renderScreen();
+
+    expect(await screen.findByTestId('offer-counter')).toBeTruthy();
+    expect(screen.queryByTestId('offer-deliver-work')).toBeNull();
+  });
 });
