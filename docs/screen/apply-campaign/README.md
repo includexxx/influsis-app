@@ -43,6 +43,7 @@ SuccessSheet "Successful!" popup opens in place
 | 2 | "Make your application" heading | Page heading | — |
 | 3 | Campaign recap | 3 read-only tinted fields: campaign title, about, budget | — |
 | 4 | Showcase your top work | Section title + drop-zone + a row per picked file | `FilePicker`, `FileUploadItem` |
+| 4b | Deliverables | The campaign's deliverables ("2 × Instagram Reels"); "Propose different deliverables" opens a `DeliverablesEditor` pre-filled from them, "Use the campaign's deliverables" closes it (backend 18l) | `DeliverablesEditor`, `OptionSheet` |
 | 5 | Portfolio Links | Section title + 2 link fields | `TextField` ×2 |
 | 6 | Apply Now | Primary button, inline at the end of the scrollable content (not a fixed footer, matching Figma's own grouping) | `Button` |
 | 7 | Success popup | Green tick badge, "Successful!", confirmation copy, gray "Go to campaign" button | `SuccessSheet` |
@@ -62,6 +63,15 @@ SuccessSheet "Successful!" popup opens in place
 - **Success popup copy isn't Figma's literal placeholder text.** Figma's popup body is literal "Lorem Ipsum is simply dummy text of the printing and typesetting industry." — unfinished designer filler, not real copy (unlike Create Gig's "Congratulation" popup, whose text is real, deliberate copy preserved verbatim). Real copy was written instead: "Your application has been submitted. The business will be in touch if you're a good fit."
 - **"Go to campaign" closes the popup and goes back, it doesn't push a new screen.** Since this screen was pushed *from* Campaign Details, `router.back()` already lands back on the same campaign — no new navigation target needed, the same reasoning Create Gig's "View Gig" button used to just close its own success popup in place.
 - **Campaign Details' "Apply Now" is now wired.** `docs/screen/campaign-details/README.md` previously documented "Apply Now" as visual-only (no application flow existed) — it now calls `router.push(\`/campaign/${campaign.id}/apply\`)`; see that doc's updated scope note. "Visit website" remains inert (still out of scope — no `Linking` pattern exists in this app yet).
+
+## Deliverables (backend 18l)
+
+The creator can propose their own deliverables list. It is sent as `CF1`
+`scope` only when it differs from the campaign's (order ignored); otherwise
+the backend copies the campaign's list onto the new engagement. The editor
+enforces 1-30 rows, count 1-50 and one row per platform + type before
+submit; a `422` about `scope` shows on the editor instead of the form's
+root error. Later changes happen through counter-offers on the Offer screen.
 
 ## Navigation
 

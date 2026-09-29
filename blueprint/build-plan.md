@@ -291,3 +291,34 @@ negotiation. See `../backend/docs/features/campaign/NEGOTIATION_AND_DELIVERABLES
       in progress stays reachable; its quick Accept/Decline stay. Every `409`
       refetches and shows the server message. Out of scope: escrow funding
       (backend 19), negotiation inside messaging (backend 22).
+
+The two items below are the creator side of backend 18l (per-engagement
+deliverables, "scope", negotiated with the price) and 18m (the business
+approving deliverables completes the engagement; no escrow yet), both shipped
+in `../backend`. See `../backend/docs/features/campaign/NEGOTIATION_AND_DELIVERABLES_BRIEF.md`
+and `../platform-context/api-contracts/campaigns.md` (`EngagementScopeItemDto`, Group CI).
+
+- [x] 24. **Deliverables in the Offer screen and on Apply (backend 18l `CF1`/`CG2`
+      `scope`, `CF3` `scope`/`scopeChanged`)** - the Offer screen shows the
+      engagement's current deliverables and tags rounds whose `scopeChanged` is
+      true ("Changed deliverables"); Counter gains "Change deliverables", an
+      editor pre-filled from the current list (count 1-50 per row, add/remove,
+      one row per platform + type, up to 30), with the amount pre-filled from the
+      latest offer so a deliverables-only counter needs no retyping, and `scope`
+      sent only when the list actually changed. Apply shows the campaign's
+      deliverables and lets the creator propose a different list, sent as
+      `CF1` `scope` only when changed. `422` scope errors show per row; `409`
+      keeps today's refetch + server message. Out of scope: delivering work
+      (item 25), escrow, messaging.
+- [ ] 25. **Deliver the work (backend 18g/18h/18m `CI1`, `CI2`, `CI4`)** - an
+      accepted engagement's deliverables screen lists its pieces (`CI1`: status,
+      due date, revisions left, submission history with the business's review
+      reasons); a piece awaiting delivery or with changes requested can be
+      submitted (`CI2`: an image upload or a link, plus an optional caption; a
+      late submission is allowed and flagged); after approval the creator
+      records the live post URL (`CI4`). Escalated pieces show "In dispute"
+      with no actions; an engagement completed by the business's last approval
+      shows as completed, never "paid" (no escrow until backend item 19).
+      Replaces the mock `scenes/order` deliver flow for campaign engagements.
+      Out of scope: work-progress steps (`CH1`/`CH2`), escrow, disputes, gig
+      orders.

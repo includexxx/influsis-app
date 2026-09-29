@@ -12,6 +12,8 @@ import SummaryRow from '@/components/elements/SummaryRow';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
 import ConfirmDialog from '@/components/elements/ConfirmDialog';
+import DeliverablesEditor from '@/components/elements/DeliverablesEditor';
+import OptionSheet from '@/components/elements/OptionSheet';
 import { offerScreenStyle as s } from './offerScreen.style';
 import { CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
@@ -27,6 +29,7 @@ import {
   EngagementOfferStatus,
   EngagementStatus,
   MyEngagementDetail,
+  ScopeItem,
 } from './types/myEngagement';
 import { formatCampaignPrice } from './utils/mapCampaignFeedItem';
 import {
@@ -37,6 +40,18 @@ import {
   sortOffers,
   validateOptionalText,
 } from './utils/negotiation';
+import {
+  addableScopeOptions,
+  addScopeItem,
+  isSameScope,
+  SCOPE_MAX_ITEMS,
+  scopeErrorsFromApi,
+  scopeFromList,
+  scopeItemLabel,
+  scopeListErrorFromApi,
+  scopePairKey,
+  validateScope,
+} from './utils/scope';
 
 type Action = 'accept' | 'counter' | 'withdrawOffer' | 'decline' | 'withdrawApplication';
 type Form = 'counter' | 'decline' | 'withdrawApplication' | null;
@@ -74,7 +89,10 @@ const INACTIVE: EngagementOfferStatus[] = ['superseded', 'withdrawn', 'expired']
 // invitations) and Withdraw application (CF6, for the creator's own
 // requests). Which actions show comes from getOfferScreenState, which mirrors
 // the backend rules; a 409 means this view was stale, so the server's message
-// is shown and the engagement refetched. Registered at
+// is shown and the engagement refetched. Backend 18l: the engagement's own
+// deliverables list (`scope`) is shown, rounds that changed it are tagged, and
+// a counter can change it with or instead of the price - `scope` is sent only
+// when the list actually changed. Registered at
 // app/(details)/engagement/[id].tsx; `title` is passed by the list because
 // CF3 carries no campaign summary.
 export default function OfferScreen() {
@@ -101,6 +119,11 @@ export default function OfferScreen() {
   const [note, setNote] = useState('');
   const [reason, setReason] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  // null = keep the current deliverables (editor closed).
+  const [scopeRows, setScopeRows] = useState<ScopeItem[] | null>(null);
+  const [scopeRowErrors, setScopeRowErrors] = useState<Record<number, string>>({});
+  const [scopeListError, setScopeListError] = useState<string | null>(null);
+  const [scopeSheetOpen, setScopeSheetOpen] = useState(false);
 
   function closeForm() {
     setForm(null);
@@ -109,6 +132,16 @@ export default function OfferScreen() {
     setReason('');
     setFormError(null);
     setFieldErrors(null);
+    setScopeRows(null);
+    setScopeRowErrors({});
+    setScopeListError(null);
+    setScopeSheetOpen(false);
+  }
+
+  function changeScope(next: ScopeItem[] | null) {
+    setScopeRows(next);
+    setScopeRowErrors({});
+    setScopeListError(null);
   }
 
   async function run(action: Action, call: () => Promise<unknown>) {
@@ -166,11 +199,31 @@ export default function OfferScreen() {
   const pending = state.pendingOffer;
   const disabled = busy !== null;
 
+  const currentScope = scopeFromList(data.scope ?? []);
+
+  // Pre-fill with the latest offer's amount so a deliverables-only counter
+  // needs no retyping (CG2 always carries an amount).
+  function openCounter() {
+    const latest = offers[offers.length - 1];
+    setAmount(latest ? String(latest.amountMinor / 100) : '');
+    setForm('counter');
+  }
+
   function submitCounter() {
     const parsed = parseCounterAmount(amount);
     if (!parsed.ok) return setFormError(parsed.error);
     const noteError = validateOptionalText(note);
     if (noteError) return setFormError(noteError);
+    let scope: ScopeItem[] | undefined;
+    if (scopeRows) {
+      const checked = validateScope(scopeRows);
+      if (!checked.ok) {
+        setScopeRowErrors(checked.rowErrors);
+        setScopeListError(checked.error);
+        return;
+      }
+      if (!isSameScope(checked.scope, currentScope)) scope = checked.scope;
+    }
     setFormError(null);
     const trimmed = note.trim();
     void run('counter', () =>
@@ -178,9 +231,16 @@ export default function OfferScreen() {
         engagementId,
         amountMinor: parsed.amountMinor,
         ...(trimmed ? { note: trimmed } : {}),
+        ...(scope ? { scope } : {}),
       }).unwrap(),
     );
   }
+
+  // Local validation wins; otherwise a backend 422's scope keys.
+  const shownScopeRowErrors = Object.keys(scopeRowErrors).length
+    ? scopeRowErrors
+    : scopeErrorsFromApi(fieldErrors);
+  const shownScopeListError = scopeListError ?? scopeListErrorFromApi(fieldErrors);
 
   function submitReason(next: 'decline' | 'withdrawApplication') {
     const error = validateOptionalText(reason);
@@ -257,6 +317,19 @@ export default function OfferScreen() {
             )}
           </View>
 
+          {data.scope?.length ? (
+            <View style={s.thread} testID="offer-deliverables">
+              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Deliverables</Text>
+              {data.scope.map(item => (
+                <Text
+                  key={scopePairKey(item)}
+                  style={[s.scopeLine, { color: colors.text.primary }]}>
+                  {item.count} × {scopeItemLabel(item)}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+
           {state.isNegotiable ? (
             <View>
               <Text
@@ -320,6 +393,52 @@ export default function OfferScreen() {
                 accessibilityLabel="Note to the business"
                 testID="offer-counter-note"
               />
+              {scopeRows ? (
+                <View style={s.scopeEditor}>
+                  <View style={s.scopeEditorHeader}>
+                    <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
+                      Deliverables
+                    </Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => changeScope(null)}
+                      disabled={disabled}
+                      testID="offer-keep-deliverables">
+                      <Text style={s.linkText}>Keep current deliverables</Text>
+                    </Pressable>
+                  </View>
+                  <DeliverablesEditor
+                    items={scopeRows.map(row => ({
+                      key: scopePairKey(row),
+                      label: scopeItemLabel(row),
+                      count: row.count,
+                    }))}
+                    onCountChange={(index, count) =>
+                      changeScope(
+                        scopeRows.map((row, i) => (i === index ? { ...row, count } : row)),
+                      )
+                    }
+                    onRemove={index => changeScope(scopeRows.filter((_, i) => i !== index))}
+                    onAddPress={() => setScopeSheetOpen(true)}
+                    addDisabled={
+                      scopeRows.length >= SCOPE_MAX_ITEMS ||
+                      addableScopeOptions(scopeRows).length === 0
+                    }
+                    rowErrors={shownScopeRowErrors}
+                    error={shownScopeListError}
+                    disabled={disabled}
+                    testID="offer-scope-editor"
+                  />
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => changeScope(currentScope)}
+                  disabled={disabled}
+                  testID="offer-change-deliverables">
+                  <Text style={s.linkText}>Change deliverables</Text>
+                </Pressable>
+              )}
               <Button
                 title="Send counter-offer"
                 style={s.primaryButton}
@@ -391,7 +510,7 @@ export default function OfferScreen() {
                   title="Counter"
                   style={s.secondaryButton}
                   titleStyle={s.secondaryTitle}
-                  onPress={() => setForm('counter')}
+                  onPress={openCounter}
                   disabled={disabled}
                   testID="offer-counter"
                 />
@@ -433,6 +552,17 @@ export default function OfferScreen() {
         </View>
       </ScrollView>
 
+      {scopeSheetOpen && scopeRows ? (
+        <OptionSheet
+          options={addableScopeOptions(scopeRows)}
+          onSelect={value => {
+            changeScope(addScopeItem(scopeRows, value));
+            setScopeSheetOpen(false);
+          }}
+          onClose={() => setScopeSheetOpen(false)}
+        />
+      ) : null}
+
       {confirm ? (
         <ConfirmDialog
           title={confirmCopy[confirm].title}
@@ -464,6 +594,11 @@ function OfferRow({ offer, border }: { offer: EngagementOffer; border: string })
           {OFFER_STATUS_LABEL[offer.status]}
         </Text>
       </View>
+      {offer.scopeChanged ? (
+        <Text style={s.scopeTag} testID={`offer-round-${offer.roundNo}-scope-changed`}>
+          Changed deliverables
+        </Text>
+      ) : null}
       <Text
         style={[s.offerAmount, { color: colors.text.primary }, inactive && s.offerAmountStruck]}>
         {formatCampaignPrice(offer.amountMinor, offer.currency)}

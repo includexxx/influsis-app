@@ -144,6 +144,30 @@ export const offerScreenStyle = StyleSheet.create({
     borderColor: palette.error[300],
     backgroundColor: palette.white,
   },
+  scopeLine: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  scopeEditor: {
+    gap: 8,
+  },
+  scopeEditorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  scopeTag: {
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    fontSize: 12,
+    fontWeight: '500',
+    color: palette.primary[600],
+    backgroundColor: palette.primary[25],
+  },
   multiline: {
     minHeight: 88,
     textAlignVertical: 'top',

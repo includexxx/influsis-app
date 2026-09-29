@@ -256,4 +256,64 @@ describe('<ApplyCampaign />', () => {
 
     expect(await screen.findByText('redirect:/home')).toBeTruthy();
   });
+  test("shows the campaign's deliverables (backend 18l)", async () => {
+    answerWith(() => campaign);
+    renderScreen();
+
+    expect(await screen.findByTestId('apply-deliverables')).toBeTruthy();
+    expect(screen.getByText('2 × Instagram Reels')).toBeTruthy();
+    expect(screen.getByTestId('apply-propose-deliverables')).toBeTruthy();
+  });
+
+  test('sends a proposed deliverables list as scope', async () => {
+    answerWith(({ method }) => (method === 'POST' ? { id: 'eng-1', status: 'pending' } : campaign));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+    fireEvent.press(screen.getByLabelText('Increase Instagram Reels'));
+    await fillAndSubmit();
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        data: {
+          pitch: 'I post food reels',
+          proposedAmountMinor: 450000,
+          portfolioUrls: ['https://instagram.com/me'],
+          scope: [{ platform: 'instagram', type: 'reels', count: 3 }],
+        },
+      }),
+    );
+  });
+
+  test('an opened but unchanged proposal sends no scope', async () => {
+    answerWith(({ method }) => (method === 'POST' ? { id: 'eng-1', status: 'pending' } : campaign));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+    await fillAndSubmit();
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        data: {
+          pitch: 'I post food reels',
+          proposedAmountMinor: 450000,
+          portfolioUrls: ['https://instagram.com/me'],
+        },
+      }),
+    );
+  });
+
+  test('an empty proposal blocks submit with the message', async () => {
+    answerWith(() => campaign);
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+    fireEvent.press(screen.getByLabelText('Remove Instagram Reels'));
+    await fillAndSubmit();
+
+    expect(screen.getAllByText('Add at least one deliverable.').length).toBeGreaterThan(0);
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
 });

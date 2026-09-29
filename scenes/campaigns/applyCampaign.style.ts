@@ -67,4 +67,15 @@ export const applyCampaignStyle = StyleSheet.create({
   linkList: {
     gap: spacing.sm,
   },
+  // Backend 18l - one line of the campaign's (or proposed) deliverables.
+  scopeLine: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  // "Propose different deliverables" / "Use the campaign's deliverables".
+  linkText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '600',
+  },
 });

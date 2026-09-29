@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 8894dc5bff359f3a67c0804e15a0dfc4dce0cbe5c714ed2d4c6c7ae695894684 -->
+<!-- blueprint:source-hash 31475f223b77957bbf9fe5181877cc36e63b4b17b1754753badbba2e2269fe28 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -78,13 +78,22 @@ feed (`CB1`/`CB4`), campaign details, Apply (`CF1`), and the Applications
 screen's Applied/Request tabs (`CF2`) with quick Accept/Decline of invitations
 (`CF4`/`CF5`) - `scenes/campaigns/api/campaignFeedApi.ts`.
 
-**Next up - item 23, negotiate from an Offer screen.** Tapping an Applied or
+**Item 23 (negotiate from an Offer screen) is complete.** Tapping an Applied or
 Request row opens `(details)/engagement/[id]`: campaign summary, the offer
 thread (`CF3`), "Rounds left", and Accept (`CF4`) / Counter (`CG2`) / Decline
 (`CF5`) / Withdraw my offer (`CG3`) / Withdraw application (`CF6`), gated by
 engagement status, the pending offer's sender (backend turn rule) and
 `roundsRemaining`. The Request tab also lists `countered` invitations. Escrow
 funding (backend 19) and messaging-hosted offers (22) are out of scope.
+
+**Next up - items 24-25, the creator side of deliverables (backend 18l, 18m).**
+24: the Offer screen shows the engagement's own deliverables list (`scope`),
+tags `scopeChanged` rounds, and Counter can change the deliverables with or
+instead of the amount; Apply can propose a different list (`CF1` `scope`),
+sent only when changed. 25: an accepted engagement's pieces (`CI1`), submitting
+a revision as an image or link (`CI2`), resubmitting after the business's
+change request, and recording the live post URL after approval (`CI4`);
+escalated pieces show "In dispute", a completed engagement never says "paid".
 
 Other product screens (orders, gigs, messaging, balance) still run on
 `data/*.ts` mock fixtures.
@@ -137,7 +146,9 @@ mock types where they'll carry over directly.
 - Real API shape: the backend engagement (`MyEngagementItem` /
   `MyEngagementDetail`, `scenes/campaigns/types/myEngagement.ts`) - `origin`
   invited|requested, `status` pending|countered|accepted|declined|withdrawn|
-  expired|completed|cancelled, and an `offers[]` negotiation thread (item 23)
+  expired|completed|cancelled, and an `offers[]` negotiation thread (item 23);
+  its own negotiated deliverables list (`scope`, item 24) and the deliverable
+  pieces created from it on acceptance, each with its submissions (item 25)
 
 ### Order
 

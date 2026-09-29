@@ -5,7 +5,7 @@ import {
   CampaignRequirementSection,
 } from '../types/campaignFeed';
 
-const PLATFORM_LABELS: Record<string, string> = {
+export const PLATFORM_LABELS: Record<string, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
   tiktok: 'TikTok',
@@ -13,7 +13,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   ugc: 'UGC',
 };
 
-const DELIVERABLE_TYPE_LABELS: Record<string, string> = {
+export const DELIVERABLE_TYPE_LABELS: Record<string, string> = {
   video: 'Video',
   shorts: 'Shorts',
   reels: 'Reels',

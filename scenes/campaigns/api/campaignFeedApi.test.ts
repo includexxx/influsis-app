@@ -444,6 +444,28 @@ describe('campaignFeedApi', () => {
     expect(JSON.parse(withoutNote.data as string)).toEqual({ amountMinor: 2_400_000 });
   });
 
+  test('sendCounterOffer sends scope only when given (backend 18l)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'countered' }), 201));
+    const scope = [{ platform: 'instagram', type: 'reels', count: 1 }];
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.sendCounterOffer.initiate({
+          engagementId: 'eng-1',
+          amountMinor: 2_000_000,
+          scope,
+        }),
+      )
+      .unwrap();
+
+    expect(JSON.parse(adapter.mock.calls[0][0].data as string)).toEqual({
+      amountMinor: 2_000_000,
+      scope,
+    });
+  });
+
   test('sendCounterOffer surfaces the 409 code from the backend', async () => {
     await withToken();
     const store = makeStore();
@@ -525,6 +547,30 @@ describe('campaignFeedApi', () => {
       pitch: 'I post food reels',
       proposedAmountMinor: 450000,
       portfolioUrls: ['https://instagram.com/me'],
+    });
+  });
+
+  test('applyToCampaign passes a proposed scope through (backend 18l)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope({ id: 'eng-1', status: 'pending' }), 201));
+    const scope = [{ platform: 'tiktok', type: 'video', count: 2 }];
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.applyToCampaign.initiate({
+          campaignId: 'campaign-1',
+          pitch: 'I post food reels',
+          proposedAmountMinor: 450000,
+          scope,
+        }),
+      )
+      .unwrap();
+
+    expect(JSON.parse(adapter.mock.calls[0][0].data as string)).toEqual({
+      pitch: 'I post food reels',
+      proposedAmountMinor: 450000,
+      scope,
     });
   });
 });

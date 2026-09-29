@@ -21,12 +21,17 @@ jest.mock('@/services/http', () => {
     code: string;
     statusCode: number;
     errors: Record<string, string> | null;
-    constructor(body: { code?: string; statusCode: number; message?: string }) {
+    constructor(body: {
+      code?: string;
+      statusCode: number;
+      message?: string;
+      errors?: Record<string, string>;
+    }) {
       super(body.message ?? 'api error');
       this.name = 'ApiError';
       this.code = body.code ?? 'UNKNOWN';
       this.statusCode = body.statusCode;
-      this.errors = null;
+      this.errors = body.errors ?? null;
     }
   }
   return { __esModule: true, request: jest.fn(), ApiError };
@@ -55,6 +60,7 @@ function offer(
     currency: 'BDT',
     note: null,
     status,
+    scopeChanged: false,
     createdAt: '2026-09-28T10:00:00.000Z',
   };
 }
@@ -83,6 +89,10 @@ function engagement(overrides: Partial<MyEngagementDetail>): MyEngagementDetail 
     closeReason: null,
     nextAction: null,
     escrowFundingDeadline: null,
+    scope: [
+      { id: 'scope-1', platform: 'instagram', type: 'reels', count: 2 },
+      { id: 'scope-2', platform: 'tiktok', type: 'video', count: 1 },
+    ],
     ...overrides,
     offers,
   };
@@ -217,5 +227,89 @@ describe('<OfferScreen />', () => {
 
     expect(await screen.findByText('Something went wrong')).toBeTruthy();
     expect(screen.getByText('Try again')).toBeTruthy();
+  });
+  test('shows the deliverables and tags rounds that changed them (backend 18l)', async () => {
+    answerWith(() =>
+      engagement({
+        status: 'countered',
+        offers: [
+          offer(1, 'business', 'superseded', 2_000_000),
+          { ...offer(2, 'business', 'pending', 2_000_000), scopeChanged: true },
+        ],
+      }),
+    );
+    renderScreen();
+
+    expect(await screen.findByTestId('offer-deliverables')).toBeTruthy();
+    expect(screen.getByText('2 × Instagram Reels')).toBeTruthy();
+    expect(screen.getByText('1 × TikTok Video')).toBeTruthy();
+    expect(screen.queryByTestId('offer-round-1-scope-changed')).toBeNull();
+    expect(screen.getByTestId('offer-round-2-scope-changed')).toBeTruthy();
+  });
+
+  test('a deliverables-only counter re-sends the pre-filled amount with the new scope', async () => {
+    answerWith(() => engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-counter'));
+    expect(screen.getByTestId('offer-counter-amount').props.value).toBe('20000');
+    fireEvent.press(screen.getByTestId('offer-change-deliverables'));
+    fireEvent.press(screen.getByLabelText('Increase Instagram Reels'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('offer-counter-submit'));
+    });
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/engagements/eng-1/offers',
+        method: 'POST',
+        data: {
+          amountMinor: 2_000_000,
+          scope: [
+            { platform: 'instagram', type: 'reels', count: 3 },
+            { platform: 'tiktok', type: 'video', count: 1 },
+          ],
+        },
+      }),
+    );
+  });
+
+  test('an opened but unchanged deliverables editor sends no scope', async () => {
+    answerWith(() => engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-counter'));
+    fireEvent.press(screen.getByTestId('offer-change-deliverables'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('offer-counter-submit'));
+    });
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'POST', data: { amountMinor: 2_000_000 } }),
+    );
+  });
+
+  test('shows a backend scope error under its row', async () => {
+    answerWith(({ method }) => {
+      if (method === 'POST') {
+        throw new ApiError({
+          code: 'VALIDATION_FAILED',
+          statusCode: 422,
+          message: 'The submitted data is invalid.',
+          errors: { 'scope[0]': 'duplicate platform/type - send count instead' },
+        } as never);
+      }
+      return engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] });
+    });
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-counter'));
+    fireEvent.press(screen.getByTestId('offer-change-deliverables'));
+    fireEvent.press(screen.getByLabelText('Decrease Instagram Reels'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('offer-counter-submit'));
+    });
+
+    expect(await screen.findByText('duplicate platform/type - send count instead')).toBeTruthy();
   });
 });

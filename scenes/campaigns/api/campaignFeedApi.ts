@@ -258,10 +258,12 @@ export const campaignFeedApi = createApi({
     // `meta.roundsRemaining` is dropped by services/http.ts; the engagement
     // itself carries both round counters.
     sendCounterOffer: builder.mutation<MyEngagementDetail, CounterOfferArgs>({
-      query: ({ engagementId, amountMinor, note }) => ({
+      // Backend 18l - `scope` (the deliverables list) rides along only when
+      // the creator changed it; omitted, the engagement keeps its list.
+      query: ({ engagementId, amountMinor, note, scope }) => ({
         url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/offers`,
         method: 'POST',
-        data: note ? { amountMinor, note } : { amountMinor },
+        data: { amountMinor, ...(note ? { note } : {}), ...(scope ? { scope } : {}) },
       }),
       invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
     }),

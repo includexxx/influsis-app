@@ -22,6 +22,7 @@ function offer(
     currency: 'BDT',
     note: null,
     status,
+    scopeChanged: false,
     createdAt: '2026-09-28T10:00:00.000Z',
   };
 }

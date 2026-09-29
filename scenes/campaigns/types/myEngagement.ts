@@ -68,7 +68,22 @@ export interface EngagementOffer {
   currency: string;
   note: string | null;
   status: EngagementOfferStatus;
+  /** Backend 18l - this round replaced the engagement's deliverables list. */
+  scopeChanged: boolean;
   createdAt: string;
+}
+
+// Backend 18l - one row of an engagement's own deliverables list ("scope"),
+// negotiated with the price. Same rules as a campaign deliverable: platform +
+// type once per list, count 1-50.
+export interface ScopeItem {
+  platform: string;
+  type: string;
+  count: number;
+}
+
+export interface EngagementScopeItem extends ScopeItem {
+  id: string;
 }
 
 // Campaign API group CF3, GET /me/engagements/:engagementId - only the
@@ -78,6 +93,8 @@ export interface EngagementOffer {
 // are computed by the backend once `accepted`.
 export interface MyEngagementDetail extends Omit<MyEngagementItem, 'campaign'> {
   offers: EngagementOffer[];
+  /** Backend 18l - the engagement's current negotiated deliverables list. */
+  scope: EngagementScopeItem[];
   negotiationRoundLimit: number;
   negotiationRoundCount: number;
   /** The business's licensing-tier cost on top of the agreed price. */
@@ -97,6 +114,8 @@ export interface CounterOfferArgs {
   amountMinor: number;
   /** Up to 2000 characters. */
   note?: string;
+  /** Backend 18l - replaces the whole deliverables list; omit to keep it. */
+  scope?: ScopeItem[];
 }
 
 // CF5 decline / CF6 withdraw. `reason` is required by the backend but may be
@@ -136,4 +155,6 @@ export interface ApplyToCampaignArgs {
   portfolioUrls?: string[];
   /** Backend default: `direct_link`. */
   source?: EngagementSource;
+  /** Backend 18l - the deliverables the creator proposes; omit to accept the campaign's. */
+  scope?: ScopeItem[];
 }
