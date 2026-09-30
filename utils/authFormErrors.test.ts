@@ -39,7 +39,7 @@ describe('applyApiError', () => {
     const setError = jest.fn();
     applyApiError(apiError('AUTH_INVALID_CREDENTIALS', 401), setError, ['identifier', 'password']);
     expect(setError).toHaveBeenCalledWith('root', {
-      message: 'The email or password is incorrect.',
+      message: 'The email/phone or password is incorrect.',
     });
   });
 
@@ -51,6 +51,19 @@ describe('applyApiError', () => {
     });
   });
 
+  test('ALREADY_EXISTS naming the phone -> the phone field', () => {
+    const setError = jest.fn();
+    applyApiError(apiError('ALREADY_EXISTS', 409, { phone: 'phoneAlreadyExists' }), setError, [
+      'email',
+      'phone',
+      'password',
+    ]);
+    expect(setError).toHaveBeenCalledWith('phone', {
+      message: 'An account with this phone number already exists.',
+    });
+    expect(setError).toHaveBeenCalledTimes(1);
+  });
+
   test('a 403 account code -> its fixed root copy', () => {
     const setError = jest.fn();
     applyApiError(apiError('ACCOUNT_PENDING_VERIFICATION', 403), setError, [
@@ -58,7 +71,7 @@ describe('applyApiError', () => {
       'password',
     ]);
     expect(setError).toHaveBeenCalledWith('root', {
-      message: 'Verify your account to continue. Check your email for the code.',
+      message: 'Verify your account to continue. Check your SMS or email for the code.',
     });
   });
 

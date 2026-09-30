@@ -1,1 +1,1 @@
-export { TopCreators as default } from '@/scenes/main';
+export { TopCreators as default } from '@/scenes/creator';

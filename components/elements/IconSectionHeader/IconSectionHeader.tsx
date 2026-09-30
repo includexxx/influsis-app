@@ -23,8 +23,8 @@ const styles = StyleSheet.create({
 });
 
 // Small icon + sentence-case label row that titles a section on the
-// editorial profile screens (scenes/main/MyProfile.tsx and
-// scenes/main/EditProfile.tsx) — distinct from the shared `SectionHeader`
+// editorial profile screens (scenes/profile/MyProfile.tsx and
+// scenes/profile/EditProfile.tsx) — distinct from the shared `SectionHeader`
 // (title + "See all", used by the Home screen's content rows), which
 // doesn't fit a profile section's plain content.
 function IconSectionHeader({ icon, label, style, testID }: IconSectionHeaderProps) {

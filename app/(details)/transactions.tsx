@@ -1,1 +1,1 @@
-export { Transactions as default } from '@/scenes/main';
+export { Transactions as default } from '@/scenes/balance';

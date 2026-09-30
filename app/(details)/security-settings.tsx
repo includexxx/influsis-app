@@ -1,1 +1,1 @@
-export { SecuritySettings as default } from '@/scenes/main';
+export { SecuritySettings as default } from '@/scenes/profile';

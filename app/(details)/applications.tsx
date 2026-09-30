@@ -1,1 +1,1 @@
-export { Applications as default } from '@/scenes/main';
+export { Applications as default } from '@/scenes/campaigns';

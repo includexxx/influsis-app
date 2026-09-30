@@ -1,4 +1,4 @@
-// Mock content for the Search screen (scenes/main/Search.tsx), standing in
+// Mock content for the Search screen (scenes/search/Search.tsx), standing in
 // for a real search API - see docs/screen/search/README.md "Scope notes"
 // and docs/PRD.md §2.2/§4.1 (no backend exists yet).
 

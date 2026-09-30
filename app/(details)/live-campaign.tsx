@@ -1,1 +1,1 @@
-export { LiveCampaign as default } from '@/scenes/main';
+export { LiveCampaign as default } from '@/scenes/campaigns';

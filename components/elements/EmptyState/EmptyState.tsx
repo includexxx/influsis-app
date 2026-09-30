@@ -12,7 +12,7 @@ export interface EmptyStateProps {
 const styles = StyleSheet.create({
   root: {
     alignItems: 'center',
-    gap: 32,
+    gap: 16,
   },
   textBlock: {
     alignItems: 'center',
@@ -45,7 +45,7 @@ function EmptyState({ illustration, title, description, style }: EmptyStateProps
     <View style={[styles.root, style]}>
       {illustration}
       <View style={styles.textBlock}>
-        <Text style={[styles.title, { color: palette.gray[900] }]}>{title}</Text>
+        <Text style={[styles.title, { color: palette.gray[900], fontSize: 18 }]}>{title}</Text>
         <Text style={[styles.description, { color: palette.gray[300] }]}>{description}</Text>
       </View>
     </View>

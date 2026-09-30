@@ -1,1 +1,1 @@
-export { WithdrawBank as default } from '@/scenes/main';
+export { WithdrawBank as default } from '@/scenes/withdraw';

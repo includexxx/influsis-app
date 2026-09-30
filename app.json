@@ -6,11 +6,7 @@
     "version": "3.0.0",
     "owner": "mh-shohans-team",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "orientation": "portrait",
     "icon": "./assets/images/Influsis_logo.png",
     "userInterfaceStyle": "automatic",
@@ -34,8 +30,6 @@
     "web": {
       "favicon": "./assets/images/Influsis_logo.png"
     },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    }
+    "runtimeVersion": "1.0.1"
   }
 }

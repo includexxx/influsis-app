@@ -1,1 +1,1 @@
-export { OrderDetails as default } from '@/scenes/main';
+export { OrderDetails as default } from '@/scenes/order';

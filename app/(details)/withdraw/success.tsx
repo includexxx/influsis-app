@@ -1,1 +1,1 @@
-export { WithdrawSuccess as default } from '@/scenes/main';
+export { WithdrawSuccess as default } from '@/scenes/withdraw';

@@ -1,1 +1,1 @@
-export { Profile as default } from '@/scenes/main';
+export { Profile as default } from '@/scenes/profile';

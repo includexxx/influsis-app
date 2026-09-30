@@ -123,22 +123,34 @@ describe('authApi', () => {
     expect(call.headers.Authorization).toBe('Bearer access-1');
   });
 
-  test('register resolves null data', async () => {
+  test('register posts the phone and resolves the verification step', async () => {
     const store = makeStore();
-    adapter.mockImplementation(c => ok(c, envelope(null)));
+    const verification = {
+      method: 'otp',
+      channel: 'sms',
+      destination: '+8801521702480',
+      expiresInMinutes: 5,
+    };
+    adapter.mockImplementation(c => ok(c, envelope({ verification })));
 
     const data = await store
       .dispatch(
         authApi.endpoints.register.initiate({
           roleKey: 'creator',
-          email: 'c@influsis.test',
+          phone: '+8801521702480',
           password: 'password1',
         }),
       )
       .unwrap();
 
-    expect(data).toBeNull();
-    expect(adapter.mock.calls[0][0].url).toBe('/auth/register');
+    expect(data).toEqual({ verification });
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/auth/register');
+    expect(JSON.parse(call.data)).toEqual({
+      roleKey: 'creator',
+      phone: '+8801521702480',
+      password: 'password1',
+    });
   });
 
   test('requestOtp posts the body to /auth/otp/request', async () => {

@@ -1,4 +1,4 @@
-// The Top Gigs screen (scenes/main/TopGigs.tsx) shows the full canonical
+// The Top Gigs screen (scenes/gig/TopGigs.tsx) shows the full canonical
 // gig list - see data/gigs.ts, the single source of truth every gig-related
 // screen (including Home's "Top Gigs" row and Gig Details' `/gig/[id]`
 // lookup) now shares.

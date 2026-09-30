@@ -19,9 +19,20 @@ describe('signInSchema', () => {
     expect(signInSchema.safeParse({ identifier: ' a@b.co ', password: 'x' }).success).toBe(true);
   });
 
-  test('rejects an invalid email', () => {
+  test('accepts a phone number, local or E.164', () => {
+    expect(signInSchema.safeParse({ identifier: '01521702480', password: 'x' }).success).toBe(true);
+    expect(signInSchema.safeParse({ identifier: '+8801521702480', password: 'x' }).success).toBe(
+      true,
+    );
+  });
+
+  test('rejects an identifier that is neither an email nor a phone', () => {
     const r = signInSchema.safeParse({ identifier: 'not-an-email', password: 'x' });
     expect(r.success).toBe(false);
+  });
+
+  test('rejects an empty identifier', () => {
+    expect(signInSchema.safeParse({ identifier: '', password: 'x' }).success).toBe(false);
   });
 
   test('rejects an empty password', () => {
@@ -52,8 +63,30 @@ describe('signUpSchema', () => {
     }
   });
 
-  test('rejects an empty full name and phone', () => {
-    expect(signUpSchema.safeParse({ ...validSignUp, phone: '' }).success).toBe(false);
+  test('accepts a phone-only form', () => {
+    expect(signUpSchema.safeParse({ ...validSignUp, email: '' }).success).toBe(true);
+  });
+
+  test('accepts an email-only form', () => {
+    expect(signUpSchema.safeParse({ ...validSignUp, phone: '' }).success).toBe(true);
+  });
+
+  test('rejects a form with neither phone nor email, flagging both fields', () => {
+    const r = signUpSchema.safeParse({ ...validSignUp, email: '', phone: '' });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      const paths = r.error.issues.map(i => i.path[0]);
+      expect(paths).toContain('email');
+      expect(paths).toContain('phone');
+    }
+  });
+
+  test('rejects a phone with letters', () => {
+    expect(signUpSchema.safeParse({ ...validSignUp, phone: '15ab' }).success).toBe(false);
+  });
+
+  test('still rejects an invalid email when one is given', () => {
+    expect(signUpSchema.safeParse({ ...validSignUp, email: 'nope' }).success).toBe(false);
   });
 });
 

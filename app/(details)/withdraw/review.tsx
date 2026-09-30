@@ -1,1 +1,1 @@
-export { WithdrawReview as default } from '@/scenes/main';
+export { WithdrawReview as default } from '@/scenes/withdraw';

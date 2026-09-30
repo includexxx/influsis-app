@@ -1,1 +1,1 @@
-export { BusinessDetails as default } from '@/scenes/main';
+export { BusinessDetails as default } from '@/scenes/business';

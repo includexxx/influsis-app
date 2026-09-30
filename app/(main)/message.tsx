@@ -1,1 +1,1 @@
-export { Message as default } from '@/scenes/main';
+export { Message as default } from '@/scenes/message';

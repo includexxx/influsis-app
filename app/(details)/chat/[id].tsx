@@ -1,1 +1,1 @@
-export { ChatDetails as default } from '@/scenes/main';
+export { ChatDetails as default } from '@/scenes/message';

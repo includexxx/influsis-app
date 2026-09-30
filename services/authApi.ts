@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import {
   AuthAccount,
+  GoogleLoginRequest,
   Login2faVerifyRequest,
   LoginRequest,
   LoginResponse,
@@ -8,6 +9,7 @@ import {
   OtpVerifyRequest,
   OtpVerifyResponse,
   RegisterRequest,
+  RegisterResponse,
   ResetPasswordRequest,
   SessionTokenPair,
 } from '@/types';
@@ -18,11 +20,19 @@ export const authApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ['Me'],
   endpoints: builder => ({
-    register: builder.mutation<null, RegisterRequest>({
+    register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: body => ({ url: '/auth/register', method: 'POST', data: body, skipAuth: true }),
     }),
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: body => ({ url: '/auth/login', method: 'POST', data: body, skipAuth: true }),
+    }),
+    googleLogin: builder.mutation<SessionTokenPair, GoogleLoginRequest>({
+      query: body => ({
+        url: '/auth/google/login',
+        method: 'POST',
+        data: { ...body, role: 'creator' },
+        skipAuth: true,
+      }),
     }),
     verifyLogin2fa: builder.mutation<SessionTokenPair, Login2faVerifyRequest>({
       query: body => ({
@@ -54,6 +64,7 @@ export const authApi = createApi({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useGoogleLoginMutation,
   useVerifyLogin2faMutation,
   useRequestOtpMutation,
   useVerifyOtpMutation,

@@ -1,1 +1,1 @@
-export { Search as default } from '@/scenes/main';
+export { Search as default } from '@/scenes/search';

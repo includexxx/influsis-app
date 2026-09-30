@@ -47,7 +47,9 @@ function fieldErrors(errors: ApiErrorBody['errors'] | undefined): Record<string,
 }
 
 function isEnvelope(body: unknown): body is ApiEnvelope<unknown> {
-  return typeof body === 'object' && body !== null && (body as { success?: unknown }).success === true;
+  return (
+    typeof body === 'object' && body !== null && (body as { success?: unknown }).success === true
+  );
 }
 
 function isErrorBody(body: unknown): body is ApiErrorBody {
@@ -78,8 +80,12 @@ function toApiError(error: AxiosError): ApiError {
 
 export const httpClient = axios.create({
   baseURL: config.apiUrl,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json', 'x-client-id': 'creator-app-client' },
   timeout: 15000,
+  // Arrays go out as repeated keys (`category=a&category=b`), which the
+  // backend's Express 5 query parser reads as an array. Axios's default
+  // `category[]=a` form would arrive as a literal `category[]` key instead.
+  paramsSerializer: { indexes: null },
 });
 
 httpClient.interceptors.request.use(cfg => {

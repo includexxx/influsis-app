@@ -1,7 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // A campaign the creator has already applied to (Applications screen's
-// "Applied" tab, scenes/main/Applications.tsx) - distinct from `Campaign`
+// "Applied" tab, scenes/campaigns/Applications.tsx) - distinct from `Campaign`
 // (types/campaign.ts) since this list only ever needs a photo, title, price
 // and the application date, not the full campaign-detail field set.
 export interface AppliedCampaign {

@@ -10,7 +10,7 @@ import {
   MINIMUM_CREATOR_AGE,
 } from './onboardingSchemas';
 
-// Edit Profile (`scenes/main/EditProfile.tsx`) needs its own schema rather
+// Edit Profile (`scenes/profile/EditProfile.tsx`) needs its own schema rather
 // than reusing the onboarding step schemas directly: every onboarding step
 // schema is mandatory (`bioStepSchema` requires 20+ chars, `locationSchema`
 // requires a division, `categoriesStepSchema` requires >=1 category) because

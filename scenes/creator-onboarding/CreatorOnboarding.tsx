@@ -3,18 +3,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { useCreatorOnboardingSlice } from '@/slices';
-import BasicInformationStep from './steps/BasicInformationStep';
-import BioStep from './steps/BioStep';
-import LocationStep from './steps/LocationStep';
-import ContentCategoriesStep from './steps/ContentCategoriesStep';
-import SubcategoriesStep from './steps/SubcategoriesStep';
-import LanguagesStep from './steps/LanguagesStep';
-import DeliverablesStep from './steps/DeliverablesStep';
-import PhotosStep from './steps/PhotosStep';
-import PortfolioStep from './steps/PortfolioStep';
-import UsernameStep from './steps/UsernameStep';
-import PlaceholderStep from './steps/PlaceholderStep';
+import BasicInformationStep from './components/BasicInformationStep';
+import BioStep from './components/BioStep';
+import LocationStep from './components/LocationStep';
+import ContentCategoriesStep from './components/ContentCategoriesStep';
+import SubcategoriesStep from './components/SubcategoriesStep';
+import LanguagesStep from './components/LanguagesStep';
+import DeliverablesStep from './components/DeliverablesStep';
+import PhotosStep from './components/PhotosStep';
+import PortfolioStep from './components/PortfolioStep';
+import UsernameStep from './components/UsernameStep';
+import PlaceholderStep from './components/PlaceholderStep';
 import OnboardingComplete from './OnboardingComplete';
+import { useGetMyProfileQuery } from '@/services';
 
 // The private, post-registration creator onboarding wizard - one screen, the
 // active step chosen by `currentStep` in the `creatorOnboarding` slice. Every
@@ -38,11 +39,20 @@ const STEP_COMPONENTS: Record<number, ComponentType> = {
 export default function CreatorOnboarding() {
   const { colors } = useTheme();
   const { currentStep, completed } = useCreatorOnboardingSlice();
-  const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+  const { data } = useGetMyProfileQuery();
+
+  function renderStep() {
+    if (currentStep === 1) {
+      return <BasicInformationStep name={data?.profile.name} />;
+    }
+
+    const StepComponent = STEP_COMPONENTS[currentStep] ?? PlaceholderStep;
+    return <StepComponent />;
+  }
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      {completed ? <OnboardingComplete /> : <StepComponent />}
+      {completed ? <OnboardingComplete /> : renderStep()}
     </SafeAreaView>
   );
 }

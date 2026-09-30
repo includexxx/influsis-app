@@ -7,8 +7,6 @@ export * from './campaign';
 export * from './gig';
 export * from './createGig';
 export * from './notification';
-export * from './creator';
-export * from './business';
 export * from './message';
 export * from './application';
 export * from './order';

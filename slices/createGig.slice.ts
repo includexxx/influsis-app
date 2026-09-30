@@ -98,7 +98,7 @@ const slice = createSlice({
     // 6301:7987) and assigns it an id so the preview screen can key off
     // `status === 'pending'` to switch into its read-only view (node
     // 6549:5925) instead of routing to a second screen - see
-    // `scenes/main/CreateGigPreview.tsx`.
+    // `scenes/gig/CreateGigPreview.tsx`.
     submit: state => {
       state.status = 'pending';
       state.id = nanoid();

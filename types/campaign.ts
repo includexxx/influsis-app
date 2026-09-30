@@ -17,7 +17,7 @@ export interface Campaign {
   businessName?: string;
   servicesDescription?: string;
   status?: string;
-  // Campaign Details screen fields (scenes/main/CampaignDetails.tsx) -
+  // Campaign Details screen fields (scenes/campaigns/CampaignDetails.tsx) -
   // optional since card views (CampaignCard) don't need them.
   bannerImage?: ImageSourcePropType;
   avatar?: ImageSourcePropType;

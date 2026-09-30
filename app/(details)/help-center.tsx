@@ -1,1 +1,1 @@
-export { HelpCenter as default } from '@/scenes/main';
+export { HelpCenter as default } from '@/scenes/profile';

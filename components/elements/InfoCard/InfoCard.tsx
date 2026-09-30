@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 // `backgroundColor` defaults to Figma's confirmed `palette.primary[50]`
 // pink but is overridable, generic enough for any future "info tile" this
 // project doesn't have a design for yet. `description` is optional for the
-// Create Gig preview step (`scenes/main/CreateGigPreview.tsx`), whose
+// Create Gig preview step (`scenes/gig/CreateGigPreview.tsx`), whose
 // "What's Included" features are single-line only - unlike the Gig Details
 // screen's services, which always have both.
 function InfoCard({ title, description, backgroundColor, style, testID }: InfoCardProps) {

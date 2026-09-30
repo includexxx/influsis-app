@@ -20,13 +20,17 @@ A creator's own applications view, reached from Profile: an **Applied** tab list
   ▼
 /applications                          tab: Applied (default)
   │  cards: photo, "Applied" badge, applied date, price, title
+  │  tap a card ──────────────────────▶  /engagement/[id]  (Offer screen, see
+  │                                        docs/screen/offer/README.md)
   │
-  ├─ tap "Request" tab ──────────────▶  tab: Request
+  ├─ tap "Request" tab ──────────────▶  tab: Request (pending + countered invitations)
   │                                      rows: business logo, "{Business} invited you to
-  │                                      join a Campaign", timestamp, Accept/Decline
-  │                                        │  tap Accept or Decline
+  │                                      join a Campaign", timestamp; Accept/Decline
+  │                                      only on `pending` rows
+  │                                        │  tap Accept or Decline (CF4 / CF5)
   │                                        ▼
-  │                                      row removed from the list (local state only)
+  │                                      row removed from the list
+  │                                      tap the row itself → /engagement/[id]
   │
   └─ back chevron (ScreenHeader) → router.back() to /profile
 ```
@@ -50,7 +54,7 @@ No existing card in this app pairs a leading avatar with two trailing action but
 
 ## Scope notes
 
-- **No real backend.** As with every other flow, there's no applications API (`docs/PRD.md` §2.2/§4.1) — content comes from `data/applications.ts`'s mock arrays. Accepting or declining a request just removes it from local component state (`scenes/main/Applications.tsx`'s `useState`); nothing is sent anywhere, and declined/accepted items don't move to any other list.
+- **Real backend (campaign API group CF).** Both tabs read `GET /me/engagements` (`CF2`): Applied is `origin=requested` in any status; Request is `origin=invited` in `pending` or `countered` (so an invitation mid-negotiation stays reachable). Quick Accept (`CF4`, which reads the engagement first to find the business's pending offer) and Decline (`CF5`, empty reason) show only on `pending` rows — `CampaignRequestCard`'s `showActions` hides them on `countered` rows, which are answered on the Offer screen. An answered row is hidden immediately. Tapping any row opens its Offer screen (`/engagement/[id]`, feature 23) rather than the campaign details.
 - **`get_design_context` was unavailable for this entire screen.** Every call (the full frame, individual cards, even a single leaf text node) timed out consistently across repeated retries at decreasing node sizes — the same failure mode already noted for two icons in `docs/screen/apply-campaign/README.md`, but here affecting the whole screen rather than a couple of glyphs. Implementation instead relied on `get_metadata` (exact layer names/positions/sizes, giving the pixel-precise gaps cited above), `get_screenshot` (colors, visual confirmation), and `get_variable_defs` (`Brand Color #F42E9E`, `Gray 900 #030304`, `Gray 50 #E9E9EA`, `White #FFFFFF` — all directly mapped to existing `palette` tokens). No exact CSS/asset-URL export was available at any point.
 - **Header title is Figma's own literal text, "List".** Both tab states' header reads "List" (matching the frame's own layer name), not a screen-specific title like every other pushed screen in this app ("Live Campaigns", "Notifications", "Campaigns", ...). Kept verbatim per this project's practice of preserving real Figma copy rather than inventing replacement text — this doc and the PRD instead use "Applications" as the descriptive name for indexing purposes, the same way `docs/screen/apply-campaign/README.md` describes its own header-less screen by its purpose rather than any on-screen title.
 - **Tab default state.** Node `6015:7090` (the node this task was given first) shows "Applied" selected; the scene defaults to that tab (`useState<ApplicationsTab>('applied')`).
@@ -64,3 +68,4 @@ No existing card in this app pairs a leading avatar with two trailing action but
 
 - **Entry:** "My Applications" link on `/profile` (`scenes/main/Profile.tsx`).
 - **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to `/profile`.
+- **Forward:** any row → `/engagement/[id]` with the campaign `title` param (the Offer screen, [docs/screen/offer/README.md](../offer/README.md)).

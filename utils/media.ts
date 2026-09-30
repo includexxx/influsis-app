@@ -27,3 +27,20 @@ export function resolveMediaUrl(url: string | null | undefined): string | null {
   if (!origin) return url;
   return url.replace(LOCALHOST_ORIGIN, origin);
 }
+
+// The backend's MEDIA_PUBLIC_PATH (its default, and the value in its .env):
+// a stored key `campaign-images/x.webp` is served at
+// `<backend origin>/uploads/campaign-images/x.webp`.
+const MEDIA_PUBLIC_PATH = '/uploads';
+
+/** Like resolveMediaUrl, but also accepts a bare stored media key - some
+ * endpoints (e.g. GET /me/engagements' campaign summary) return the key
+ * instead of an absolute URL. The key is served from the API host's
+ * MEDIA_PUBLIC_PATH. */
+export function resolveMediaKeyOrUrl(keyOrUrl: string | null | undefined): string | null {
+  if (!keyOrUrl) return null;
+  if (/^https?:\/\//i.test(keyOrUrl)) return resolveMediaUrl(keyOrUrl);
+  const origin = apiOrigin();
+  if (!origin) return null;
+  return `${origin}${MEDIA_PUBLIC_PATH}/${keyOrUrl.replace(/^\/+/, '')}`;
+}

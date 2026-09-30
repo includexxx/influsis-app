@@ -1,6 +1,6 @@
 import { WalletTransaction } from '@/types';
 
-// Mock content for the Transaction screen (scenes/main/Transactions.tsx,
+// Mock content for the Transaction screen (scenes/balance/Transactions.tsx,
 // Figma "Transaction" node 6212:7410), standing in for a real payouts API
 // the same way every other screen's data file does (see docs/PRD.md
 // §2.2/§4.1).

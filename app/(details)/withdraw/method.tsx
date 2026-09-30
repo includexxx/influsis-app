@@ -1,1 +1,1 @@
-export { WithdrawMethod as default } from '@/scenes/main';
+export { WithdrawMethod as default } from '@/scenes/withdraw';

@@ -60,9 +60,9 @@ const styles = StyleSheet.create({
 });
 
 // Search input reused two ways: as a real editable field with a
-// live-filtering value (Search screen, scenes/main/Search.tsx; Messages
-// tab, scenes/main/Message.tsx) or as a non-editable tap target that just
-// navigates there (Home screen's search bar, scenes/main/Home.tsx) -
+// live-filtering value (Search screen, scenes/search/Search.tsx; Messages
+// tab, scenes/message/Message.tsx) or as a non-editable tap target that just
+// navigates there (Home screen's search bar, scenes/home/Home.tsx) -
 // `editable={false}` renders the same look but disables typing and wraps
 // the field in a Pressable so `onPress` fires instead of opening a keyboard.
 //

@@ -1,6 +1,6 @@
 import { AppliedCampaign, CampaignRequest } from '@/types';
 
-// Mock content for the Applications screen (scenes/main/Applications.tsx,
+// Mock content for the Applications screen (scenes/campaigns/Applications.tsx,
 // Figma "List", nodes 6015:7090 "Applied" tab + 6475:6394 "Request" tab) -
 // standing in for a real applications API, same as every other screen (see
 // docs/PRD.md §2.2/§4.1). Reuses photos already extracted for Home rather

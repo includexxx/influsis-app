@@ -1,1 +1,1 @@
-export { CampaignDetails as default } from '@/scenes/main';
+export { CampaignDetails as default } from '@/scenes/campaigns';

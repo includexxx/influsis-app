@@ -1,1 +1,1 @@
-export { CreateGigPreview as default } from '@/scenes/main';
+export { CreateGigPreview as default } from '@/scenes/gig';

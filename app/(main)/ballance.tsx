@@ -1,1 +1,1 @@
-export { Balance as default } from '@/scenes/main';
+export { Balance as default } from '@/scenes/balance';

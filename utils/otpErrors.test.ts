@@ -21,7 +21,13 @@ describe('otpVerifyErrorMessage', () => {
 
   test('no account for the destination', () => {
     expect(otpVerifyErrorMessage(apiError('NOT_FOUND', 404))).toBe(
-      'We could not find an account for that email.',
+      'We could not find an account for that email or phone number.',
+    );
+  });
+
+  test('SMS gateway unavailable', () => {
+    expect(otpVerifyErrorMessage(apiError('SERVICE_UNAVAILABLE', 503))).toMatch(
+      /could not send the SMS/,
     );
   });
 

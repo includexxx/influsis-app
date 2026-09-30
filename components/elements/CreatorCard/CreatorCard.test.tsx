@@ -40,6 +40,17 @@ describe('<CreatorCard />', () => {
     expect(screen.queryByText('Top Rated')).toBeNull();
   });
 
+  test('omits the stats row entirely when neither followers nor engagement is given', () => {
+    render(<CreatorCard image={image} name="Salman Muqtadir" location="Dhaka, Bangladesh" />);
+    expect(screen.queryByText('Followers')).toBeNull();
+    expect(screen.queryByText('Engagement')).toBeNull();
+  });
+
+  test('renders an initial-letter fallback when image is null', () => {
+    render(<CreatorCard image={null} name="Sunehra tasnim" location="Dhaka, Bangladesh" />);
+    expect(screen.getByText('S')).not.toBeNull();
+  });
+
   test('calls onPress when tapped', () => {
     const onPress = jest.fn();
     render(
