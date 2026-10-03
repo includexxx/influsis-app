@@ -98,12 +98,15 @@ one-shot-rotating refresh); there is no third-party auth provider.
 
 ## 6. Monetize - How will this make money?
 
-Commission on payouts: Influsis takes a percentage cut of the payments that
-flow from businesses to creators through the app's balance/withdrawal system.
+Influsis charges the **business**, not the creator: a 10% platform fee on top
+of the deal plus 5% VAT on that fee and a pass-through processing fee. The
+creator receives 100% of the negotiated deal and pays nothing to withdraw
+(no instant-payout fee). Source: the founder's payment rules
+(`../backend/docs/features/campaign/PAYMENT_ESCROW_BUSINESS_RULES.md`, F-1-F-4,
+W-4, W-8). Creator screens therefore never show a fee or a deduction.
 
-> TODO (confirm): exact commission rate, who it's deducted from (creator payout
-> vs. business charge), and whether any subscription/listing-fee tier is added
-> later are not yet decided.
+> Open (founder): an introductory 7-8% platform fee (F-8); a subscription tier
+> is ruled out (F-5, commission-only).
 
 ## 7. UI/UX - How should this look and feel?
 

@@ -49,13 +49,15 @@ it to your project.
 Use checkboxes. Each item should be a feature-sized outcome, not a loose task or
 a whole product area.
 
-Good:
+Good (shown as a code block so these examples are not counted as plan items):
 
+```text
 - [ ] 1. **Skill submission** - upload a skill package and save its metadata
 - [ ] 2. **Validation result** - run checks and show pass/fail status for a skill
 - [ ] 3. **Directory listing** - browse and filter published skills
 - [ ] 4. **Deployment readiness** - configure Render or Vercel and verify the
      production build
+```
 
 Avoid:
 
@@ -322,3 +324,92 @@ and `../platform-context/api-contracts/campaigns.md` (`EngagementScopeItemDto`, 
       Replaces the mock `scenes/order` deliver flow for campaign engagements.
       Out of scope: work-progress steps (`CH1`/`CH2`), escrow, disputes, gig
       orders.
+
+## Escrow, wallet & payouts
+
+The items below are the creator side of escrow: seeing that payment is
+secured, getting paid per piece, contesting decisions, and withdrawing
+earnings. **The creator never pays**, so there is no checkout here. Each item
+waits for the backend item named in its title (`../backend/blueprint/build-plan.md`
+items 19-21). Read first: `../backend/docs/features/escrow/README.md`, then
+`../backend/docs/features/escrow/implementation/MOBILE_APP.md` (file-by-file
+steps, sections M0-M8), the wire types in `ESCROW_API_CONTRACT.md` §1 (creator-side
+DTOs only), the copy rules in `ESCROW_IMPLEMENTATION_GUIDE.md` §6, and the
+mobile error table in `ESCROW_ERRORS.md` §3.2. The founder rules are in
+`../backend/docs/features/campaign/PAYMENT_ESCROW_BUSINESS_RULES.md`.
+
+Ground rules for every item:
+
+- The creator receives 100% of the deal. Creator screens never show the
+  platform fee, VAT or processing fee.
+- Never say "paid" or "released" before the API does.
+- Never persist an NID or a full account number on the device.
+- Money stays integer minor units until render (৳, never `$`).
+- Every money POST sends an `Idempotency-Key` that survives a step-up retry.
+
+- [ ] 26. **Secure session storage (prerequisite for the wallet)** - move the
+      access/refresh tokens from `AsyncStorage` to `expo-secure-store` in
+      `services/tokenStore.ts`, migrating existing values once on startup and
+      deleting them from AsyncStorage; add a `useIdempotencyKey()` hook
+      (`expo-crypto`) and make the axios layer forward `Idempotency-Key`. Ships
+      before any wallet item, since the wallet makes a stolen session worth
+      money.
+- [ ] 27. **Payment status and the work gate (backend 19d/19e `CF3`, `EA2`)** -
+      the engagement screen (`OfferScreen.tsx` `AcceptedSummary`) shows
+      "Waiting for the business to secure payment by {deadline}" / "Payment
+      secured, you can start" + "You receive ৳X" / "Expired, not funded" from
+      `escrow.status`. Joined-campaign cards get an Awaiting payment / Payment
+      secured badge. While `nextAction === 'wait_for_payment'` the deliverables
+      and piece screens show a banner and disable step and submit actions, and
+      a `409 ESCROW_NOT_FUNDED` on submit maps to the same banner. Adds the
+      escrow types, `getEngagementEscrow` on `campaignFeedApi`, and a shared
+      `utils/money.ts`.
+- [ ] 28. **Per-piece money, decline reasons and deadlines (backend 19f
+      `CI1`, `EA2`)** - each piece shows its escrow share and state ("৳X held
+      for this piece" / "৳X added to your wallet" / "Auto-released" / "In
+      dispute, payment on hold" / "Paid by dispute decision" / "Cancelled,
+      refunded to the business"). Revision history shows the decline category,
+      reason and "Relates to: {brief field}". The screen shows countdowns for
+      "Business must review by" (auto-release) and "Resubmit by" (5-day
+      deadline).
+- [ ] 29. **Wallet balance and statement (backend 21a `WA1`, `WA2`)** - a new
+      `walletApi` slice (registered in all three places in `utils/store.ts`).
+      The Balance tab shows Available, In escrow, Clearing (with next clearing
+      date), This month and Total earned, with "Withdraw" disabled and
+      explained from `blockers[]`. Transactions read the ledger statement
+      through a `mapWalletTransaction` mapper (signed BDT, bucket chip, "Clears
+      on"). The home earnings card reads the wallet instead of the
+      completed-engagements stand-in (`getCreatorEarnings` is deleted). Deletes
+      `data/balance.ts` and `data/transactions.ts`.
+- [ ] 30. **KYC and payout accounts (backend 21b `WA3`, `WA4`, `WA7`,
+      `SU1`/`SU2`)** - a KYC screen (legal name, NID number via a masked input,
+      date of birth, NID front/back photos through the private media upload)
+      with Pending / Verified / Rejected states. Adding bKash, Nagad (one
+      screen, `type` param) or a bank account prefills the account name from
+      the KYC name, validates formats, and requires an OTP step-up first. The
+      bank "verify" screen becomes the reusable step-up OTP screen. Rocket and
+      Visa Debit Card are hidden (only bkash, nagad and bank are supported).
+      After adding, the account shows "Verifying" and then "Usable from
+      {time}" (24h cooldown).
+- [ ] 31. **Withdraw (backend 21c `WA5`, `WA6`)** - the amount screen shows
+      available, minimum (BDT 500), maximum and today's remaining limit, plus
+      "Use max". The review screen takes `destinationId` + `amountMinor` route
+      params (not the mock saved method), fixes the hard-coded `$` to ৳, keeps
+      one idempotency key per intent across a step-up retry, and maps every
+      wallet error. Success says "Withdrawal requested. Usually paid within 1
+      business day", never "sent". A withdrawals history screen allows
+      cancelling while it is `requested`. Deletes `data/withdrawMethods.ts`
+      (static logos may stay).
+- [ ] 32. **Leave or mutually cancel an engagement (backend 19g `CX1`-`CX3`,
+      `CX5`)** - "Leave this campaign" on a funded engagement with nothing
+      submitted (`CX3`, full refund to the business), hidden after any
+      submission and replaced by "Open a dispute". Adds "Ask the business to
+      cancel" (`CX1`) and an incoming mutual-cancel card with accept/decline
+      (`CX2`).
+- [ ] 33. **Disputes (backend 20a/20b `DS1`-`DS3`)** - "This revision is out of
+      scope" on a piece with changes requested and "Open dispute" on
+      submitted pieces open a sheet (pieces, category, description >= 30
+      chars, optional text/link/photo/video evidence). A dispute screen shows
+      the status, deadlines, the evidence list with "Add evidence" until the
+      window closes, the timeline, and the decision with "You receive ৳X".
+      Dispute badges appear on pieces and joined cards.
