@@ -7,9 +7,9 @@ A 3-step wizard a creator uses to publish a new gig, opened from the main tab ba
 ## Flow
 
 ```
-(main) tab bar "Create Gig" button (tabPress intercepted, app/(main)/_layout.tsx)
+(main) tab bar "Create Gig" tab (app/(main)/_layout.tsx)
   ▼
-/create                              Basics       (1 of 3)   [(details) group - no tab bar]
+/create                              Basics       (1 of 3)   [(main) group - tab bar shown]
   │  cover photo, service title, category, description
   │  Next
   ▼
@@ -28,7 +28,7 @@ dispatch(submit()) → status: 'pending'
   (StatusBadge "Pending" replaces the edit icon; Next button is gone)
 ```
 
-- All 3 screens live in the `(details)` route group (`app/(details)/create.tsx`, `create-gig-pricing.tsx`, `create-gig-preview.tsx`) rather than `(main)` — the same reasoning as every other `(details)` screen (gig/business/campaign/creator details, chat, notifications, ...): they push onto the root `Stack` with no tab bar mounted underneath, unlike a real `(main)` Tabs destination. Route groups are invisible in the URL, so the paths stay `/create`, `/create-gig-pricing`, `/create-gig-preview` regardless of which group the files live in - the tab bar's `tabPress` listener's `router.push('/create')` and every step's own `router.push(...)` calls needed no changes.
+- Step 1 (`app/(main)/create.tsx`) is a real `(main)` tab, so the tab bar stays mounted and its Create Gig tab shows as active. Steps 2-3 (`create-gig-pricing.tsx`, `create-gig-preview.tsx`) live in the `(details)` route group and push onto the root `Stack` with no tab bar, like every other `(details)` screen. Route groups are invisible in the URL, so the paths stay `/create`, `/create-gig-pricing`, `/create-gig-preview` - every step's own `router.push(...)` call needed no changes.
 - Every field is written to `slices/createGig.slice.ts` (Redux) as the creator progresses, so answers survive back/forward navigation between the 3 screens — the same pattern `slices/profileVerification.slice.ts` established for the profile-verification wizard. Nothing is persisted to storage or sent to a backend (see `docs/PRD.md` §2.2/§4.1); reloading the app resets the draft.
 - Unlike profile-verification, none of these 3 screens have a Figma progress-bar/stepper — the header is just "< Create new gig" (`ScreenHeader`) on every step, so no `ProfileStepHeader`-style component was added here.
 - The preview step (`/create-gig-preview`) is **one scene handling two Figma frames**: the in-progress preview (node `6058:6342` - edit icon, "Next" button) and the post-submission "Pending" view (node `6549:5925` - `StatusBadge`, no button) are the same route, switched by `createGig` slice's `status` field rather than a 4th route. See [preview.md](./preview.md).
