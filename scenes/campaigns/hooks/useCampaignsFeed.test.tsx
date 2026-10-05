@@ -106,4 +106,43 @@ describe('useCampaignsFeed', () => {
     expect(result.current.campaigns).toHaveLength(CAMPAIGNS_FEED_PAGE_SIZE);
     expect(result.current.campaigns.every(c => c.id.startsWith('food-'))).toBe(true);
   });
+
+  // Records what every render returned, so a one-render gap (rows arrived
+  // but not merged yet) can't hide between assertions. A render that is
+  // neither loading nor showing rows is the screen's empty state flashing.
+  test('never reports "loaded and empty" while the first page is arriving', async () => {
+    const renders: { loading: boolean; count: number }[] = [];
+    const { result, rerender } = renderHook(
+      ({ filters }: { filters: CampaignFeedFilters }) => {
+        const feed = useCampaignsFeed(filters);
+        renders.push({ loading: feed.isInitialLoading, count: feed.campaigns.length });
+        return feed;
+      },
+      { wrapper, initialProps: { filters: {} } },
+    );
+
+    await waitFor(() => expect(result.current.campaigns).toHaveLength(CAMPAIGNS_FEED_PAGE_SIZE));
+    // A filter change starts over from page 1 - the same gap applies.
+    rerender({ filters: { q: 'food' } });
+    await waitFor(() => expect(result.current.campaigns[0]?.id).toBe('food-1-0'));
+
+    expect(renders.filter(r => !r.loading && r.count === 0)).toEqual([]);
+  });
+
+  test('an empty feed stops loading so the empty state can show', async () => {
+    httpClient.defaults.adapter = jest.fn((config: InternalAxiosRequestConfig) =>
+      Promise.resolve({
+        data: { success: true, statusCode: 200, message: 'ok', data: [], meta: null },
+        status: 200,
+        statusText: '',
+        headers: {},
+        config,
+      }),
+    ) as any;
+    const { result } = renderHook(() => useCampaignsFeed(), { wrapper });
+
+    await waitFor(() => expect(result.current.isInitialLoading).toBe(false));
+    expect(result.current.campaigns).toEqual([]);
+    expect(result.current.isInitialError).toBe(false);
+  });
 });

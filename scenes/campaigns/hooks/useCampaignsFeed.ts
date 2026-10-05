@@ -79,9 +79,21 @@ function useCampaignFeedPages<T, F extends object>(
     setPage(prev => prev + 1);
   }, [isFetching, hasMore, isError]);
 
+  // `currentData` reaches `pages` one render after RTK Query delivers it (the
+  // merge above runs in an effect), so `isFetching` alone flips to false a
+  // render too early - the screen would flash its empty state for a frame.
+  // The first page counts as loading until it has been merged, unless it came
+  // back empty (then the empty state is the right answer). Same rule as
+  // useBusinessesFeed / useCreatorsFeed.
+  const firstPagePending =
+    page === 1 &&
+    campaigns.length === 0 &&
+    !isError &&
+    (isFetching || currentData === undefined || currentData.length > 0);
+
   return {
     campaigns,
-    isInitialLoading: isFetching && page === 1 && campaigns.length === 0,
+    isInitialLoading: firstPagePending,
     isLoadingMore: isFetching && page > 1,
     isInitialError: isError && campaigns.length === 0,
     isLoadMoreError: isError && campaigns.length > 0,
