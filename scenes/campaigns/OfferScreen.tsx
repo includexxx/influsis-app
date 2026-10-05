@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
@@ -8,7 +10,6 @@ import { palette } from '@/theme';
 import { ApiError } from '@/services/http';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import StatusBadge from '@/components/elements/StatusBadge';
-import SummaryRow from '@/components/elements/SummaryRow';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
 import ConfirmDialog from '@/components/elements/ConfirmDialog';
@@ -55,6 +56,7 @@ import {
   validateScope,
 } from './utils/scope';
 import { openDeliverables } from './utils/openDeliverables';
+import { FeatherName } from './utils/platformIcon';
 
 type Action = 'accept' | 'counter' | 'withdrawOffer' | 'decline' | 'withdrawApplication';
 type Form = 'counter' | 'decline' | 'withdrawApplication' | null;
@@ -84,6 +86,19 @@ const OFFER_STATUS_LABEL: Record<EngagementOfferStatus, string> = {
 
 const INACTIVE: EngagementOfferStatus[] = ['superseded', 'withdrawn', 'expired'];
 
+// Text/background of each round's status label in the thread.
+const OFFER_STATUS_TONE: Record<EngagementOfferStatus, { color: string; backgroundColor: string }> =
+  {
+    pending: { color: palette.warning[700], backgroundColor: palette.warning[50] },
+    accepted: { color: palette.success[700], backgroundColor: palette.success[50] },
+    declined: { color: palette.error[700], backgroundColor: palette.error[50] },
+    superseded: { color: palette.gray[500], backgroundColor: palette.gray[25] },
+    withdrawn: { color: palette.gray[500], backgroundColor: palette.gray[25] },
+    expired: { color: palette.gray[500], backgroundColor: palette.gray[25] },
+  };
+
+const HERO_GRADIENT = [palette.primary[400], palette.primary[700]] as const;
+
 // The Offer screen - the creator's side of a price negotiation for one
 // engagement (an application they sent or an invitation they received),
 // opened from either Applications tab. Loads the engagement with its whole
@@ -99,6 +114,10 @@ const INACTIVE: EngagementOfferStatus[] = ['superseded', 'withdrawn', 'expired']
 // app/(details)/engagement/[id].tsx; `title` is passed by the list because
 // CF3 carries no campaign summary. `review=1` (the Request tab's quick Accept)
 // opens the Agreement sheet once on load, so accepting is never one tap.
+// Layout: a brand-gradient header card (campaign, status, rounds progress),
+// notices, the accepted summary, deliverable chips, the counter / reason
+// forms, then the thread as chat bubbles (business left, creator right);
+// the negotiation actions sit in a bar pinned to the bottom.
 export default function OfferScreen() {
   const { colors } = useTheme();
   const { id, title, review } = useLocalSearchParams<{
@@ -344,8 +363,14 @@ export default function OfferScreen() {
     withdrawApplication: { title: 'Withdraw your application?', primary: 'Withdraw' },
   };
 
+  const roundsUsed = Math.min(data.negotiationRoundCount, data.negotiationRoundLimit);
+  const roundsProgress = data.negotiationRoundLimit ? roundsUsed / data.negotiationRoundLimit : 0;
+  const showActionBar = form === null && state.isNegotiable;
+
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[layoutStyle.screen, { backgroundColor: colors.background }]}
+      edges={showActionBar ? ['top', 'left', 'right'] : undefined}>
       <ScrollView
         style={layoutStyle.screen}
         contentContainerStyle={layoutStyle.scrollContent}
@@ -354,65 +379,76 @@ export default function OfferScreen() {
         {header}
 
         <View style={s.content}>
-          <View style={s.campaignRow}>
-            <Text style={[s.campaignTitle, { color: colors.text.primary }]} numberOfLines={2}>
+          <LinearGradient
+            colors={HERO_GRADIENT}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.hero}>
+            <View style={s.heroGlow} />
+            <View style={s.heroGlowSmall} />
+            <View style={s.heroTopRow}>
+              <Text style={s.heroEyebrow}>
+                {data.origin === 'invited' ? 'INVITATION' : 'APPLICATION'}
+              </Text>
+              <StatusBadge
+                label={badge.label}
+                color={badge.color}
+                textColor={badge.text}
+                testID="offer-status"
+              />
+            </View>
+            <Text style={s.heroTitle} numberOfLines={2}>
               {title || 'Campaign'}
             </Text>
-            <StatusBadge
-              label={badge.label}
-              color={badge.color}
-              textColor={badge.text}
-              testID="offer-status"
-            />
-          </View>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel="View campaign"
-            onPress={() => router.push(`/campaign/${data.campaignId}`)}
-            testID="offer-view-campaign">
-            <Text style={s.linkText}>View campaign</Text>
-          </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="View campaign"
+              onPress={() => router.push(`/campaign/${data.campaignId}`)}
+              hitSlop={6}
+              style={({ pressed }) => [s.heroLink, pressed && s.pressed]}
+              testID="offer-view-campaign">
+              <Feather name="external-link" size={13} color={palette.white} />
+              <Text style={s.heroLinkText}>View campaign</Text>
+            </Pressable>
 
-          <View style={s.thread}>
-            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Offers</Text>
-            {offers.length === 0 ? (
-              <Text style={[s.hintText, { color: colors.text.secondary }]}>No offers yet.</Text>
-            ) : (
-              offers.map(offer => <OfferRow key={offer.id} offer={offer} border={colors.border} />)
-            )}
-          </View>
+            {state.isNegotiable ? (
+              <View style={s.rounds}>
+                <View style={s.roundsLabels}>
+                  <Text style={s.roundsText} testID="offer-rounds-left">
+                    Rounds left: {state.roundsRemaining}
+                  </Text>
+                  <Text style={s.roundsMeta}>
+                    {roundsUsed} of {data.negotiationRoundLimit} used
+                  </Text>
+                </View>
+                <View
+                  style={s.roundsTrack}
+                  accessibilityRole="progressbar"
+                  accessibilityValue={{
+                    min: 0,
+                    max: data.negotiationRoundLimit,
+                    now: roundsUsed,
+                  }}>
+                  <View style={[s.roundsFill, { width: `${Math.round(roundsProgress * 100)}%` }]} />
+                </View>
+              </View>
+            ) : null}
+          </LinearGradient>
 
-          {data.scope?.length ? (
-            <View style={s.thread} testID="offer-deliverables">
-              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Deliverables</Text>
-              {data.scope.map(item => (
-                <Text
-                  key={scopePairKey(item)}
-                  style={[s.scopeLine, { color: colors.text.primary }]}>
-                  {item.count} × {scopeItemLabel(item)}
-                </Text>
-              ))}
-            </View>
+          {state.isNegotiable && state.pendingIsMine ? (
+            <Notice tone="info" icon="clock">
+              Waiting for the business to respond.
+            </Notice>
           ) : null}
-
-          {state.isNegotiable ? (
-            <View>
-              <Text
-                style={[s.roundsText, { color: colors.text.primary }]}
-                testID="offer-rounds-left">
-                Rounds left: {state.roundsRemaining}
-              </Text>
-              {state.pendingIsMine ? (
-                <Text style={[s.hintText, { color: colors.text.secondary }]}>
-                  Waiting for the business to respond.
-                </Text>
-              ) : null}
-              {state.isFinalOffer ? (
-                <Text style={[s.hintText, { color: colors.text.secondary }]}>
-                  This is the final offer — accept or decline.
-                </Text>
-              ) : null}
-            </View>
+          {state.isNegotiable && state.isFinalOffer ? (
+            <Notice tone="warning" icon="alert-triangle">
+              This is the final offer — accept or decline.
+            </Notice>
+          ) : null}
+          {!state.isNegotiable && data.closeReason ? (
+            <Notice tone="neutral" icon="info">
+              Reason: {data.closeReason}
+            </Notice>
           ) : null}
 
           {data.status === 'accepted' && data.agreedAmountMinor !== null ? (
@@ -430,24 +466,37 @@ export default function OfferScreen() {
             />
           ) : null}
 
-          {!state.isNegotiable && data.closeReason ? (
-            <Text style={[s.hintText, { color: colors.text.secondary }]}>
-              Reason: {data.closeReason}
-            </Text>
-          ) : null}
-
           {actionError ? (
             <View
               style={s.errorBanner}
               accessibilityRole="alert"
               accessibilityLiveRegion="polite"
               testID="offer-error">
+              <Feather name="alert-circle" size={16} color={palette.error[700]} />
               <Text style={s.errorText}>{actionError}</Text>
             </View>
           ) : null}
 
+          {data.scope?.length ? (
+            <View
+              style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+              testID="offer-deliverables">
+              <SectionTitle icon="package" title="Deliverables" count={data.scope.length} />
+              <View style={s.scopeChips}>
+                {data.scope.map(item => (
+                  <View key={scopePairKey(item)} style={s.scopeChip}>
+                    <Text style={s.scopeChipText}>
+                      {item.count} × {scopeItemLabel(item)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
           {form === 'counter' ? (
-            <View style={[s.form, { borderColor: colors.border }]}>
+            <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <SectionTitle icon="repeat" title="Your counter-offer" />
               <TextField
                 label="Your counter-offer (BDT)"
                 keyboardType="decimal-pad"
@@ -472,13 +521,12 @@ export default function OfferScreen() {
               {scopeRows ? (
                 <View style={s.scopeEditor}>
                   <View style={s.scopeEditorHeader}>
-                    <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-                      Deliverables
-                    </Text>
+                    <Text style={[s.subTitle, { color: colors.text.primary }]}>Deliverables</Text>
                     <Pressable
                       accessibilityRole="button"
                       onPress={() => changeScope(null)}
                       disabled={disabled}
+                      hitSlop={6}
                       testID="offer-keep-deliverables">
                       <Text style={s.linkText}>Keep current deliverables</Text>
                     </Pressable>
@@ -511,7 +559,9 @@ export default function OfferScreen() {
                   accessibilityRole="button"
                   onPress={() => changeScope(currentScope)}
                   disabled={disabled}
+                  style={[s.inlineAction, { borderColor: colors.border }]}
                   testID="offer-change-deliverables">
+                  <Feather name="edit-3" size={15} color={palette.primary[500]} />
                   <Text style={s.linkText}>Change deliverables</Text>
                 </Pressable>
               )}
@@ -536,7 +586,12 @@ export default function OfferScreen() {
           ) : null}
 
           {form === 'decline' || form === 'withdrawApplication' ? (
-            <View style={[s.form, { borderColor: colors.border }]}>
+            <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <SectionTitle
+                icon="x-circle"
+                title={form === 'decline' ? 'Decline invitation' : 'Withdraw application'}
+                danger
+              />
               <TextField
                 label="Reason (optional)"
                 multiline
@@ -554,7 +609,7 @@ export default function OfferScreen() {
                 titleStyle={s.dangerTitle}
                 onPress={() => submitReason(form)}
                 isLoading={busy === form}
-                loaderColor={palette.error[600]}
+                loaderColor={palette.white}
                 disabled={disabled}
                 testID="offer-reason-submit"
               />
@@ -568,12 +623,38 @@ export default function OfferScreen() {
             </View>
           ) : null}
 
-          {form === null && state.isNegotiable ? (
-            <View style={s.actions}>
+          <View style={s.thread}>
+            <SectionTitle icon="message-square" title="Negotiation" count={offers.length} />
+            {offers.length === 0 ? (
+              <Text style={[s.hintText, { color: colors.text.secondary }]}>No offers yet.</Text>
+            ) : (
+              offers.map(offer => <OfferRow key={offer.id} offer={offer} />)
+            )}
+          </View>
+        </View>
+      </ScrollView>
+
+      {showActionBar ? (
+        <SafeAreaView
+          edges={['bottom']}
+          style={[s.actionBar, { backgroundColor: colors.card, borderColor: colors.border }]}
+          testID="offer-action-bar">
+          {state.canAccept || state.canCounter ? (
+            <View style={s.actionRow}>
+              {state.canCounter ? (
+                <Button
+                  title="Counter"
+                  style={[s.secondaryButton, s.actionFlex]}
+                  titleStyle={s.secondaryTitle}
+                  onPress={openCounter}
+                  disabled={disabled}
+                  testID="offer-counter"
+                />
+              ) : null}
               {state.canAccept ? (
                 <Button
                   title="Accept"
-                  style={s.primaryButton}
+                  style={[s.primaryButton, s.actionFlex]}
                   titleStyle={s.primaryTitle}
                   onPress={() => openAgreement('confirm')}
                   isLoading={busy === 'accept'}
@@ -581,52 +662,42 @@ export default function OfferScreen() {
                   testID="offer-accept"
                 />
               ) : null}
-              {state.canCounter ? (
-                <Button
-                  title="Counter"
-                  style={s.secondaryButton}
-                  titleStyle={s.secondaryTitle}
-                  onPress={openCounter}
-                  disabled={disabled}
-                  testID="offer-counter"
-                />
-              ) : null}
-              {state.canWithdrawOffer ? (
-                <Button
-                  title="Withdraw my offer"
-                  style={s.secondaryButton}
-                  titleStyle={s.secondaryTitle}
-                  onPress={() => setConfirm('withdrawOffer')}
-                  isLoading={busy === 'withdrawOffer'}
-                  loaderColor={palette.primary[500]}
-                  disabled={disabled}
-                  testID="offer-withdraw-offer"
-                />
-              ) : null}
-              {state.canDecline ? (
-                <Button
-                  title="Decline"
-                  style={s.dangerButton}
-                  titleStyle={s.dangerTitle}
-                  onPress={() => setForm('decline')}
-                  disabled={disabled}
-                  testID="offer-decline"
-                />
-              ) : null}
-              {state.canWithdrawApplication ? (
-                <Button
-                  title="Withdraw application"
-                  style={s.dangerButton}
-                  titleStyle={s.dangerTitle}
-                  onPress={() => setForm('withdrawApplication')}
-                  disabled={disabled}
-                  testID="offer-withdraw-application"
-                />
-              ) : null}
             </View>
           ) : null}
-        </View>
-      </ScrollView>
+          {state.canWithdrawOffer ? (
+            <Button
+              title="Withdraw my offer"
+              style={s.secondaryButton}
+              titleStyle={s.secondaryTitle}
+              onPress={() => setConfirm('withdrawOffer')}
+              isLoading={busy === 'withdrawOffer'}
+              loaderColor={palette.primary[500]}
+              disabled={disabled}
+              testID="offer-withdraw-offer"
+            />
+          ) : null}
+          {state.canDecline ? (
+            <Button
+              title="Decline"
+              style={s.textButton}
+              titleStyle={s.textDangerTitle}
+              onPress={() => setForm('decline')}
+              disabled={disabled}
+              testID="offer-decline"
+            />
+          ) : null}
+          {state.canWithdrawApplication ? (
+            <Button
+              title="Withdraw application"
+              style={s.textButton}
+              titleStyle={s.textDangerTitle}
+              onPress={() => setForm('withdrawApplication')}
+              disabled={disabled}
+              testID="offer-withdraw-application"
+            />
+          ) : null}
+        </SafeAreaView>
+      ) : null}
 
       {scopeSheetOpen && scopeRows ? (
         <OptionSheet
@@ -668,37 +739,50 @@ export default function OfferScreen() {
   );
 }
 
-function OfferRow({ offer, border }: { offer: EngagementOffer; border: string }) {
+// One round of the thread as a chat bubble: the business's offers on the
+// left, the creator's on the right. Rounds no longer in play (countered,
+// withdrawn, expired) are dimmed with the amount struck through.
+function OfferRow({ offer }: { offer: EngagementOffer }) {
   const { colors } = useTheme();
   const inactive = INACTIVE.includes(offer.status);
+  const mine = offer.senderType === 'creator';
+  const statusTone = OFFER_STATUS_TONE[offer.status];
 
   return (
-    <View
-      style={[s.offerCard, { borderColor: border }, inactive && s.offerCardInactive]}
-      testID={`offer-round-${offer.roundNo}`}>
-      <View style={s.offerHeader}>
-        <Text style={[s.offerMeta, { color: colors.text.secondary }]}>
-          Round {offer.roundNo} · {offer.senderType === 'creator' ? 'You' : 'Business'}
+    <View style={[s.bubbleRow, mine ? s.bubbleRowMine : s.bubbleRowTheirs]}>
+      {!mine ? (
+        <View style={[s.bubbleAvatar, { backgroundColor: palette.primaryNavy[50] }]}>
+          <Feather name="briefcase" size={14} color={palette.primaryNavy[800]} />
+        </View>
+      ) : null}
+      <View
+        style={[
+          s.bubble,
+          mine ? s.bubbleMine : { backgroundColor: colors.card, borderColor: colors.border },
+          inactive && s.bubbleInactive,
+        ]}
+        testID={`offer-round-${offer.roundNo}`}>
+        <View style={s.bubbleHeader}>
+          <Text style={[s.bubbleMeta, { color: colors.text.secondary }]}>
+            Round {offer.roundNo} · {offer.senderType === 'creator' ? 'You' : 'Business'}
+          </Text>
+          <Text style={[s.bubbleStatus, statusTone]}>{OFFER_STATUS_LABEL[offer.status]}</Text>
+        </View>
+        <Text style={[s.bubbleAmount, { color: colors.text.primary }, inactive && s.amountStruck]}>
+          {formatCampaignPrice(offer.amountMinor, offer.currency)}
         </Text>
-        <Text style={[s.offerMeta, { color: colors.text.secondary }]}>
-          {OFFER_STATUS_LABEL[offer.status]}
+        {offer.scopeChanged ? (
+          <Text style={s.scopeTag} testID={`offer-round-${offer.roundNo}-scope-changed`}>
+            Changed deliverables
+          </Text>
+        ) : null}
+        {offer.note ? (
+          <Text style={[s.bubbleNote, { color: colors.text.primary }]}>{offer.note}</Text>
+        ) : null}
+        <Text style={[s.bubbleDate, { color: colors.text.secondary }]}>
+          {formatOfferDate(offer.createdAt)}
         </Text>
       </View>
-      {offer.scopeChanged ? (
-        <Text style={s.scopeTag} testID={`offer-round-${offer.roundNo}-scope-changed`}>
-          Changed deliverables
-        </Text>
-      ) : null}
-      <Text
-        style={[s.offerAmount, { color: colors.text.primary }, inactive && s.offerAmountStruck]}>
-        {formatCampaignPrice(offer.amountMinor, offer.currency)}
-      </Text>
-      {offer.note ? (
-        <Text style={[s.offerNote, { color: colors.text.secondary }]}>{offer.note}</Text>
-      ) : null}
-      <Text style={[s.offerDate, { color: colors.text.secondary }]}>
-        {formatOfferDate(offer.createdAt)}
-      </Text>
     </View>
   );
 }
@@ -715,13 +799,75 @@ function AcceptedSummary({
   const agreement = buildCreatorAgreement(detail, null, 'confirmed');
   return (
     <View style={s.summaryCard} testID="offer-accepted-summary">
-      <SummaryRow
-        label="You'll receive"
-        value={formatCampaignPrice(agreement?.youReceiveMinor ?? null, detail.currency)}
-      />
-      <Pressable accessibilityRole="button" onPress={onViewAgreement} testID="offer-view-agreement">
-        <Text style={s.linkText}>View agreement</Text>
+      <View style={s.summaryIcon}>
+        <Feather name="check-circle" size={20} color={palette.success[600]} />
+      </View>
+      <View style={s.summaryBody}>
+        <Text style={s.summaryLabel}>You&apos;ll receive</Text>
+        <Text style={s.summaryAmount}>
+          {formatCampaignPrice(agreement?.youReceiveMinor ?? null, detail.currency)}
+        </Text>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onViewAgreement}
+        hitSlop={6}
+        style={({ pressed }) => [s.summaryButton, pressed && s.pressed]}
+        testID="offer-view-agreement">
+        <Feather name="file-text" size={14} color={palette.success[700]} />
+        <Text style={s.summaryButtonText}>View agreement</Text>
       </Pressable>
+    </View>
+  );
+}
+
+const NOTICE_TONE = {
+  info: { box: s.noticeInfo, color: palette.primaryNavy[800] },
+  warning: { box: s.noticeWarning, color: palette.warning[700] },
+  neutral: { box: s.noticeNeutral, color: palette.gray[500] },
+} as const;
+
+function Notice({
+  tone,
+  icon,
+  children,
+}: {
+  tone: keyof typeof NOTICE_TONE;
+  icon: FeatherName;
+  children: ReactNode;
+}) {
+  const t = NOTICE_TONE[tone];
+  return (
+    <View style={[s.notice, t.box]}>
+      <Feather name={icon} size={16} color={t.color} />
+      <Text style={[s.noticeText, { color: t.color }]}>{children}</Text>
+    </View>
+  );
+}
+
+function SectionTitle({
+  icon,
+  title,
+  count,
+  danger,
+}: {
+  icon: FeatherName;
+  title: string;
+  count?: number;
+  danger?: boolean;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={s.sectionHeader}>
+      <View style={[s.sectionIcon, danger && s.sectionIconDanger]}>
+        <Feather name={icon} size={15} color={danger ? palette.error[600] : palette.primary[500]} />
+      </View>
+      <Text style={[s.sectionTitle, { color: colors.text.primary }]}>{title}</Text>
+      {count ? (
+        <View style={s.countChip}>
+          <Text style={s.countChipText}>{count}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }

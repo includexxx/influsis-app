@@ -1,175 +1,300 @@
 import { StyleSheet } from 'react-native';
-import { palette, radius } from '@/theme';
+import { getShadowStyle, palette, radius } from '@/theme';
 
 // Offer screen (scenes/campaigns/OfferScreen.tsx). Content uses
 // layoutStyle.scrollContent's 16px gutter; sections are separated by `gap`.
+// Same visual language as the Deliverables screens: a brand-gradient header
+// card, rounded elevated cards, icon section titles and pill buttons.
 export const offerScreenStyle = StyleSheet.create({
   headerGap: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   content: {
-    gap: 20,
-    paddingBottom: 32,
+    gap: 16,
+    paddingBottom: 24,
   },
-  campaignRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  campaignTitle: {
-    flex: 1,
-    fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '600',
-  },
+  pressed: { opacity: 0.8 },
+  hintText: { fontSize: 14, lineHeight: 21 },
   linkText: {
     fontSize: 14,
     lineHeight: 21,
     fontWeight: '600',
     color: palette.primary[500],
   },
-  sectionTitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
+
+  // --- Header card ---
+  hero: {
+    borderRadius: radius.xl + 4,
+    padding: 20,
+    gap: 12,
+    overflow: 'hidden',
+    ...getShadowStyle('md'),
   },
-  thread: {
-    gap: 8,
+  heroGlow: {
+    position: 'absolute',
+    top: -60,
+    right: -40,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
-  offerCard: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 4,
+  heroGlowSmall: {
+    position: 'absolute',
+    bottom: -30,
+    left: -20,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
-  offerCardInactive: {
-    opacity: 0.55,
-  },
-  offerHeader: {
+  heroTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  offerMeta: {
+  heroEyebrow: {
     fontSize: 12,
-    lineHeight: 18,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  offerAmount: {
-    fontSize: 18,
-    lineHeight: 26,
+    lineHeight: 16,
     fontWeight: '700',
+    letterSpacing: 1.2,
+    color: 'rgba(255, 255, 255, 0.75)',
   },
-  offerAmountStruck: {
-    textDecorationLine: 'line-through',
-  },
-  offerNote: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  offerDate: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  roundsText: {
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '600',
-  },
-  hintText: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  summaryCard: {
-    borderRadius: radius.md,
-    padding: 12,
+  heroTitle: { fontSize: 22, lineHeight: 30, fontWeight: '700', color: palette.white },
+  heroLink: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
-    backgroundColor: palette.gray[25],
-  },
-  errorBanner: {
-    borderRadius: radius.md,
+    height: 30,
+    borderRadius: radius.full,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  heroLinkText: { fontSize: 13, fontWeight: '600', color: palette.white },
+  rounds: { gap: 8, marginTop: 4 },
+  roundsLabels: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  roundsText: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: palette.white },
+  roundsMeta: { fontSize: 12, lineHeight: 16, color: 'rgba(255, 255, 255, 0.8)' },
+  roundsTrack: {
+    height: 8,
+    borderRadius: radius.full,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  roundsFill: { height: '100%', borderRadius: radius.full, backgroundColor: palette.white },
+
+  // --- Notices ---
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: radius.lg,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  noticeText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  noticeInfo: { backgroundColor: palette.primaryNavy[50] },
+  noticeWarning: { backgroundColor: palette.warning[50] },
+  noticeNeutral: { backgroundColor: palette.gray[25] },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: radius.lg,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     backgroundColor: palette.error[50],
   },
-  errorText: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: palette.error[700],
-  },
-  form: {
+  errorText: { flex: 1, fontSize: 14, lineHeight: 20, color: palette.error[700] },
+
+  // --- Accepted summary ---
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
+    borderRadius: radius.xl,
+    padding: 14,
     borderWidth: 1,
+    borderColor: palette.success[100],
+    backgroundColor: palette.success[25],
+  },
+  summaryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.success[100],
+  },
+  summaryBody: { flex: 1, gap: 2 },
+  summaryLabel: { fontSize: 12, lineHeight: 16, fontWeight: '600', color: palette.success[700] },
+  summaryAmount: { fontSize: 20, lineHeight: 26, fontWeight: '800', color: palette.gray[900] },
+  summaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 34,
+    borderRadius: radius.full,
+    paddingHorizontal: 12,
+    backgroundColor: palette.success[100],
+  },
+  summaryButtonText: { fontSize: 13, fontWeight: '700', color: palette.success[700] },
+
+  // --- Cards and section titles ---
+  card: {
+    borderWidth: 1,
+    borderRadius: radius.xl,
+    padding: 16,
+    gap: 14,
+    ...getShadowStyle('sm'),
+  },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sectionIcon: {
+    width: 30,
+    height: 30,
     borderRadius: radius.md,
-    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.primary[25],
   },
-  actions: {
-    gap: 10,
+  sectionIconDanger: { backgroundColor: palette.error[50] },
+  sectionTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  subTitle: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  countChip: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: radius.full,
+    paddingHorizontal: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.primary[50],
   },
-  primaryButton: {
-    height: 50,
-    borderRadius: radius.lg,
-    backgroundColor: palette.primary[400],
+  countChipText: { fontSize: 12, fontWeight: '700', color: palette.primary[600] },
+  scopeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  scopeChip: {
+    borderRadius: radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: palette.primary[25],
   },
-  primaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: palette.white,
-  },
-  secondaryButton: {
-    height: 50,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: palette.primary[400],
-    backgroundColor: palette.white,
-  },
-  secondaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: palette.primary[500],
-  },
-  dangerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: palette.error[600],
-  },
-  dangerButton: {
-    height: 50,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: palette.error[300],
-    backgroundColor: palette.white,
-  },
-  scopeLine: {
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  scopeEditor: {
-    gap: 8,
-  },
+  scopeChipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: palette.primary[700] },
+  scopeEditor: { gap: 8 },
   scopeEditorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
+  inlineAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 44,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  multiline: { minHeight: 88, textAlignVertical: 'top' },
+
+  // --- Thread (chat bubbles) ---
+  thread: { gap: 12 },
+  bubbleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  bubbleRowTheirs: { justifyContent: 'flex-start', paddingRight: 32 },
+  bubbleRowMine: { justifyContent: 'flex-end', paddingLeft: 48 },
+  bubbleAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bubble: {
+    flexShrink: 1,
+    minWidth: 190,
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 6,
+  },
+  bubbleMine: {
+    borderColor: palette.primary[100],
+    backgroundColor: palette.primary[25],
+    borderBottomRightRadius: 6,
+  },
+  bubbleInactive: { opacity: 0.6 },
+  bubbleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  bubbleMeta: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  bubbleStatus: {
+    overflow: 'hidden',
+    borderRadius: radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  bubbleAmount: { fontSize: 20, lineHeight: 26, fontWeight: '800' },
+  amountStruck: { textDecorationLine: 'line-through' },
+  bubbleNote: { fontSize: 14, lineHeight: 20 },
+  bubbleDate: { fontSize: 11, lineHeight: 15, alignSelf: 'flex-end' },
   scopeTag: {
     alignSelf: 'flex-start',
     overflow: 'hidden',
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingHorizontal: 8,
     paddingVertical: 2,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: palette.primary[600],
-    backgroundColor: palette.primary[25],
+    backgroundColor: palette.primary[50],
   },
-  multiline: {
-    minHeight: 88,
-    textAlignVertical: 'top',
+
+  // --- Buttons ---
+  primaryButton: {
+    height: 52,
+    borderRadius: radius.full,
+    backgroundColor: palette.primary[500],
+    ...getShadowStyle('sm'),
   },
+  primaryTitle: { fontSize: 16, fontWeight: '700', color: palette.white },
+  secondaryButton: {
+    height: 52,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    borderColor: palette.primary[200],
+    backgroundColor: palette.white,
+  },
+  secondaryTitle: { fontSize: 16, fontWeight: '700', color: palette.primary[500] },
+  dangerButton: {
+    height: 52,
+    borderRadius: radius.full,
+    backgroundColor: palette.error[600],
+  },
+  dangerTitle: { fontSize: 16, fontWeight: '700', color: palette.white },
+  textButton: { height: 40 },
+  textDangerTitle: { fontSize: 15, fontWeight: '600', color: palette.error[600] },
+
+  // --- Bottom action bar ---
+  actionBar: {
+    borderTopWidth: 1,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    gap: 8,
+    ...getShadowStyle('lg'),
+  },
+  actionRow: { flexDirection: 'row', gap: 10 },
+  actionFlex: { flex: 1 },
 });
