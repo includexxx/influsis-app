@@ -190,6 +190,22 @@ describe('<Applications />', () => {
     expect(await screen.findByText('No campaign requests')).toBeTruthy();
   });
 
+  test('quick Accept opens the Offer screen with the agreement up and sends no CF4', async () => {
+    mockLists({ applied: [], invited: [invitation] });
+    renderScreen();
+    fireEvent.press(screen.getByTestId('applications-tab-request'));
+
+    fireEvent.press(await screen.findByTestId('campaign-request-inv-1-accept'));
+
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: '/engagement/[id]',
+      params: { id: 'inv-1', title: 'Pathao Summer Push', review: '1' },
+    });
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+    // Not answered yet - the row stays until the creator confirms.
+    expect(screen.getByTestId('campaign-request-inv-1')).toBeTruthy();
+  });
+
   test('declining an invitation calls CF5 and removes the row', async () => {
     mockLists({ applied: [], invited: [invitation] });
     renderScreen();

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -15,10 +15,11 @@ import ConfirmDialog from '@/components/elements/ConfirmDialog';
 import DeliverablesEditor from '@/components/elements/DeliverablesEditor';
 import OptionSheet from '@/components/elements/OptionSheet';
 import { offerScreenStyle as s } from './offerScreen.style';
-import { CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
+import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
   useAcceptOfferMutation,
   useDeclineMyEngagementMutation,
+  useGetFeedCampaignQuery,
   useGetMyEngagementQuery,
   useSendCounterOfferMutation,
   useWithdrawMyEngagementMutation,
@@ -31,6 +32,7 @@ import {
   MyEngagementDetail,
   ScopeItem,
 } from './types/myEngagement';
+import { AgreementMode, buildCreatorAgreement, CreatorAgreement } from './utils/agreement';
 import { formatCampaignPrice } from './utils/mapCampaignFeedItem';
 import {
   formatOfferDate,
@@ -56,7 +58,7 @@ import { openDeliverables } from './utils/openDeliverables';
 
 type Action = 'accept' | 'counter' | 'withdrawOffer' | 'decline' | 'withdrawApplication';
 type Form = 'counter' | 'decline' | 'withdrawApplication' | null;
-type Confirm = 'accept' | 'withdrawOffer' | 'decline' | 'withdrawApplication' | null;
+type Confirm = 'withdrawOffer' | 'decline' | 'withdrawApplication' | null;
 
 const GENERIC_ERROR = "Couldn't update the offer. Please try again.";
 
@@ -86,22 +88,27 @@ const INACTIVE: EngagementOfferStatus[] = ['superseded', 'withdrawn', 'expired']
 // engagement (an application they sent or an invitation they received),
 // opened from either Applications tab. Loads the engagement with its whole
 // offer thread (campaign API group CF3, GET /me/engagements/:id) and runs
-// Accept (CF4), Counter (CG2), Withdraw my offer (CG3), Decline (CF5, for
-// invitations) and Withdraw application (CF6, for the creator's own
-// requests). Which actions show comes from getOfferScreenState, which mirrors
+// Accept (CF4, always through the Agreement sheet), Counter (CG2), Withdraw
+// my offer (CG3), Decline (CF5, for invitations) and Withdraw application
+// (CF6, for the creator's own requests). Which actions show comes from getOfferScreenState, which mirrors
 // the backend rules; a 409 means this view was stale, so the server's message
 // is shown and the engagement refetched. Backend 18l: the engagement's own
 // deliverables list (`scope`) is shown, rounds that changed it are tagged, and
 // a counter can change it with or instead of the price - `scope` is sent only
 // when the list actually changed. Registered at
 // app/(details)/engagement/[id].tsx; `title` is passed by the list because
-// CF3 carries no campaign summary.
+// CF3 carries no campaign summary. `review=1` (the Request tab's quick Accept)
+// opens the Agreement sheet once on load, so accepting is never one tap.
 export default function OfferScreen() {
   const { colors } = useTheme();
-  const { id, title } = useLocalSearchParams<{ id: string; title?: string }>();
+  const { id, title, review } = useLocalSearchParams<{
+    id: string;
+    title?: string;
+    review?: string;
+  }>();
   const engagementId = id ?? '';
 
-  const { data, isLoading, isError, refetch } = useGetMyEngagementQuery(
+  const { data, isLoading, isError, isFetching, refetch } = useGetMyEngagementQuery(
     { engagementId },
     { skip: !engagementId },
   );
@@ -125,6 +132,31 @@ export default function OfferScreen() {
   const [scopeRowErrors, setScopeRowErrors] = useState<Record<number, string>>({});
   const [scopeListError, setScopeListError] = useState<string | null>(null);
   const [scopeSheetOpen, setScopeSheetOpen] = useState(false);
+  const [sheet, setSheet] = useState<AgreementMode | null>(null);
+  // The agreement the creator pressed Accept on. If a refetch (after a 409)
+  // no longer has that offer pending, the sheet keeps showing these terms
+  // with Accept disabled rather than swapping in new ones.
+  const [reviewed, setReviewed] = useState<CreatorAgreement | null>(null);
+  const autoReviewed = useRef(false);
+
+  // CB2 - the confirm mode's pay depends on the campaign's licensing tier.
+  // Fetched only while the sheet is open; 404 for a campaign that isn't live.
+  const campaign = useGetFeedCampaignQuery(
+    { id: data?.campaignId ?? '' },
+    { skip: !data?.campaignId || !sheet },
+  );
+  const liveAgreement = useMemo(
+    () => (data && sheet ? buildCreatorAgreement(data, campaign.data ?? null, sheet, title) : null),
+    [data, campaign.data, sheet, title],
+  );
+
+  // The Request tab's quick Accept lands here with review=1: open the sheet
+  // once per mount, so a refetch or coming back doesn't reopen it.
+  useEffect(() => {
+    if (review !== '1' || autoReviewed.current || !data) return;
+    autoReviewed.current = true;
+    if (getOfferScreenState(data).canAccept) setSheet('confirm');
+  }, [review, data]);
 
   function closeForm() {
     setForm(null);
@@ -250,11 +282,47 @@ export default function OfferScreen() {
     setConfirm(next);
   }
 
+  function openAgreement(mode: AgreementMode) {
+    setActionError(null);
+    setReviewed(null);
+    setSheet(mode);
+  }
+
+  function closeAgreement() {
+    setSheet(null);
+    setReviewed(null);
+  }
+
+  // Accepts exactly the offer the sheet shows; on success the sheet turns
+  // into the confirmed agreement, built from the refetched CF3.
+  function acceptReviewed(offerId: string) {
+    setReviewed(liveAgreement);
+    void run('accept', async () => {
+      await acceptOffer({ engagementId, offerId }).unwrap();
+      setReviewed(null);
+      setSheet('confirmed');
+    });
+  }
+
+  // Stale: the offer the creator pressed Accept on is no longer the one
+  // pending (the business countered or withdrew meanwhile).
+  const isStale =
+    sheet === 'confirm' && reviewed !== null && liveAgreement?.offerId !== reviewed.offerId;
+  const shownAgreement = isStale ? reviewed : liveAgreement;
+  const campaignLoading = campaign.isLoading || (campaign.isFetching && !campaign.data);
+  const agreementLoading =
+    !shownAgreement &&
+    (campaignLoading || (sheet === 'confirmed' && (isFetching || busy === 'accept')));
+  const agreementLoadError = sheet === 'confirm' && !shownAgreement && campaign.isError;
+  const agreementMessage =
+    actionError ??
+    (sheet === 'confirm' && !shownAgreement && !agreementLoading && !agreementLoadError
+      ? 'This offer is no longer available.'
+      : null);
+
   function runConfirmed() {
     const trimmedReason = reason.trim();
-    if (confirm === 'accept' && pending) {
-      void run('accept', () => acceptOffer({ engagementId, offerId: pending.id }).unwrap());
-    } else if (confirm === 'withdrawOffer' && pending) {
+    if (confirm === 'withdrawOffer' && pending) {
       void run('withdrawOffer', () =>
         withdrawOffer({ engagementId, offerId: pending.id }).unwrap(),
       );
@@ -268,10 +336,6 @@ export default function OfferScreen() {
   }
 
   const confirmCopy: Record<Exclude<Confirm, null>, { title: string; primary: string }> = {
-    accept: {
-      title: `Accept ${pending ? formatCampaignPrice(pending.amountMinor, pending.currency) : 'this offer'}? This locks the price for the campaign.`,
-      primary: 'Accept',
-    },
     withdrawOffer: {
       title: 'Withdraw your offer? The round it used stays used.',
       primary: 'Withdraw',
@@ -352,7 +416,7 @@ export default function OfferScreen() {
           ) : null}
 
           {data.status === 'accepted' && data.agreedAmountMinor !== null ? (
-            <AcceptedSummary detail={data} />
+            <AcceptedSummary detail={data} onViewAgreement={() => openAgreement('confirmed')} />
           ) : null}
 
           {data.status === 'accepted' || data.status === 'completed' ? (
@@ -511,7 +575,7 @@ export default function OfferScreen() {
                   title="Accept"
                   style={s.primaryButton}
                   titleStyle={s.primaryTitle}
-                  onPress={() => setConfirm('accept')}
+                  onPress={() => openAgreement('confirm')}
                   isLoading={busy === 'accept'}
                   disabled={disabled}
                   testID="offer-accept"
@@ -575,6 +639,20 @@ export default function OfferScreen() {
         />
       ) : null}
 
+      {sheet ? (
+        <AgreementSheet
+          agreement={shownAgreement}
+          isLoading={agreementLoading}
+          loadError={agreementLoadError}
+          onRetry={campaign.refetch}
+          isAccepting={busy === 'accept'}
+          isStale={isStale}
+          message={agreementMessage}
+          onConfirm={acceptReviewed}
+          onClose={closeAgreement}
+        />
+      ) : null}
+
       {confirm ? (
         <ConfirmDialog
           title={confirmCopy[confirm].title}
@@ -625,21 +703,25 @@ function OfferRow({ offer, border }: { offer: EngagementOffer; border: string })
   );
 }
 
-// The creator's pay is the agreed price. The licensing markup is the
-// business's cost on top, so it isn't shown here.
-function AcceptedSummary({ detail }: { detail: MyEngagementDetail }) {
-  const { colors } = useTheme();
+// The creator's pay is the whole deal: the agreed price plus the licensing
+// markup (F-2/F-6), from the server's numbers.
+function AcceptedSummary({
+  detail,
+  onViewAgreement,
+}: {
+  detail: MyEngagementDetail;
+  onViewAgreement: () => void;
+}) {
+  const agreement = buildCreatorAgreement(detail, null, 'confirmed');
   return (
     <View style={s.summaryCard} testID="offer-accepted-summary">
       <SummaryRow
-        label="Agreed price"
-        value={formatCampaignPrice(detail.agreedAmountMinor, detail.currency)}
+        label="You'll receive"
+        value={formatCampaignPrice(agreement?.youReceiveMinor ?? null, detail.currency)}
       />
-      {detail.nextAction === 'fund_escrow' && detail.escrowFundingDeadline ? (
-        <Text style={[s.hintText, { color: colors.text.secondary }]}>
-          The business has until {formatOfferDate(detail.escrowFundingDeadline)} to fund escrow.
-        </Text>
-      ) : null}
+      <Pressable accessibilityRole="button" onPress={onViewAgreement} testID="offer-view-agreement">
+        <Text style={s.linkText}>View agreement</Text>
+      </Pressable>
     </View>
   );
 }

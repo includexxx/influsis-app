@@ -10,10 +10,18 @@ import { EngagementOffer, MyEngagementDetail } from './types/myEngagement';
 import OfferScreen from './OfferScreen';
 
 const mockPush = jest.fn();
+let mockParams: Record<string, string> = {};
 
 jest.mock('expo-router', () => ({
   router: { push: (...args: unknown[]) => mockPush(...args), back: jest.fn() },
-  useLocalSearchParams: () => ({ id: 'eng-1', title: 'Pathao Summer Push' }),
+  useLocalSearchParams: () => mockParams,
+}));
+
+// See OptionSheet.test.tsx: force BottomSheet's plain-View web fallback so
+// the Agreement sheet renders under Jest.
+jest.mock('@/utils/deviceInfo', () => ({
+  ...(jest.requireActual('@/utils/deviceInfo') as typeof import('@/utils/deviceInfo')),
+  isWeb: true,
 }));
 
 jest.mock('@/services/http', () => {
@@ -98,6 +106,22 @@ function engagement(overrides: Partial<MyEngagementDetail>): MyEngagementDetail 
   };
 }
 
+// CB2 (GET /feed/campaigns/:id) - only the fields the Agreement sheet reads.
+const feedCampaign = {
+  id: 'campaign-1',
+  title: 'Pathao Summer Push',
+  licensingTier: 2,
+  contentDeadline: '2026-10-10',
+  business: {
+    businessId: 'biz-1',
+    businessName: 'Pathao Ltd.',
+    avatarUrl: null,
+    verificationStatus: 'verified',
+  },
+};
+
+const isCampaignRequest = (cfg: RequestConfig) => cfg.url === '/feed/campaigns/campaign-1';
+
 let store: ReturnType<typeof makeStore>;
 
 function makeStore() {
@@ -119,6 +143,7 @@ beforeEach(() => {
   jest.useFakeTimers();
   mockRequest.mockReset();
   mockPush.mockReset();
+  mockParams = { id: 'eng-1', title: 'Pathao Summer Push' };
 });
 
 afterEach(() => {
@@ -200,23 +225,157 @@ describe('<OfferScreen />', () => {
     ).toBeTruthy();
   });
 
-  test('shows the agreed price and the escrow deadline once accepted', async () => {
-    answerWith(() =>
-      engagement({
-        status: 'accepted',
-        agreedAmountMinor: 2_300_000,
-        licensingMarkupMinor: 575_000,
-        nextAction: 'fund_escrow',
-        escrowFundingDeadline: '2026-10-01T09:00:00',
-        offers: [offer(1, 'business', 'accepted', 2_300_000)],
-      }),
+  test('once accepted, shows what the creator receives (licensing included) and no escrow line', async () => {
+    answerWith(cfg =>
+      isCampaignRequest(cfg)
+        ? feedCampaign
+        : engagement({
+            status: 'accepted',
+            agreedAmountMinor: 2_300_000,
+            licensingMarkupMinor: 575_000,
+            acceptedAt: '2026-09-30T10:00:00',
+            nextAction: 'fund_escrow',
+            escrowFundingDeadline: '2026-10-01T09:00:00',
+            offers: [offer(1, 'business', 'accepted', 2_300_000)],
+          }),
     );
     renderScreen();
 
     expect(await screen.findByTestId('offer-accepted-summary')).toBeTruthy();
-    expect(screen.getByText('Agreed price')).toBeTruthy();
-    expect(screen.getByText('The business has until 1 Oct 2026 to fund escrow.')).toBeTruthy();
+    expect(screen.getByText("You'll receive")).toBeTruthy();
+    expect(screen.getByText('BDT 28,750')).toBeTruthy();
+    expect(screen.queryByText(/escrow/i)).toBeNull();
     expect(screen.queryByTestId('offer-counter')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('offer-view-agreement'));
+    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+    expect(screen.queryByTestId('agreement-accept')).toBeNull();
+  });
+
+  test('Accept opens the agreement; confirming accepts the offer shown', async () => {
+    let accepted = false;
+    answerWith(cfg => {
+      if (isCampaignRequest(cfg)) return feedCampaign;
+      if (cfg.method === 'POST') {
+        accepted = true;
+        return {};
+      }
+      return accepted
+        ? engagement({
+            status: 'accepted',
+            agreedAmountMinor: 2_000_000,
+            licensingMarkupMinor: 500_000,
+            acceptedAt: '2026-09-30T10:00:00',
+            offers: [offer(1, 'business', 'accepted', 2_000_000)],
+          })
+        : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] });
+    });
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-accept'));
+    expect(await screen.findByText('Review the agreement')).toBeTruthy();
+    expect(screen.getByText('Pathao Ltd.')).toBeTruthy();
+    expect(screen.getByLabelText("You'll receive 25,000 taka")).toBeTruthy();
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('agreement-accept'));
+    });
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/me/engagements/eng-1/accept',
+        method: 'POST',
+        data: { offerId: 'offer-1' },
+      }),
+    );
+    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+  });
+
+  test('Back to offer closes the agreement without accepting', async () => {
+    answerWith(cfg =>
+      isCampaignRequest(cfg)
+        ? feedCampaign
+        : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }),
+    );
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-accept'));
+    fireEvent.press(await screen.findByTestId('agreement-back'));
+
+    expect(screen.queryByTestId('agreement-sheet')).toBeNull();
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+  });
+
+  test('a 409 keeps the agreement open with the server message and disables Accept', async () => {
+    let countered = false;
+    answerWith(cfg => {
+      if (isCampaignRequest(cfg)) return feedCampaign;
+      if (cfg.method === 'POST') {
+        countered = true;
+        throw new ApiError({
+          code: 'OFFER_NOT_PENDING',
+          statusCode: 409,
+          message: 'This offer is no longer pending.',
+        });
+      }
+      return countered
+        ? engagement({
+            status: 'countered',
+            offers: [
+              offer(1, 'business', 'superseded', 2_000_000),
+              offer(2, 'business', 'pending', 1_800_000),
+            ],
+          })
+        : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] });
+    });
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-accept'));
+    const accept = await screen.findByTestId('agreement-accept');
+    await act(async () => {
+      fireEvent.press(accept);
+    });
+
+    expect(await screen.findByTestId('agreement-message')).toBeTruthy();
+    expect(screen.getAllByText('This offer is no longer pending.').length).toBeGreaterThan(0);
+    // The refetch brought a new offer; the sheet keeps the reviewed terms
+    // (BDT 20,000 + 25%) with Accept disabled.
+    await screen.findByText('BDT 18,000');
+    expect(screen.getByLabelText("You'll receive 25,000 taka")).toBeTruthy();
+    expect(screen.getByTestId('agreement-accept').props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+  });
+
+  test("won't show the pay when the campaign's terms fail to load", async () => {
+    answerWith(cfg => {
+      if (isCampaignRequest(cfg))
+        throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' });
+      return engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] });
+    });
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('offer-accept'));
+
+    expect(await screen.findByText("Couldn't load the campaign terms.")).toBeTruthy();
+    expect(screen.queryByTestId('agreement-accept')).toBeNull();
+  });
+
+  test('review=1 opens the agreement on load', async () => {
+    mockParams = { id: 'eng-1', title: 'Pathao Summer Push', review: '1' };
+    answerWith(cfg =>
+      isCampaignRequest(cfg)
+        ? feedCampaign
+        : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }),
+    );
+    renderScreen();
+
+    expect(await screen.findByText('Review the agreement')).toBeTruthy();
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+
+    fireEvent.press(screen.getByTestId('agreement-back'));
+    expect(screen.queryByTestId('agreement-sheet')).toBeNull();
   });
 
   test('shows a retryable error state when the engagement fails to load', async () => {

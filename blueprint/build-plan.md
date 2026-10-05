@@ -322,3 +322,26 @@ and `../platform-context/api-contracts/campaigns.md` (`EngagementScopeItemDto`, 
       Replaces the mock `scenes/order` deliver flow for campaign engagements.
       Out of scope: work-progress steps (`CH1`/`CH2`), escrow, disputes, gig
       orders.
+
+## Agreement
+
+Payment and escrow are deferred. The item below lets the creator review the
+binding terms before accepting, and look back at them afterwards, without any
+payment copy. It is numbered 34 because the backend-19 escrow items on
+`feat/escrow` already use 26-33; it comes before them in build order. Money
+rules: `../backend/docs/features/campaign/PAYMENT_ESCROW_BUSINESS_RULES.md`
+(F-2 creator receives 100% of the deal, F-6 licensing tiers raise the deal).
+The business side is `web` item 38.
+
+- [x] 34. **Review the agreement before accepting (backend 18e `CF3`, `CF4`)** -
+      Accept on the Offer screen and on Request-tab invitation cards opens an
+      agreement sheet (business, campaign, the engagement's `scope`, content
+      deadline, and "You'll receive ৳X", where X is the business's pending offer
+      plus the licensing markup for the campaign's tier, or after acceptance
+      `agreedAmountMinor` + `licensingMarkupMinor`); confirming there sends
+      `CF4`. The sheet never shows the platform fee, VAT, processing fee or the
+      business's total. Accepted engagements get a read-only "View agreement" on
+      the Offer screen and the deliverables screen. Fixes the Offer screen's
+      accepted summary, which leaves the markup out of what the creator
+      receives. Out of scope: escrow status and payment copy (escrow item 27),
+      notifications, web.

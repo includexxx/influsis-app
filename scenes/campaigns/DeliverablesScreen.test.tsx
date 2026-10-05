@@ -17,6 +17,13 @@ jest.mock('expo-router', () => ({
   Redirect: () => null,
 }));
 
+// See OptionSheet.test.tsx: force BottomSheet's plain-View web fallback so
+// the Agreement sheet renders under Jest.
+jest.mock('@/utils/deviceInfo', () => ({
+  ...(jest.requireActual('@/utils/deviceInfo') as typeof import('@/utils/deviceInfo')),
+  isWeb: true,
+}));
+
 jest.mock('@/services/http', () => {
   class ApiError extends Error {
     code: string;
@@ -65,8 +72,20 @@ function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
 function answers(pieces: DeliverablePiece[] | Error, status = 'accepted') {
   answerWith(({ url }) => {
     if (url === '/me/engagements/eng-1') {
-      return { id: 'eng-1', campaignId: 'campaign-1', status, offers: [], scope: [] };
+      return {
+        id: 'eng-1',
+        campaignId: 'campaign-1',
+        status,
+        offers: [],
+        scope: [{ id: 'scope-1', platform: 'instagram', type: 'reels', count: 2 }],
+        agreedAmountMinor: 2_000_000,
+        licensingMarkupMinor: 500_000,
+        acceptedAt: '2026-09-30T10:00:00',
+        currency: 'BDT',
+      };
     }
+    // CB2 404s once the campaign isn't live.
+    if (url === '/feed/campaigns/campaign-1') throw new Error('not found');
     if (pieces instanceof Error) throw pieces;
     return pieces;
   });
@@ -115,6 +134,12 @@ describe('<DeliverablesScreen />', () => {
     expect(screen.getByText('Changes requested')).toBeTruthy();
     expect(screen.getByText('Approved')).toBeTruthy();
     expect(screen.getByText('2 revisions left')).toBeTruthy();
+    expect(screen.getByTestId('deliverables-progress').props.children).toEqual([
+      1,
+      ' of ',
+      3,
+      ' approved',
+    ]);
     expect(mockRequest).toHaveBeenCalledWith(
       expect.objectContaining({ url: '/engagements/eng-1/deliverables', method: 'GET' }),
     );
@@ -144,6 +169,46 @@ describe('<DeliverablesScreen />', () => {
 
     expect(await screen.findByTestId('deliverables-completed')).toBeTruthy();
     expect(screen.queryByText(/paid/i)).toBeNull();
+  });
+
+  test('View agreement shows the confirmed terms, falling back without the campaign', async () => {
+    answers([piece({ id: 'p1' })]);
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('deliverables-view-agreement'));
+
+    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+    expect(screen.getByText('2 × Instagram Reels')).toBeTruthy();
+    expect(screen.getByText('No deadline set')).toBeTruthy();
+    expect(screen.getByLabelText("You'll receive 25,000 taka")).toBeTruthy();
+    expect(screen.queryByTestId('agreement-business')).toBeNull();
+    expect(screen.queryByTestId('agreement-accept')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('agreement-close'));
+    expect(screen.queryByTestId('agreement-sheet')).toBeNull();
+  });
+
+  test("shows the campaign's content deadline under the title", async () => {
+    answerWith(({ url }) => {
+      if (url === '/me/engagements/eng-1') {
+        return { id: 'eng-1', campaignId: 'campaign-1', status: 'accepted', offers: [], scope: [] };
+      }
+      if (url === '/feed/campaigns/campaign-1') {
+        return { id: 'campaign-1', title: 'Pathao Summer Push', contentDeadline: '2026-10-10' };
+      }
+      return [piece({ id: 'p1' })];
+    });
+    renderScreen();
+
+    expect(await screen.findByText('Content deadline · 10 Oct 2026')).toBeTruthy();
+  });
+
+  test('leaves the deadline out when the campaign is no longer live', async () => {
+    answers([piece({ id: 'p1' })]);
+    renderScreen();
+
+    expect(await screen.findByText('Instagram Reels · 1')).toBeTruthy();
+    expect(screen.queryByTestId('deliverables-deadline')).toBeNull();
   });
 
   test('shows the empty state', async () => {

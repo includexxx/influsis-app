@@ -15,10 +15,7 @@ import {
   CampaignsEmptyState,
 } from './components';
 import { useCampaignRequests, useMyApplications } from './hooks/useCampaignsFeed';
-import {
-  useAcceptMyEngagementMutation,
-  useDeclineMyEngagementMutation,
-} from './api/campaignFeedApi';
+import { useDeclineMyEngagementMutation } from './api/campaignFeedApi';
 import { mapApplicationToCard, mapCampaignRequestToRow } from './utils/mapApplication';
 import { MyEngagementItem } from './types/myEngagement';
 
@@ -28,11 +25,13 @@ const INITIAL_SKELETON_COUNT = 4;
 
 // Module-level so FlatList rows get a stable `renderItem`/`onPress`. Opens the
 // Offer screen for the engagement; the campaign title rides along because the
-// engagement endpoint (CF3) carries no campaign summary.
-function openOffer(item: MyEngagementItem) {
+// engagement endpoint (CF3) carries no campaign summary. `review` opens the
+// Agreement sheet on arrival - the quick Accept goes through it, so accepting
+// is never one tap and keeps a single accept path.
+function openOffer(item: MyEngagementItem, review?: boolean) {
   router.push({
     pathname: '/engagement/[id]',
-    params: { id: item.id, title: item.campaign?.title ?? '' },
+    params: { id: item.id, title: item.campaign?.title ?? '', ...(review ? { review: '1' } : {}) },
   });
 }
 
@@ -64,9 +63,11 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
 // `origin=requested` in any status, "Request" is `origin=invited` still
 // `pending` or `countered` (mid-negotiation). Tapping either row opens its
 // Offer screen (/engagement/:id), where the creator negotiates. Quick
-// Accept/Decline (CF4/CF5) show only on `pending` invitations - a `countered`
-// one is answered on its Offer screen. An answered invitation is hidden
-// right away since only the current page refetches on invalidation.
+// Accept/Decline show only on `pending` invitations - a `countered` one is
+// answered on its Offer screen. Accept opens the Offer screen with its
+// Agreement sheet up (`review=1`); Decline (CF5) answers in place, and the
+// declined invitation is hidden right away since only the current page
+// refetches on invalidation.
 export default function Applications() {
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<ApplicationsTab>('applied');
@@ -75,7 +76,6 @@ export default function Applications() {
 
   const applied = useMyApplications();
   const requests = useCampaignRequests();
-  const [acceptEngagement] = useAcceptMyEngagementMutation();
   const [declineEngagement] = useDeclineMyEngagementMutation();
 
   const visibleRequests = useMemo(
@@ -83,27 +83,20 @@ export default function Applications() {
     [requests.campaigns, answeredIds],
   );
 
-  const respond = useCallback(
-    async (item: MyEngagementItem, action: 'accept' | 'decline') => {
+  const decline = useCallback(
+    async (item: MyEngagementItem) => {
       setPendingId(item.id);
       try {
-        if (action === 'accept') {
-          await acceptEngagement({ engagementId: item.id }).unwrap();
-        } else {
-          await declineEngagement({ engagementId: item.id }).unwrap();
-        }
+        await declineEngagement({ engagementId: item.id }).unwrap();
         setAnsweredIds(prev => new Set(prev).add(item.id));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Please try again.';
-        Alert.alert(
-          action === 'accept' ? "Couldn't accept invitation" : "Couldn't decline invitation",
-          message,
-        );
+        Alert.alert("Couldn't decline invitation", message);
       } finally {
         setPendingId(null);
       }
     },
-    [acceptEngagement, declineEngagement],
+    [declineEngagement],
   );
 
   const renderRequestItem: ListRenderItem<MyEngagementItem> = useCallback(
@@ -117,14 +110,14 @@ export default function Applications() {
           time={row.time}
           disabled={pendingId !== null}
           showActions={item.status === 'pending'}
-          onAccept={() => respond(item, 'accept')}
-          onDecline={() => respond(item, 'decline')}
+          onAccept={() => openOffer(item, true)}
+          onDecline={() => decline(item)}
           onPress={() => openOffer(item)}
           testID={`campaign-request-${item.id}`}
         />
       );
     },
-    [pendingId, respond],
+    [pendingId, decline],
   );
 
   const isApplied = activeTab === 'applied';

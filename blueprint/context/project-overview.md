@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 31475f223b77957bbf9fe5181877cc36e63b4b17b1754753badbba2e2269fe28 -->
+<!-- blueprint:source-hash 5d414ed054a8e486df2791b4a1970ded0f8f6fd0db79412c1c20fab8e0efad28 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -86,14 +86,25 @@ engagement status, the pending offer's sender (backend turn rule) and
 `roundsRemaining`. The Request tab also lists `countered` invitations. Escrow
 funding (backend 19) and messaging-hosted offers (22) are out of scope.
 
-**Next up - items 24-25, the creator side of deliverables (backend 18l, 18m).**
-24: the Offer screen shows the engagement's own deliverables list (`scope`),
-tags `scopeChanged` rounds, and Counter can change the deliverables with or
-instead of the amount; Apply can propose a different list (`CF1` `scope`),
-sent only when changed. 25: an accepted engagement's pieces (`CI1`), submitting
-a revision as an image or link (`CI2`), resubmitting after the business's
-change request, and recording the live post URL after approval (`CI4`);
-escalated pieces show "In dispute", a completed engagement never says "paid".
+**Items 24-25 (the creator side of deliverables, backend 18l, 18m) are
+complete.** 24: the Offer screen shows the engagement's own `scope`, tags
+`scopeChanged` rounds, and Counter can change the deliverables; Apply can
+propose a different list (`CF1` `scope`). 25: an accepted engagement's pieces
+(`CI1`), submitting an image or link (`CI2`), resubmitting after a change
+request, and recording the live post URL (`CI4`); a completed engagement
+never says "paid".
+
+**Next up - item 34, review the agreement before accepting (backend 18e
+`CF3`, `CF4`).** Accept on the Offer screen and on Request-tab invitation
+cards opens an agreement sheet - business, campaign, `scope`, content
+deadline, and "You'll receive ৳X" (the pending offer plus the licensing
+markup for the campaign's tier; after acceptance `agreedAmountMinor` +
+`licensingMarkupMinor`) - and confirming sends `CF4`. The creator never sees
+the platform fee, VAT, processing fee or the business's total (F-2: the
+creator receives 100% of the deal; F-6: licensing tiers raise the deal).
+Accepted engagements get a read-only "View agreement" on the Offer and
+deliverables screens. Numbered 34 because the escrow items on `feat/escrow`
+use 26-33; escrow status and payment copy stay with escrow item 27.
 
 Other product screens (orders, gigs, messaging, balance) still run on
 `data/*.ts` mock fixtures.
