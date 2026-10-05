@@ -8,6 +8,8 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import Image from '../Image';
 import FallbackImage from '../FallbackImage';
@@ -58,9 +60,101 @@ const listShadow =
       };
 
 const styles = StyleSheet.create({
+  // Hero: a full-bleed cover with a dark scrim so white text stays legible
+  // on any photo (WCAG contrast), title and money on top of it.
   hero: {
-    borderRadius: 16,
+    height: 210,
+    borderRadius: 20,
     overflow: 'hidden',
+  },
+  heroCover: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    padding: 14,
+    gap: 8,
+  },
+  heroTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    flex: 1,
+  },
+  heroTag: {
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  heroTagLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1D1F2C',
+  },
+  heroBottom: {
+    marginTop: 'auto',
+    padding: 14,
+    gap: 10,
+  },
+  heroTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  heroAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  heroTitle: {
+    flex: 1,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 28,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  heroPriceChip: {
+    backgroundColor: '#FFFFFF',
+  },
+  heroChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  heroPriceText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1D1F2C',
+  },
+  pressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.99 }],
   },
   list: {
     borderRadius: 12,
@@ -74,10 +168,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-  },
-  heroImage: {
-    width: '100%',
-    height: 139,
   },
   listImage: {
     width: '100%',
@@ -137,18 +227,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.07,
     fontWeight: '600',
   },
-  avatarTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 4,
-    borderColor: '#FFFFFF',
-  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -189,11 +267,11 @@ const styles = StyleSheet.create({
 });
 
 // Campaign card (Figma nodes 6770:6078 "hero" carousel variant + 6121:6627/
-// 6659/6684/6709 "list" variant). Both share the same DNA - image, gender
-// tag pills overlaid on the image's bottom-left corner, title + verified
-// badge, price + due date - but differ in corner radius, shadow, and
-// whether a circular business avatar (hero, overlapping the image) or a plain
-// business-name text line (list) is shown. See docs/screen/home for detail. The
+// 6659/6684/6709 "list" variant). Both carry the same data - image, gender
+// tag pills, title + verified badge, price + due date. The list variant
+// stacks them under the image; the hero variant (Home's Active Campaigns
+// carousel) lays them over a full-bleed cover behind a dark scrim, with the
+// business avatar beside the title. See docs/screen/home for detail. The
 // optional `status` pill (Figma node 6138:5549, "Ongoing") added for the
 // Search screen's result cards (docs/screen/search) sits top-right of the
 // whole card via the shared `StatusBadge` component.
@@ -219,18 +297,84 @@ function CampaignCard({
   const isHero = variant === 'hero';
   const isApplied = variant === 'applied';
 
+  if (isHero) {
+    return (
+      <Pressable
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={`${title}, ${price}, due ${dueDate}`}
+        onPress={onPress}
+        testID={testID}
+        style={({ pressed }) => [
+          styles.hero,
+          { backgroundColor: palette.gray[700] },
+          style,
+          pressed && onPress ? styles.pressed : null,
+        ]}>
+        <FallbackImage
+          source={image}
+          fallbackSource={defaultCover}
+          name={title}
+          style={styles.heroCover}
+        />
+        <LinearGradient
+          colors={['rgba(3, 3, 4, 0.05)', 'rgba(3, 3, 4, 0.35)', 'rgba(3, 3, 4, 0.85)']}
+          locations={[0, 0.45, 1]}
+          style={styles.heroScrim}
+        />
+
+        <View style={styles.heroTop}>
+          <View style={styles.heroTags}>
+            {tags?.map(tag => (
+              <View key={tag} style={styles.heroTag}>
+                <Text style={styles.heroTagLabel}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+          {status && <StatusBadge label={status} color={statusColor} textColor={statusTextColor} />}
+        </View>
+
+        <View style={styles.heroBottom}>
+          <View style={styles.heroTitleRow}>
+            {(businessAvatar || businessName) && (
+              <FallbackImage
+                source={businessAvatar}
+                name={businessName ?? title}
+                style={styles.heroAvatar}
+              />
+            )}
+            <Text style={styles.heroTitle} numberOfLines={2}>
+              {title}
+            </Text>
+            {verified && (
+              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
+            )}
+          </View>
+          <View style={styles.heroMetaRow}>
+            <View style={[styles.heroChip, styles.heroPriceChip]}>
+              <Text style={styles.heroPriceText}>{price}</Text>
+            </View>
+            <View style={styles.heroChip}>
+              <Feather name="calendar" size={13} color="#FFFFFF" />
+              <Text style={styles.heroChipText}>{dueDate}</Text>
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
       onPress={onPress}
       testID={testID}
-      style={[isHero ? styles.hero : styles.list, { backgroundColor: colors.card }, style]}>
+      style={[styles.list, { backgroundColor: colors.card }, style]}>
       <View style={styles.imageWrap}>
         <FallbackImage
           source={image}
           fallbackSource={defaultCover}
           name={title}
-          style={isHero ? styles.heroImage : styles.listImage}
+          style={styles.listImage}
         />
         {!!tags?.length && (
           <View style={styles.tagRow}>
@@ -263,22 +407,6 @@ function CampaignCard({
               {title}
             </Text>
           </>
-        ) : isHero ? (
-          <View style={styles.avatarTitleRow}>
-            {(businessAvatar || businessName) && (
-              <FallbackImage
-                source={businessAvatar}
-                name={businessName ?? title}
-                style={styles.avatar}
-              />
-            )}
-            <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
-              {title}
-            </Text>
-            {verified && (
-              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
-            )}
-          </View>
         ) : (
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
@@ -290,7 +418,7 @@ function CampaignCard({
           </View>
         )}
 
-        {!isApplied && !isHero && businessName && (
+        {!isApplied && businessName && (
           <Text style={[styles.businessName, { color: palette.primary[400] }]}>{businessName}</Text>
         )}
 

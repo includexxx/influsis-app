@@ -6,3 +6,6 @@ export { default as PopularCampaignsSection } from './PopularCampaignsSection';
 export { default as CampaignsListSection } from './CampaignsListSection';
 export { default as TopGigsSection } from './TopGigsSection';
 export { default as TopRatedCreatorsSection } from './TopRatedCreatorsSection';
+export { default as HomeGreeting } from './HomeGreeting';
+export { default as QuickActions } from './QuickActions';
+export { default as AvatarTile } from './AvatarTile';

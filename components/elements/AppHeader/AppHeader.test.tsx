@@ -15,4 +15,11 @@ describe('<AppHeader />', () => {
     fireEvent.press(screen.getByLabelText('Notifications'));
     expect(onNotificationPress).toHaveBeenCalledTimes(1);
   });
+
+  test('shows the unread dot only when there is something unread', () => {
+    const { rerender } = render(<AppHeader />);
+    expect(screen.queryByTestId('app-header-unread')).toBeNull();
+    rerender(<AppHeader hasUnread />);
+    expect(screen.getByTestId('app-header-unread')).not.toBeNull();
+  });
 });

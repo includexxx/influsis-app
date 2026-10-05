@@ -1,38 +1,90 @@
 import AppHeader from '@/components/elements/AppHeader';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
+import { palette } from '@/theme';
 import { router } from 'expo-router';
-import { ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ActiveCampaignsSection,
   BusinessLogosSection,
   CampaignsListSection,
   EarningsSection,
-  HomeSearchBar,
+  HomeGreeting,
+  QuickActions,
   TopRatedCreatorsSection,
 } from './components';
+import { QuickAction, QUICK_ACTION_TINTS } from './components/QuickActions';
+import { useHomeRefresh } from './hooks/useHomeRefresh';
+import { greetingName } from './utils/greeting';
 import { homeStyle } from './home.style';
 import { openDeliverables } from '@/scenes/campaigns/utils/openDeliverables';
 
-// The Home tab of the main app shell (Figma "Home", node 6121:6522).
-// Sections are populated from data/home.ts mock content - no backend
-// exists yet (docs/PRD.md §2.2/§4.1) - see docs/screen/home/README.md for
-// the full scope notes.
+const QUICK_ACTIONS: QuickAction[] = [
+  {
+    key: 'applications',
+    label: 'Applications',
+    icon: 'send',
+    tint: QUICK_ACTION_TINTS.primary,
+    onPress: () => router.push('/applications'),
+  },
+  {
+    key: 'work',
+    label: 'My work',
+    icon: 'briefcase',
+    tint: QUICK_ACTION_TINTS.navy,
+    onPress: () => router.push('/live-campaign'),
+  },
+  {
+    key: 'transactions',
+    label: 'Transactions',
+    icon: 'bar-chart-2',
+    tint: QUICK_ACTION_TINTS.green,
+    onPress: () => router.push('/transactions'),
+  },
+  {
+    key: 'messages',
+    label: 'Messages',
+    icon: 'message-circle',
+    tint: QUICK_ACTION_TINTS.amber,
+    onPress: () => router.push('/message'),
+  },
+];
+
+// The Home tab of the main app shell (Figma "Home", node 6121:6522): a
+// personal greeting, the earnings card, quick actions, then the campaign,
+// business and creator sections - each section loads, fails and retries on
+// its own. Pull down to refresh everything (useHomeRefresh). See
+// docs/screen/home/README.md for the full scope notes.
 export default function Home() {
   const { colors } = useTheme();
+  const { refreshing, refresh, profile } = useHomeRefresh();
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
       <ScrollView
         style={layoutStyle.screen}
         contentContainerStyle={[layoutStyle.scrollContent, homeStyle.sectionGap]}
-        showsVerticalScrollIndicator={false}>
-        <AppHeader onNotificationPress={() => router.push('/notifications')} />
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={palette.primary[400]}
+            colors={[palette.primary[400]]}
+          />
+        }>
+        <View style={homeStyle.topGroup}>
+          <AppHeader onNotificationPress={() => router.push('/notifications')} />
 
-        {/* <HomeSearchBar onPress={() => router.push('/search')} style={{ marginTop: -16 }} /> */}
+          {/* <HomeSearchBar onPress={() => router.push('/search')} /> */}
 
-        <EarningsSection style={{ marginTop: -16 }} />
+          <HomeGreeting name={greetingName(profile)} />
+
+          <EarningsSection />
+
+          <QuickActions actions={QUICK_ACTIONS} />
+        </View>
 
         <ActiveCampaignsSection
           onSeeAllPress={() => router.push('/live-campaign')}

@@ -7,10 +7,16 @@ import { spacing } from '@/theme';
 // with those components instead - this file only holds shapes the scene
 // file itself assembles sections out of.
 export const homeStyle = StyleSheet.create({
-  // Vertical gap between the six Home sections (Active Campaigns, Business,
-  // Popular Campaigns, Campaigns, Top Gigs, Top Rated Creator).
+  // Vertical gap between Home's sections (the top group, Active Campaigns,
+  // Businesses, New Campaigns, Top Rated Creators).
   sectionGap: {
     gap: spacing['3xl'],
+    paddingBottom: spacing['3xl'],
+  },
+  // Header, greeting, earnings card and quick actions sit closer together -
+  // they read as one "you" block above the content sections.
+  topGroup: {
+    gap: spacing.lg,
   },
   // Gap between a section's SectionHeader and its content list.
   sectionHeaderGap: {
@@ -22,11 +28,10 @@ export const homeStyle = StyleSheet.create({
   horizontalListGap: {
     gap: 8,
   },
-  // Gap between circular avatars in the Business logo / Top Rated Creator
-  // rows - Figma's own spacing here is inconsistent (14-16px between
-  // instances), normalized to 12.
+  // Gap between the named avatar tiles in the Businesses / Top Rated
+  // Creators rows (used as the horizontal ScrollView's content style).
   avatarListGap: {
-    gap: 12,
+    gap: 8,
   },
   // Vertical gap between stacked cards in the full-width "Campaigns" list.
   campaignListGap: {

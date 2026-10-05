@@ -10,18 +10,20 @@ export interface CampaignCardSkeletonProps {
 }
 
 const styles = StyleSheet.create({
+  // Same footprint as CampaignCard's full-bleed hero (210 tall, 20 radius).
   hero: {
     width: 370,
-    borderRadius: 16,
+    height: 210,
+    borderRadius: 20,
     overflow: 'hidden',
   },
   list: {
     borderRadius: 12,
     overflow: 'hidden',
   },
-  heroImage: {
+  heroCover: {
     width: '100%',
-    height: 139,
+    height: '100%',
   },
   listImage: {
     width: '100%',
@@ -38,16 +40,6 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 20,
     gap: 10,
-  },
-  avatarTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
   },
   titleBlock: {
     flex: 1,
@@ -97,11 +89,19 @@ function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonP
     );
   }
 
+  if (isHero) {
+    return (
+      <View style={[styles.hero, style]} testID="campaign-card-skeleton">
+        {block(styles.heroCover, 'cover')}
+      </View>
+    );
+  }
+
   return (
     <View
-      style={[isHero ? styles.hero : styles.list, { backgroundColor: colors.card }, style]}
+      style={[styles.list, { backgroundColor: colors.card }, style]}
       testID="campaign-card-skeleton">
-      {block(isHero ? styles.heroImage : styles.listImage, 'image')}
+      {block(styles.listImage, 'image')}
       {isApplied ? (
         <View style={styles.contentApplied}>
           <View style={styles.footerRow}>
@@ -112,17 +112,8 @@ function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonP
         </View>
       ) : (
         <View style={styles.content}>
-          {isHero ? (
-            <View style={styles.avatarTitleRow}>
-              {block(styles.avatar, 'avatar')}
-              {block(styles.titleBlock, 'title')}
-            </View>
-          ) : (
-            <>
-              {block(styles.titleBlock, 'title')}
-              {block(styles.businessNameBlock, 'businessName')}
-            </>
-          )}
+          {block(styles.titleBlock, 'title')}
+          {block(styles.businessNameBlock, 'businessName')}
           <View style={styles.footerRow}>
             {block(styles.priceBlock, 'price')}
             {block(styles.dateBlock, 'date')}

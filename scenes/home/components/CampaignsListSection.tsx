@@ -42,7 +42,8 @@ function CampaignsListSection({
   return (
     <View>
       <SectionHeader
-        title="Campaigns"
+        title="New Campaigns"
+        subtitle="Open campaigns you can apply to"
         onSeeAllPress={onSeeAllPress}
         style={homeStyle.sectionHeaderGap}
       />
