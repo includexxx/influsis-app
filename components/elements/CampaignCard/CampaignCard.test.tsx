@@ -93,6 +93,45 @@ describe('<CampaignCard />', () => {
     expect(screen.getByText('New Shop Opening')).not.toBeNull();
   });
 
+  test('the glass panel shows the business on both cover cards, deliverables only on list', () => {
+    const props = {
+      image,
+      businessAvatar: avatar,
+      businessName: 'Bkash Ltd.',
+      title: 'Launching New Products',
+      servicesDescription: '2 Instagram Reels, 1 TikTok Video',
+      price: 'BDT 20,000',
+      dueDate: 'No deadline',
+    };
+    const { rerender } = render(<CampaignCard variant="hero" {...props} />);
+    expect(screen.getByTestId('campaign-card-glass')).not.toBeNull();
+    expect(screen.getByText('Bkash Ltd.')).not.toBeNull();
+    expect(screen.getByText('BDT 20,000')).not.toBeNull();
+    expect(screen.getByText('No deadline')).not.toBeNull();
+    expect(screen.queryByText('2 Instagram Reels, 1 TikTok Video')).toBeNull();
+
+    rerender(<CampaignCard variant="list" {...props} />);
+    expect(screen.getByText('2 Instagram Reels, 1 TikTok Video')).not.toBeNull();
+  });
+
+  test('reads the list card as one labelled button', () => {
+    render(
+      <CampaignCard
+        variant="list"
+        image={image}
+        title="Bkash Branding Campaign"
+        businessName="Bkash Ltd."
+        status="Applied"
+        price="BDT 2,000"
+        dueDate="21 Oct 2026"
+        onPress={jest.fn()}
+      />,
+    );
+    expect(
+      screen.getByLabelText('Bkash Branding Campaign, Bkash Ltd., Applied, BDT 2,000, 21 Oct 2026'),
+    ).not.toBeNull();
+  });
+
   test('calls onPress when tapped', () => {
     const onPress = jest.fn();
     render(

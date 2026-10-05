@@ -1,5 +1,4 @@
 import {
-  Platform,
   View,
   Text,
   Pressable,
@@ -8,12 +7,13 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
+import { getShadowStyle, radius } from '@/theme';
 import Image from '../Image';
 import FallbackImage from '../FallbackImage';
-import CalendarBadge from '../CalendarBadge';
 import StatusBadge from '../StatusBadge';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
@@ -27,7 +27,7 @@ export interface CampaignCardProps {
   variant?: CampaignCardVariant;
   /** Cover photo; `null` (or a URL that fails to load) shows a generic cover. */
   image: ImageSourcePropType | null;
-  /** Hero variant only; `null` (or a broken URL) shows the business initial. */
+  /** `null` (or a broken URL) shows the business initial. */
   businessAvatar?: ImageSourcePropType | null;
   businessName?: string;
   title: string;
@@ -44,237 +44,221 @@ export interface CampaignCardProps {
   testID?: string;
 }
 
-// Figma's `0px 2px 15.5px rgba(0,0,0,0.1)` list-card shadow, platform-
-// branched the same way theme/shadows.ts's `getShadowStyle` and
-// app/(main)/_layout.tsx's `tabBarShadow` are - raw `shadow*` style props
-// are deprecated on React Native Web in favor of `boxShadow`.
-const listShadow =
-  Platform.OS === 'web'
-    ? { boxShadow: '0px 2px 15.5px rgba(0, 0, 0, 0.1)' }
-    : {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 15.5,
-        elevation: 4,
-      };
+const WHITE = '#FFFFFF';
+const INK = '#1D1F2C';
 
 const styles = StyleSheet.create({
-  // Hero: a full-bleed cover with a dark scrim so white text stays legible
-  // on any photo (WCAG contrast), title and money on top of it.
-  hero: {
-    height: 210,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  heroCover: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  heroScrim: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  heroTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    padding: 14,
-    gap: 8,
-  },
-  heroTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    flex: 1,
-  },
-  heroTag: {
-    height: 24,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  },
-  heroTagLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1D1F2C',
-  },
-  heroBottom: {
-    marginTop: 'auto',
-    padding: 14,
-    gap: 10,
-  },
-  heroTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  heroAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  heroTitle: {
-    flex: 1,
-    fontSize: 18,
-    lineHeight: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  heroMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  heroChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 28,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  heroPriceChip: {
-    backgroundColor: '#FFFFFF',
-  },
-  heroChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  heroPriceText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1D1F2C',
-  },
   pressed: {
     opacity: 0.92,
     transform: [{ scale: 0.99 }],
   },
-  list: {
-    borderRadius: 12,
+
+  // --- Cover cards (hero + list): a full-bleed photo with a frosted-glass
+  // panel over its bottom, so white text stays legible on any image. ---
+  coverCard: {
+    borderRadius: 24,
     overflow: 'hidden',
-    ...listShadow,
+    ...getShadowStyle('md'),
   },
-  imageWrap: {
-    position: 'relative',
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-  },
-  listImage: {
+  heroHeight: { height: 220 },
+  listHeight: { height: 262 },
+  cover: {
+    ...StyleSheet.absoluteFillObject,
     width: '100%',
-    height: 134,
+    height: '100%',
   },
-  tagRow: {
-    position: 'absolute',
-    left: 14,
-    bottom: 13,
-    flexDirection: 'row',
-    gap: 6,
+  scrim: {
+    ...StyleSheet.absoluteFillObject,
   },
-  tagPill: {
-    height: 26,
-    borderRadius: 30,
-    paddingHorizontal: 8,
-    paddingVertical: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#B2FFD2',
-  },
-  tagLabel: {
-    fontSize: 14,
-    lineHeight: 18,
-    letterSpacing: 0.07,
-    fontWeight: '500',
-    color: 'rgba(0,0,0,0.8)',
-  },
-  content: {
-    paddingHorizontal: 14,
-    paddingTop: 20,
-    paddingBottom: 14,
-    gap: 8,
-  },
-  // Content padding for the `applied` variant - image-to-row gap (14),
-  // row-to-title gap (8) and bottom padding (20) all confirmed from Figma's
-  // pixel positions (Applications screen, node 6015:7202 and siblings).
-  contentApplied: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 20,
-    gap: 8,
-  },
-  appliedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  appliedDate: {
-    fontSize: 14,
-    lineHeight: 21,
-    letterSpacing: 0.07,
-  },
-  appliedPrice: {
-    fontSize: 14,
-    lineHeight: 21,
-    letterSpacing: 0.07,
-    fontWeight: '600',
-  },
-  titleRow: {
+  top: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+    padding: 12,
     gap: 8,
   },
-  title: {
+  tagRow: {
     flex: 1,
-    fontSize: 20,
-    lineHeight: 27,
-    fontWeight: '600',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
   },
-  verifiedIcon: {
-    width: 20,
-    height: 20,
-    marginTop: 3,
+  // Glass surfaces: a blur plus a translucent tint (the tint alone carries
+  // the look where native blur is unavailable, e.g. Android's default) and
+  // a hairline light border - the usual glassmorphism recipe.
+  glassPill: {
+    height: 26,
+    borderRadius: 13,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  glassPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: WHITE,
+  },
+  panel: {
+    marginTop: 'auto',
+    margin: 10,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    backgroundColor: 'rgba(16, 16, 24, 0.28)',
+  },
+  panelInner: {
+    padding: 12,
+    gap: 10,
+  },
+  identityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
+    borderColor: WHITE,
+  },
+  identityText: {
+    flex: 1,
+    gap: 2,
+  },
+  title: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '700',
+    color: WHITE,
+  },
+  businessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   businessName: {
-    fontSize: 16,
-    lineHeight: 24,
-    letterSpacing: 0.08,
+    flexShrink: 1,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.82)',
+  },
+  verifiedIcon: {
+    width: 14,
+    height: 14,
+  },
+  servicesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   services: {
-    fontSize: 14,
-    lineHeight: 20,
-    letterSpacing: 0.07,
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 16,
+    color: 'rgba(255, 255, 255, 0.85)',
   },
-  footerRow: {
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  priceChip: {
+    height: 30,
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: WHITE,
+  },
+  priceText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: INK,
+  },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 30,
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  dateText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: WHITE,
+  },
+
+  // --- Applied: a compact row (Applications list) ---
+  applied: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    ...getShadowStyle('sm'),
+  },
+  thumb: {
+    width: 84,
+    height: 84,
+    borderRadius: radius.lg,
+  },
+  appliedBody: {
+    flex: 1,
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  appliedTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  price: {
-    fontSize: 20,
-    lineHeight: 27,
-    fontWeight: '600',
+  appliedDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 1,
+  },
+  appliedDate: {
+    flexShrink: 1,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  appliedTitle: {
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '700',
+  },
+  appliedPrice: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '800',
   },
 });
 
 // Campaign card (Figma nodes 6770:6078 "hero" carousel variant + 6121:6627/
-// 6659/6684/6709 "list" variant). Both carry the same data - image, gender
-// tag pills, title + verified badge, price + due date. The list variant
-// stacks them under the image; the hero variant (Home's Active Campaigns
-// carousel) lays them over a full-bleed cover behind a dark scrim, with the
-// business avatar beside the title. See docs/screen/home for detail. The
-// optional `status` pill (Figma node 6138:5549, "Ongoing") added for the
-// Search screen's result cards (docs/screen/search) sits top-right of the
-// whole card via the shared `StatusBadge` component.
+// 6659/6684/6709 "list" variant + the Applications "applied" rows):
+// - `hero` (Home's Active Campaigns carousel) and `list` (Campaigns, Home,
+//   Business details, Live Campaigns, Search) are cover cards: a full-bleed
+//   photo under a soft scrim, tag and status pills on top, and a frosted-glass
+//   panel at the bottom with the business avatar, title, business name +
+//   verified badge, the deliverables (list), and white price / glass date
+//   chips. `list` is taller to fit the deliverables line.
+// - `applied` (Applications): a compact row - thumbnail, applied date and
+//   status, title, price.
+// Every variant is one labelled button with press feedback. See
+// docs/screen/home and docs/screen/search for detail.
 function CampaignCard({
   variant = 'list',
   image,
@@ -294,19 +278,20 @@ function CampaignCard({
   testID,
 }: CampaignCardProps) {
   const { colors, palette } = useTheme();
-  const isHero = variant === 'hero';
-  const isApplied = variant === 'applied';
+  const accessibilityLabel = [title, businessName, status, price, dueDate]
+    .filter(Boolean)
+    .join(', ');
 
-  if (isHero) {
+  if (variant === 'applied') {
     return (
       <Pressable
         accessibilityRole={onPress ? 'button' : undefined}
-        accessibilityLabel={`${title}, ${price}, due ${dueDate}`}
+        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         testID={testID}
         style={({ pressed }) => [
-          styles.hero,
-          { backgroundColor: palette.gray[700] },
+          styles.applied,
+          { backgroundColor: colors.card, borderColor: colors.border },
           style,
           pressed && onPress ? styles.pressed : null,
         ]}>
@@ -314,125 +299,127 @@ function CampaignCard({
           source={image}
           fallbackSource={defaultCover}
           name={title}
-          style={styles.heroCover}
+          style={styles.thumb}
         />
-        <LinearGradient
-          colors={['rgba(3, 3, 4, 0.05)', 'rgba(3, 3, 4, 0.35)', 'rgba(3, 3, 4, 0.85)']}
-          locations={[0, 0.45, 1]}
-          style={styles.heroScrim}
-        />
-
-        <View style={styles.heroTop}>
-          <View style={styles.heroTags}>
-            {tags?.map(tag => (
-              <View key={tag} style={styles.heroTag}>
-                <Text style={styles.heroTagLabel}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-          {status && <StatusBadge label={status} color={statusColor} textColor={statusTextColor} />}
-        </View>
-
-        <View style={styles.heroBottom}>
-          <View style={styles.heroTitleRow}>
-            {(businessAvatar || businessName) && (
-              <FallbackImage
-                source={businessAvatar}
-                name={businessName ?? title}
-                style={styles.heroAvatar}
-              />
-            )}
-            <Text style={styles.heroTitle} numberOfLines={2}>
-              {title}
-            </Text>
-            {verified && (
-              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
+        <View style={styles.appliedBody}>
+          <View style={styles.appliedTop}>
+            <View style={styles.appliedDateRow}>
+              <Feather name="clock" size={12} color={colors.text.secondary} />
+              <Text
+                style={[styles.appliedDate, { color: colors.text.secondary }]}
+                numberOfLines={1}>
+                {dueDate}
+              </Text>
+            </View>
+            {status && (
+              <StatusBadge label={status} color={statusColor} textColor={statusTextColor} />
             )}
           </View>
-          <View style={styles.heroMetaRow}>
-            <View style={[styles.heroChip, styles.heroPriceChip]}>
-              <Text style={styles.heroPriceText}>{price}</Text>
-            </View>
-            <View style={styles.heroChip}>
-              <Feather name="calendar" size={13} color="#FFFFFF" />
-              <Text style={styles.heroChipText}>{dueDate}</Text>
-            </View>
-          </View>
+          <Text style={[styles.appliedTitle, { color: colors.text.primary }]} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={[styles.appliedPrice, { color: palette.primary[500] }]}>{price}</Text>
         </View>
       </Pressable>
     );
   }
 
+  const isList = variant === 'list';
+  const showAvatar = !!(businessAvatar || businessName);
+
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={accessibilityLabel}
       onPress={onPress}
       testID={testID}
-      style={[styles.list, { backgroundColor: colors.card }, style]}>
-      <View style={styles.imageWrap}>
-        <FallbackImage
-          source={image}
-          fallbackSource={defaultCover}
-          name={title}
-          style={styles.listImage}
-        />
-        {!!tags?.length && (
-          <View style={styles.tagRow}>
-            {tags.map(tag => (
-              <View key={tag} style={styles.tagPill}>
-                <Text style={styles.tagLabel}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+      style={({ pressed }) => [
+        styles.coverCard,
+        isList ? styles.listHeight : styles.heroHeight,
+        { backgroundColor: palette.gray[700] },
+        style,
+        pressed && onPress ? styles.pressed : null,
+      ]}>
+      <FallbackImage
+        source={image}
+        fallbackSource={defaultCover}
+        name={title}
+        style={styles.cover}
+      />
+      <LinearGradient
+        colors={['rgba(3, 3, 4, 0.30)', 'rgba(3, 3, 4, 0)', 'rgba(3, 3, 4, 0.55)']}
+        locations={[0, 0.4, 1]}
+        style={styles.scrim}
+      />
+
+      <View style={styles.top}>
+        <View style={styles.tagRow}>
+          {tags?.map(tag => (
+            <BlurView key={tag} intensity={30} tint="light" style={styles.glassPill}>
+              <Text style={styles.glassPillText}>{tag}</Text>
+            </BlurView>
+          ))}
+        </View>
+        {status && <StatusBadge label={status} color={statusColor} textColor={statusTextColor} />}
       </View>
 
-      {status && (
-        <StatusBadge
-          label={status}
-          color={statusColor}
-          textColor={statusTextColor}
-          style={styles.statusBadge}
-        />
-      )}
-
-      <View style={isApplied ? styles.contentApplied : styles.content}>
-        {isApplied ? (
-          <>
-            <View style={styles.appliedRow}>
-              <Text style={[styles.appliedDate, { color: palette.gray[300] }]}>{dueDate}</Text>
-              <Text style={[styles.appliedPrice, { color: colors.text.primary }]}>{price}</Text>
-            </View>
-            <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
-              {title}
-            </Text>
-          </>
-        ) : (
-          <View style={styles.titleRow}>
-            <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={2}>
-              {title}
-            </Text>
-            {verified && (
-              <Image source={verifiedBadge} style={styles.verifiedIcon} contentFit="contain" />
+      <BlurView intensity={40} tint="dark" style={styles.panel} testID="campaign-card-glass">
+        <View style={styles.panelInner}>
+          <View style={styles.identityRow}>
+            {showAvatar && (
+              <FallbackImage
+                source={businessAvatar ?? null}
+                name={businessName ?? title}
+                style={styles.avatar}
+              />
             )}
+            <View style={styles.identityText}>
+              <Text style={styles.title} numberOfLines={isList ? 2 : 1}>
+                {title}
+              </Text>
+              {businessName || verified ? (
+                <View style={styles.businessRow}>
+                  {businessName ? (
+                    <Text style={styles.businessName} numberOfLines={1}>
+                      {businessName}
+                    </Text>
+                  ) : null}
+                  {verified && (
+                    <Image
+                      source={verifiedBadge}
+                      style={styles.verifiedIcon}
+                      contentFit="contain"
+                    />
+                  )}
+                </View>
+              ) : null}
+            </View>
           </View>
-        )}
 
-        {!isApplied && businessName && (
-          <Text style={[styles.businessName, { color: palette.primary[400] }]}>{businessName}</Text>
-        )}
+          {isList && servicesDescription ? (
+            <View style={styles.servicesRow}>
+              <Feather name="layers" size={13} color="rgba(255, 255, 255, 0.85)" />
+              <Text style={styles.services} numberOfLines={1}>
+                {servicesDescription}
+              </Text>
+            </View>
+          ) : null}
 
-        {!isApplied && servicesDescription && (
-          <Text style={[styles.services, { color: palette.gray[300] }]}>{servicesDescription}</Text>
-        )}
-
-        {!isApplied && (
-          <View style={styles.footerRow}>
-            <Text style={[styles.price, { color: colors.text.primary }]}>{price}</Text>
-            <CalendarBadge date={dueDate} />
+          <View style={styles.metaRow}>
+            <View style={styles.priceChip}>
+              <Text style={styles.priceText} numberOfLines={1}>
+                {price}
+              </Text>
+            </View>
+            <View style={styles.dateChip}>
+              <Feather name="calendar" size={13} color={WHITE} />
+              <Text style={styles.dateText} numberOfLines={1}>
+                {dueDate}
+              </Text>
+            </View>
           </View>
-        )}
-      </View>
+        </View>
+      </BlurView>
     </Pressable>
   );
 }

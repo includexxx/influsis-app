@@ -1,5 +1,6 @@
 import { Animated, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
+import { radius } from '@/theme';
 import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
 
 export type CampaignCardSkeletonVariant = 'hero' | 'list' | 'applied';
@@ -10,63 +11,49 @@ export interface CampaignCardSkeletonProps {
 }
 
 const styles = StyleSheet.create({
-  // Same footprint as CampaignCard's full-bleed hero (210 tall, 20 radius).
-  hero: {
-    width: 370,
-    height: 210,
-    borderRadius: 20,
+  // Same footprint as CampaignCard's cover cards: hero 220 / list 262 tall,
+  // 24 radius, with the glass panel's shape at the bottom.
+  coverCard: {
+    borderRadius: 24,
     overflow: 'hidden',
   },
-  list: {
-    borderRadius: 12,
-    overflow: 'hidden',
+  hero: { width: 370, height: 220 },
+  list: { height: 262 },
+  coverFill: {
+    ...StyleSheet.absoluteFillObject,
   },
-  heroCover: {
-    width: '100%',
-    height: '100%',
-  },
-  listImage: {
-    width: '100%',
-    height: 134,
-  },
-  content: {
-    paddingHorizontal: 14,
-    paddingTop: 20,
-    paddingBottom: 14,
+  panel: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    bottom: 10,
+    borderRadius: 18,
+    padding: 12,
     gap: 10,
   },
-  contentApplied: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 20,
-    gap: 10,
-  },
-  titleBlock: {
-    flex: 1,
-    height: 20,
-    borderRadius: 6,
-  },
-  businessNameBlock: {
-    width: '45%',
-    height: 14,
-    borderRadius: 6,
-  },
-  footerRow: {
+  panelRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatar: { width: 38, height: 38, borderRadius: 19 },
+  lines: { flex: 1, gap: 6 },
+  titleBlock: { width: '75%', height: 14, borderRadius: 6 },
+  subBlock: { width: '45%', height: 10, borderRadius: 5 },
+  chips: { flexDirection: 'row', gap: 8 },
+  chip: { width: 92, height: 30, borderRadius: 15 },
+  // Same footprint as CampaignCard's applied row: 84 thumbnail, then the
+  // date/status line, title and price.
+  applied: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 2,
+    gap: 12,
+    padding: 12,
+    borderRadius: radius.xl,
+    borderWidth: 1,
   },
-  priceBlock: {
-    width: 70,
-    height: 20,
-    borderRadius: 6,
-  },
-  dateBlock: {
-    width: 90,
-    height: 16,
-    borderRadius: 6,
-  },
+  thumb: { width: 84, height: 84, borderRadius: radius.lg },
+  appliedBody: { flex: 1, justifyContent: 'space-between' },
+  appliedTop: { flexDirection: 'row', justifyContent: 'space-between' },
+  appliedDateBlock: { width: 80, height: 12, borderRadius: 6 },
+  statusBlock: { width: 64, height: 22, borderRadius: 11 },
+  appliedTitleBlock: { width: '85%', height: 15, borderRadius: 6 },
+  appliedPriceBlock: { width: 72, height: 15, borderRadius: 6 },
 });
 
 // Loading placeholder shaped like CampaignCard (components/elements/
@@ -77,8 +64,6 @@ const styles = StyleSheet.create({
 function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonProps) {
   const { colors, palette } = useTheme();
   const opacity = useSkeletonPulse();
-  const isHero = variant === 'hero';
-  const isApplied = variant === 'applied';
 
   function block(blockStyle: StyleProp<ViewStyle>, key: string) {
     return (
@@ -89,37 +74,42 @@ function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonP
     );
   }
 
-  if (isHero) {
+  const frame = { backgroundColor: colors.card, borderColor: colors.border };
+
+  if (variant === 'applied') {
     return (
-      <View style={[styles.hero, style]} testID="campaign-card-skeleton">
-        {block(styles.heroCover, 'cover')}
+      <View style={[styles.applied, frame, style]} testID="campaign-card-skeleton">
+        {block(styles.thumb, 'thumb')}
+        <View style={styles.appliedBody}>
+          <View style={styles.appliedTop}>
+            {block(styles.appliedDateBlock, 'date')}
+            {block(styles.statusBlock, 'status')}
+          </View>
+          {block(styles.appliedTitleBlock, 'title')}
+          {block(styles.appliedPriceBlock, 'price')}
+        </View>
       </View>
     );
   }
 
   return (
     <View
-      style={[styles.list, { backgroundColor: colors.card }, style]}
+      style={[styles.coverCard, variant === 'hero' ? styles.hero : styles.list, style]}
       testID="campaign-card-skeleton">
-      {block(styles.listImage, 'image')}
-      {isApplied ? (
-        <View style={styles.contentApplied}>
-          <View style={styles.footerRow}>
-            {block(styles.dateBlock, 'date')}
-            {block(styles.priceBlock, 'price')}
-          </View>
-          {block(styles.titleBlock, 'title')}
-        </View>
-      ) : (
-        <View style={styles.content}>
-          {block(styles.titleBlock, 'title')}
-          {block(styles.businessNameBlock, 'businessName')}
-          <View style={styles.footerRow}>
-            {block(styles.priceBlock, 'price')}
-            {block(styles.dateBlock, 'date')}
+      {block(styles.coverFill, 'cover')}
+      <View style={[styles.panel, { backgroundColor: colors.card }]}>
+        <View style={styles.panelRow}>
+          {block(styles.avatar, 'avatar')}
+          <View style={styles.lines}>
+            {block(styles.titleBlock, 'title')}
+            {block(styles.subBlock, 'business')}
           </View>
         </View>
-      )}
+        <View style={styles.chips}>
+          {block(styles.chip, 'price')}
+          {block(styles.chip, 'date')}
+        </View>
+      </View>
     </View>
   );
 }
