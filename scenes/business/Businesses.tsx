@@ -1,29 +1,45 @@
-import { useCallback } from 'react';
-import { FlatList, ListRenderItem, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import {
+  FlatList,
+  LayoutAnimation,
+  ListRenderItem,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
-import { businessesStyle } from './businesses.style';
+import { spacing } from '@/theme';
+import { businessesStyle as s, GRID_GAP } from './businesses.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
-import { BusinessAvatar, BusinessAvatarSkeleton, BusinessesEmptyState } from './components';
+import ViewModeToggle from '@/components/elements/ViewModeToggle';
+import { BusinessCard, BusinessCardSkeleton, BusinessesEmptyState } from './components';
+import { BusinessCardVariant } from './components/BusinessCard';
 import { useBusinessesFeed } from './hooks/useBusinessesFeed';
 import { BusinessDirectoryItem } from './types/businessDirectory';
 
-const COLUMNS = 4;
-const INITIAL_SKELETON_ROWS = 2;
+const INITIAL_SKELETONS = 6;
+
+function openBusiness(userId: string) {
+  router.push(`/business/${userId}`);
+}
 
 // The Businesses screen (Figma "All Businesses", node 6010:16780), pushed
-// from the Home tab's "Business" section "See all" link
+// from Home's "Businesses" section "See all" link
 // (scenes/home/components/BusinessLogosSection.tsx). Registered in the
 // app/(details)/ route group (outside the (main) Tabs group) since Figma
 // shows no tab bar on this screen, the same reasoning as /notifications,
-// /live-campaign and /campaigns. Shows every business in the directory
-// (RBAC API group §E1, GET /business-profiles) via a virtualized 4-column
-// FlatList, rather than the mock data/businesses.ts fixture this screen
-// used before real backend wiring started.
+// /live-campaign and /campaigns. Lists every business in the directory
+// (RBAC API group §E1, GET /business-profiles) as a virtualized FlatList,
+// in a Stack view (default: full-width cards with description and
+// categories) or a 2-column Grid view, switched from the toolbar. Loading -
+// first page or the next one - shows skeletons shaped like the active view.
 export default function Businesses() {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const [view, setView] = useState<BusinessCardVariant>('stack');
   const {
     businesses,
     isInitialLoading,
@@ -35,67 +51,100 @@ export default function Businesses() {
     retry,
   } = useBusinessesFeed();
 
+  const isGrid = view === 'grid';
+  // Two equal columns inside the 16px gutters, so a lone last tile keeps
+  // its width instead of stretching across the row.
+  const tileWidth = (width - spacing.lg * 2 - GRID_GAP) / 2;
+  const gridItem = { width: tileWidth };
+
+  const changeView = useCallback((next: BusinessCardVariant) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setView(next);
+  }, []);
+
   const renderItem: ListRenderItem<BusinessDirectoryItem> = useCallback(
     ({ item }) => (
-      <BusinessAvatar
-        source={item.avatarUrl ? { uri: item.avatarUrl } : null}
-        businessName={item.businessName}
-        label={item.businessName}
-        size={80}
-        onPress={() => router.push(`/business/${item.userId}`)}
+      <BusinessCard
+        business={item}
+        variant={view}
+        onPress={openBusiness}
+        style={view === 'grid' ? { width: tileWidth } : undefined}
       />
     ),
-    [],
+    [view, tileWidth],
+  );
+
+  function skeletons(count: number) {
+    return (
+      <View style={isGrid ? s.gridSkeletons : s.stackSkeletons}>
+        {Array.from({ length: count }, (_, index) => (
+          <BusinessCardSkeleton key={index} variant={view} style={isGrid ? gridItem : undefined} />
+        ))}
+      </View>
+    );
+  }
+
+  const toolbar = (
+    <View style={s.toolbar}>
+      <View style={s.toolbarText}>
+        <Text style={[s.toolbarTitle, { color: colors.text.primary }]}>All businesses</Text>
+        <Text style={[s.toolbarSubtitle, { color: colors.text.secondary }]} numberOfLines={1}>
+          Brands hiring creators on Influsis
+        </Text>
+      </View>
+      <ViewModeToggle value={view} onChange={changeView} testIDPrefix="businesses-view" />
+    </View>
   );
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
       <View style={layoutStyle.screen}>
-        <ScreenHeader
-          title="Businesses"
-          onBack={() => router.back()}
-          style={businessesStyle.headerGap}
-        />
+        <ScreenHeader title="Businesses" onBack={() => router.back()} style={s.headerGap} />
 
         {isInitialLoading ? (
-          <View style={businessesStyle.gridRows}>
-            {Array.from({ length: INITIAL_SKELETON_ROWS }, (_, rowIndex) => (
-              <View key={rowIndex} style={businessesStyle.gridRow}>
-                {Array.from({ length: COLUMNS }, (__, colIndex) => (
-                  <BusinessAvatarSkeleton key={colIndex} withLabel />
-                ))}
-              </View>
-            ))}
+          <View style={s.content} testID="businesses-loading">
+            {toolbar}
+            {skeletons(INITIAL_SKELETONS)}
           </View>
         ) : isInitialError ? (
-          <BusinessesEmptyState variant="error" onRetry={retry} style={businessesStyle.gridRows} />
+          <View style={s.content}>
+            {toolbar}
+            <BusinessesEmptyState variant="error" onRetry={retry} />
+          </View>
         ) : (
           <FlatList
+            // numColumns can't change on a mounted FlatList - remount per view.
+            key={view}
             data={businesses}
             keyExtractor={item => item.userId}
             renderItem={renderItem}
-            numColumns={COLUMNS}
-            columnWrapperStyle={businessesStyle.columnWrapper}
+            numColumns={isGrid ? 2 : 1}
+            columnWrapperStyle={isGrid ? s.columnWrapper : undefined}
+            ItemSeparatorComponent={isGrid ? undefined : StackSeparator}
+            ListHeaderComponent={toolbar}
             style={layoutStyle.screen}
-            contentContainerStyle={businessesStyle.gridRows}
+            contentContainerStyle={s.content}
             showsVerticalScrollIndicator={false}
             onEndReachedThreshold={0.4}
             onEndReached={hasMore ? loadMore : undefined}
             ListEmptyComponent={<BusinessesEmptyState variant="empty" />}
             ListFooterComponent={
               isLoadingMore ? (
-                <View style={businessesStyle.gridRow}>
-                  {Array.from({ length: COLUMNS }, (_, index) => (
-                    <BusinessAvatarSkeleton key={index} withLabel />
-                  ))}
+                <View style={s.footer} testID="businesses-loading-more">
+                  {skeletons(isGrid ? 2 : 1)}
                 </View>
               ) : isLoadMoreError ? (
                 <BusinessesEmptyState variant="error" onRetry={retry} />
               ) : null
             }
+            testID={`businesses-list-${view}`}
           />
         )}
       </View>
     </SafeAreaView>
   );
+}
+
+function StackSeparator() {
+  return <View style={s.stackSeparator} />;
 }

@@ -45,9 +45,20 @@ export function useBusinessesFeed(): UseBusinessesFeedResult {
     setPage(prev => prev + 1);
   }, [isFetching, hasMore, isError]);
 
+  // `data` reaches `businesses` one render after RTK Query delivers it (the
+  // merge above runs in an effect), so `isFetching` alone flips to false a
+  // render too early - the screen would flash its empty state for a frame.
+  // The first page counts as loading until it has been merged, unless it came
+  // back empty (then the empty state is the right answer).
+  const firstPagePending =
+    page === 1 &&
+    businesses.length === 0 &&
+    !isError &&
+    (isFetching || data === undefined || data.length > 0);
+
   return {
     businesses,
-    isInitialLoading: isFetching && page === 1 && businesses.length === 0,
+    isInitialLoading: firstPagePending,
     isLoadingMore: isFetching && page > 1,
     isInitialError: isError && businesses.length === 0,
     isLoadMoreError: isError && businesses.length > 0,

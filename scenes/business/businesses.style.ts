@@ -1,42 +1,41 @@
 import { StyleSheet } from 'react-native';
 import { spacing } from '@/theme';
 
+// Gap between the two Grid-view columns (and between Grid rows).
+export const GRID_GAP = 12;
+// Gap between Stack-view cards.
+const STACK_GAP = 12;
+
 // Shared fragments for the Businesses scene (scenes/business/Businesses.tsx).
-// The grid itself is a virtualized FlatList (`numColumns`) rather than a
-// ScrollView, so (unlike most other scenes) this module carries the
-// horizontal padding too - there's no shared scrollContent
-// contentContainerStyle to supply it.
+// The list is a virtualized FlatList rather than a ScrollView, so (unlike
+// most other scenes) this module carries the horizontal padding too - there's
+// no shared scrollContent contentContainerStyle to supply it.
 export const businessesStyle = StyleSheet.create({
-  // Gap between the header and the logo grid - confirmed from Figma's
-  // pixel positions (title bottom at y=93, grid top at y=109).
   headerGap: {
-    marginBottom: 16,
+    marginBottom: 8,
     paddingHorizontal: spacing.lg,
   },
-  // Vertical gap between grid rows - confirmed from Figma's pixel positions
-  // (rows 122-123px tall starting 24px apart → 24px row gap). Used as the
-  // manual grid's own container gap (the initial-loading skeleton, built as
-  // plain rows) and, via paddingHorizontal/paddingBottom, as the FlatList's
-  // contentContainerStyle.
-  gridRows: {
-    gap: 24,
+  // The FlatList's contentContainerStyle (and the loading/error frame).
+  content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing['2xl'],
   },
-  // One 4-column row - confirmed from Figma's pixel positions (94px circles
-  // at x=0/102/204/306, ~8px column gap). `space-between` instead of a fixed
-  // `columnGap` distributes the leftover space automatically so four 94px
-  // circles always fit the row regardless of the exact container width.
-  gridRow: {
+  // "All businesses" + subtitle on the left, the Stack/Grid toggle on the
+  // right. Rendered as the list header so it scrolls away with the list.
+  toolbar: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
   },
-  // Same shape as gridRow, plus the row-to-row gap FlatList's `numColumns`
-  // needs applied per row (as `columnWrapperStyle`) rather than once on the
-  // container the way the manual skeleton grid's `gridRows.gap` does.
-  columnWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
+  toolbarText: { flex: 1, gap: 2 },
+  toolbarTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', letterSpacing: -0.2 },
+  toolbarSubtitle: { fontSize: 13, lineHeight: 18 },
+  stackSeparator: { height: STACK_GAP },
+  // Grid rows: FlatList applies this per row via `columnWrapperStyle`.
+  columnWrapper: { gap: GRID_GAP, marginBottom: GRID_GAP },
+  stackSkeletons: { gap: STACK_GAP },
+  gridSkeletons: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
+  footer: { marginTop: STACK_GAP },
 });

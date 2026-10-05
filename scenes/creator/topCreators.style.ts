@@ -1,23 +1,42 @@
 import { StyleSheet } from 'react-native';
 import { spacing } from '@/theme';
 
-// Shared fragments for the Top Creators scene (scenes/creator/TopCreators.tsx).
-// The list itself is a virtualized FlatList rather than a ScrollView, so
-// (unlike most other scenes) this module carries the horizontal padding
-// too - there's no shared scrollContent contentContainerStyle to supply it.
+// Gap between the two Grid-view columns (and between Grid rows).
+export const GRID_GAP = 12;
+// Gap between Stack-view cards.
+const STACK_GAP = 12;
+
+// Shared fragments for the Top Creators scene (scenes/creator/TopCreators.tsx),
+// the same shapes as scenes/business/businesses.style.ts. The list is a
+// virtualized FlatList rather than a ScrollView, so (unlike most other
+// scenes) this module carries the horizontal padding too - there's no shared
+// scrollContent contentContainerStyle to supply it.
 export const topCreatorsStyle = StyleSheet.create({
-  // Gap between the header and the creator list - confirmed from
-  // Figma's pixel positions (title bottom at y=93, list top at y=109).
   headerGap: {
-    marginBottom: 16,
+    marginBottom: 8,
     paddingHorizontal: spacing.lg,
   },
-  // Vertical gap between stacked creator cards - confirmed from Figma's
-  // pixel positions (cards at y=109/407/705/1003, each 288px tall → 10px
-  // gap).
-  listGap: {
-    gap: 10,
+  // The FlatList's contentContainerStyle (and the loading/error frame).
+  content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing['2xl'],
   },
+  // "All creators" + subtitle on the left, the Stack/Grid toggle on the
+  // right. Rendered as the list header so it scrolls away with the list.
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
+  },
+  toolbarText: { flex: 1, gap: 2 },
+  toolbarTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', letterSpacing: -0.2 },
+  toolbarSubtitle: { fontSize: 13, lineHeight: 18 },
+  stackSeparator: { height: STACK_GAP },
+  // Grid rows: FlatList applies this per row via `columnWrapperStyle`.
+  columnWrapper: { gap: GRID_GAP, marginBottom: GRID_GAP },
+  stackSkeletons: { gap: STACK_GAP },
+  gridSkeletons: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
+  footer: { marginTop: STACK_GAP },
 });

@@ -1,11 +1,11 @@
 import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
 import { radius } from '@/theme';
-import type { ViewMode } from '@/components/elements/ViewModeToggle';
 import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
+import { BusinessCardVariant } from './BusinessCard';
 
-export interface CreatorCardSkeletonProps {
-  variant?: ViewMode;
+export interface BusinessCardSkeletonProps {
+  variant?: BusinessCardVariant;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -18,10 +18,10 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', gap: 6 },
 });
 
-// Loading placeholder with the same footprint as CreatorDirectoryCard in
-// either view, so the list doesn't jump when real rows replace it. One
-// shared pulse (useSkeletonPulse) drives every block.
-function CreatorCardSkeleton({ variant = 'stack', style }: CreatorCardSkeletonProps) {
+// Loading placeholder with the same footprint as BusinessCard in either
+// view, so the list doesn't jump when real rows replace it. One shared pulse
+// (useSkeletonPulse) drives every block.
+function BusinessCardSkeleton({ variant = 'stack', style }: BusinessCardSkeletonProps) {
   const { colors, palette } = useTheme();
   const opacity = useSkeletonPulse();
 
@@ -33,8 +33,8 @@ function CreatorCardSkeleton({ variant = 'stack', style }: CreatorCardSkeletonPr
 
   if (variant === 'grid') {
     return (
-      <View style={[frame, styles.grid, style]} testID="creator-card-skeleton">
-        {block({ width: 76, height: 76, borderRadius: 38 })}
+      <View style={[frame, styles.grid, style]} testID="business-card-skeleton">
+        {block({ width: 68, height: 68, borderRadius: 34 })}
         {block({ width: '75%', height: 14, borderRadius: 7 })}
         {block({ width: '55%', height: 11, borderRadius: 6 })}
         {block({ width: 64, height: 22, borderRadius: 11 })}
@@ -43,22 +43,22 @@ function CreatorCardSkeleton({ variant = 'stack', style }: CreatorCardSkeletonPr
   }
 
   return (
-    <View style={[frame, styles.stack, style]} testID="creator-card-skeleton">
+    <View style={[frame, styles.stack, style]} testID="business-card-skeleton">
       <View style={styles.stackTop}>
-        {block({ width: 60, height: 60, borderRadius: 30 })}
+        {block({ width: 56, height: 56, borderRadius: 28 })}
         <View style={styles.stackBody}>
-          {block({ width: '55%', height: 14, borderRadius: 7 })}
+          {block({ width: '60%', height: 14, borderRadius: 7 })}
           {block({ width: '40%', height: 11, borderRadius: 6 })}
-          {block({ width: '45%', height: 11, borderRadius: 6 })}
         </View>
       </View>
+      {block({ width: '100%', height: 11, borderRadius: 6 })}
+      {block({ width: '80%', height: 11, borderRadius: 6 })}
       <View style={styles.chips}>
         {block({ width: 64, height: 22, borderRadius: 11 })}
         {block({ width: 52, height: 22, borderRadius: 11 })}
-        {block({ width: 72, height: 22, borderRadius: 11 })}
       </View>
     </View>
   );
 }
 
-export default CreatorCardSkeleton;
+export default BusinessCardSkeleton;
