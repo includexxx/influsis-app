@@ -1,4 +1,4 @@
-import { ComponentProps, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -21,19 +21,9 @@ import { buildCreatorAgreement } from './utils/agreement';
 import { formatCampaignDueDate } from './utils/mapCampaignFeedItem';
 import { formatOfferDate } from './utils/negotiation';
 import { canSubmitPiece, isOverdue, PIECE_STATUS_BADGE, pieceTitle } from './utils/deliverables';
-
-type FeatherName = ComponentProps<typeof Feather>['name'];
+import { platformIcon } from './utils/platformIcon';
 
 const HERO_GRADIENT = [palette.primary[400], palette.primary[700]] as const;
-
-// One recognisable glyph per platform for the piece cards.
-const PLATFORM_ICON: Record<string, FeatherName> = {
-  instagram: 'instagram',
-  youtube: 'youtube',
-  facebook: 'facebook',
-  tiktok: 'music',
-  ugc: 'camera',
-};
 
 // The Deliverables screen - the creator's work on one accepted engagement
 // (campaign API group CI1, GET /engagements/:id/deliverables): one row per
@@ -263,7 +253,7 @@ export default function DeliverablesScreen() {
                   testID={`deliverable-${piece.id}`}>
                   <View style={s.platformIcon}>
                     <Feather
-                      name={PLATFORM_ICON[piece.platform] ?? 'file'}
+                      name={platformIcon(piece.platform)}
                       size={20}
                       color={palette.primary[500]}
                     />

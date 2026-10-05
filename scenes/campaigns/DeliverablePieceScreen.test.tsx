@@ -192,6 +192,79 @@ describe('<DeliverablePieceScreen />', () => {
     );
   });
 
+  test('shows a link error once the field is touched, and clears it when fixed', async () => {
+    answers(piece({}));
+    renderScreen();
+
+    const url = await screen.findByTestId('piece-url');
+    fireEvent.changeText(url, 'not a link');
+    await act(async () => {
+      fireEvent(url, 'blur');
+    });
+    expect(screen.getByText('Enter a full link starting with https://')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.changeText(url, 'https://instagram.com/p/1');
+    });
+    expect(screen.queryByText('Enter a full link starting with https://')).toBeNull();
+  });
+
+  test('a denied photo permission explains itself and submits nothing', async () => {
+    mockPicker.launchImageLibraryAsync.mockClear();
+    mockPicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: false } as never);
+    answers(piece({}));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('piece-kind-image'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('piece-pick-image'));
+    });
+
+    expect(screen.getByText('Allow photo access in Settings to upload an image.')).toBeTruthy();
+    expect(mockPicker.launchImageLibraryAsync).not.toHaveBeenCalled();
+  });
+
+  test('a picked image can be removed again', async () => {
+    mockPicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
+    mockPicker.launchImageLibraryAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///photo.jpg', mimeType: 'image/jpeg', fileName: 'photo.jpg' }],
+    } as never);
+    answers(piece({}));
+    renderScreen();
+
+    fireEvent.press(await screen.findByTestId('piece-kind-image'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('piece-pick-image'));
+    });
+    fireEvent.press(screen.getByTestId('piece-remove-image'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('piece-submit'));
+    });
+
+    expect(screen.getByText('Choose an image to upload.')).toBeTruthy();
+  });
+
+  test('puts a backend 422 under its field', async () => {
+    answers(piece({}), () => {
+      throw new ApiError({
+        code: 'VALIDATION_FAILED',
+        statusCode: 422,
+        message: 'The submitted data is invalid.',
+        errors: { externalUrl: 'externalUrl must be a URL address' },
+      } as never);
+    });
+    renderScreen();
+
+    fireEvent.changeText(await screen.findByTestId('piece-url'), 'https://instagram.com/p/1');
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('piece-submit'));
+    });
+
+    expect(await screen.findByText('externalUrl must be a URL address')).toBeTruthy();
+    expect(screen.getByText('The submitted data is invalid.')).toBeTruthy();
+  });
+
   test("shows the business's change request and offers Resubmit", async () => {
     answers(
       piece({

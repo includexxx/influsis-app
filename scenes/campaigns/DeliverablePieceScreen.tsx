@@ -1,20 +1,23 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useDispatch } from 'react-redux';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
-import { ApiError } from '@/services/http';
+import { palette } from '@/theme';
 import { Dispatch } from '@/utils/store';
-import { PickedImageAsset } from '@/utils/onboardingSchemas';
 import Image from '@/components/elements/Image';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import StatusBadge from '@/components/elements/StatusBadge';
 import Button from '@/components/elements/Button';
-import TextField from '@/components/elements/TextField';
-import { deliverablesStyle as s } from './deliverables.style';
+import ControlledTextField from '@/components/elements/ControlledTextField';
+import { pieceStyle as s } from './deliverablePiece.style';
 import { CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import { useGetEngagementDeliverablesQuery, useRecordPostedMutation } from './api/campaignFeedApi';
 import { invalidateAfterSubmit, submitDeliverable } from './api/submitDeliverable';
@@ -28,21 +31,30 @@ import {
   PIECE_STATUS_BADGE,
   pieceTitle,
   safeHttpUrl,
-  SubmissionField,
-  validateLivePostUrl,
-  validateSubmission,
 } from './utils/deliverables';
+import {
+  applyLivePostError,
+  applySubmissionError,
+  LivePostValues,
+  livePostSchema,
+  submissionDefaultValues,
+  SubmissionValues,
+  submissionSchema,
+} from './utils/deliverableSchemas';
+import { FeatherName, platformIcon } from './utils/platformIcon';
 
-const GENERIC_SUBMIT_ERROR = "Couldn't submit. Please try again.";
-const GENERIC_POSTED_ERROR = "Couldn't save the link. Please try again.";
+const HERO_GRADIENT = [palette.primary[400], palette.primary[700]] as const;
 
 // One deliverable piece (campaign API group CI1 row): its status, the
 // business's latest change request, the submission form (CI2 - an image or a
 // link, plus a caption), and once approved the live post link (CI4). The
 // submission history lists every revision with the business's decision.
-// Creator-provided text and the business's reasons render as plain Text; a
-// link opens only when it is http(s). Nothing here says "paid" - there is no
-// escrow yet (backend item 19).
+// Both forms use react-hook-form + zod (utils/deliverableSchemas.ts, which
+// wraps the backend-mirroring rules in utils/deliverables.ts): errors show
+// once a field is touched or on submit, and backend 409/422s land on the form
+// or its fields. Creator-provided text and the business's reasons render as
+// plain Text; a link opens only when it is http(s). Nothing here says "paid" -
+// there is no escrow yet (backend item 19).
 export default function DeliverablePieceScreen() {
   const { colors } = useTheme();
   const { id, pieceId } = useLocalSearchParams<{ id: string; pieceId: string }>();
@@ -99,7 +111,7 @@ function PieceContent({
 }: {
   piece: DeliverablePiece;
   engagementId: string;
-  header: React.ReactNode;
+  header: ReactNode;
   onRefetch: () => void;
 }) {
   const { colors } = useTheme();
@@ -118,50 +130,74 @@ function PieceContent({
         showsVerticalScrollIndicator={false}>
         {header}
         <View style={s.content}>
-          <View style={s.titleRow}>
-            <Text style={[s.title, { color: colors.text.primary }]}>{pieceTitle(piece)}</Text>
-            <StatusBadge
-              label={badge.label}
-              color={badge.color}
-              textColor={badge.text}
-              testID="piece-status"
-            />
-          </View>
-          <Text style={[s.meta, { color: colors.text.secondary }]}>
-            {piece.dueDate ? `Due ${formatOfferDate(piece.dueDate)}` : 'No due date'}
-            {overdue ? <Text style={s.overdue}> · Overdue</Text> : null}
-            {submittable ? ` · ${piece.revisionsRemaining} revisions left` : ''}
-          </Text>
+          <LinearGradient
+            colors={HERO_GRADIENT}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.hero}>
+            <View style={s.heroGlow} />
+            <View style={s.heroGlowSmall} />
+            <View style={s.heroTopRow}>
+              <View style={s.heroIcon}>
+                <Feather name={platformIcon(piece.platform)} size={22} color={palette.white} />
+              </View>
+              <View style={s.heroTitleBlock}>
+                <Text style={s.heroEyebrow}>DELIVERABLE</Text>
+                <Text style={s.heroTitle} numberOfLines={2}>
+                  {pieceTitle(piece)}
+                </Text>
+              </View>
+              <StatusBadge
+                label={badge.label}
+                color={badge.color}
+                textColor={badge.text}
+                testID="piece-status"
+              />
+            </View>
+            <View style={s.heroChips}>
+              <HeroChip icon="calendar">
+                {piece.dueDate ? `Due ${formatOfferDate(piece.dueDate)}` : 'No due date'}
+              </HeroChip>
+              {overdue ? (
+                <HeroChip icon="alert-circle" danger testID="piece-overdue">
+                  Overdue
+                </HeroChip>
+              ) : null}
+              {submittable ? (
+                <HeroChip icon="refresh-cw">{`${piece.revisionsRemaining} revisions left`}</HeroChip>
+              ) : null}
+            </View>
+          </LinearGradient>
 
           {changeRequest ? (
-            <View style={[s.banner, s.warningBanner]} testID="piece-change-request">
-              <Text style={[s.warningText, { fontWeight: '600' }]}>
-                The business asked for changes:
-              </Text>
-              <Text style={s.warningText}>{changeRequest}</Text>
-            </View>
+            <Notice
+              tone="warning"
+              icon="message-square"
+              title="The business asked for changes"
+              testID="piece-change-request">
+              {changeRequest}
+            </Notice>
           ) : null}
 
           {piece.status === 'escalated' ? (
-            <View style={[s.banner, s.errorBanner]} testID="piece-escalated">
-              <Text style={s.errorText}>
-                In dispute — the business requested changes three times. Disputes aren&apos;t
-                available yet.
-              </Text>
-            </View>
+            <Notice tone="error" icon="alert-octagon" title="In dispute" testID="piece-escalated">
+              The business requested changes three times. Disputes aren&apos;t available yet.
+            </Notice>
           ) : null}
 
           {piece.status === 'cancelled' ? (
-            <Text style={[s.hintText, { color: colors.text.secondary }]}>Cancelled.</Text>
+            <Notice tone="neutral" icon="slash" title="Cancelled">
+              This deliverable was cancelled and takes no more submissions.
+            </Notice>
           ) : null}
 
           {piece.status === 'approved' ? (
             <>
-              <View style={[s.banner, s.successBanner]} testID="piece-approved">
-                <Text style={s.successText}>
-                  Approved{piece.approvedAt ? ` on ${formatOfferDate(piece.approvedAt)}` : ''}.
-                </Text>
-              </View>
+              <Notice tone="success" icon="check-circle" title="Approved" testID="piece-approved">
+                {piece.approvedAt
+                  ? `The business approved this on ${formatOfferDate(piece.approvedAt)}.`
+                  : 'The business approved this.'}
+              </Notice>
               <LivePostForm piece={piece} engagementId={engagementId} />
             </>
           ) : null}
@@ -175,23 +211,150 @@ function PieceContent({
             />
           ) : null}
 
-          <View style={{ gap: 8 }}>
+          <View style={s.sectionHeader}>
             <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Submissions</Text>
-            {history.length === 0 ? (
+            {history.length ? (
+              <View style={s.countChip}>
+                <Text style={s.countChipText}>{history.length}</Text>
+              </View>
+            ) : null}
+          </View>
+          {history.length === 0 ? (
+            <View
+              style={[
+                s.emptyCard,
+                { borderColor: colors.border, backgroundColor: colors.surface },
+              ]}>
+              <View style={s.emptyIcon}>
+                <Feather name="inbox" size={20} color={palette.primary[500]} />
+              </View>
               <Text style={[s.hintText, { color: colors.text.secondary }]}>
                 Nothing submitted yet.
               </Text>
-            ) : (
-              history.map(submission => (
-                <SubmissionItem key={submission.id} submission={submission} />
-              ))
-            )}
-          </View>
+            </View>
+          ) : (
+            <View style={s.timeline}>
+              {history.map((submission, index) => (
+                <SubmissionItem
+                  key={submission.id}
+                  submission={submission}
+                  isLast={index === history.length - 1}
+                />
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+function HeroChip({
+  icon,
+  danger,
+  testID,
+  children,
+}: {
+  icon: FeatherName;
+  danger?: boolean;
+  testID?: string;
+  children: ReactNode;
+}) {
+  return (
+    <View style={[s.heroChip, danger && s.heroChipDanger]} testID={testID}>
+      <Feather name={icon} size={13} color={palette.white} />
+      <Text style={s.heroChipText}>{children}</Text>
+    </View>
+  );
+}
+
+const NOTICE_TONE = {
+  warning: { box: s.warningNotice, icon: s.warningIcon, text: s.warningText },
+  error: { box: s.errorNotice, icon: s.errorIcon, text: s.errorText },
+  success: { box: s.successNotice, icon: s.successIcon, text: s.successText },
+  neutral: { box: s.neutralNotice, icon: s.neutralIcon, text: s.neutralText },
+} as const;
+
+function Notice({
+  tone,
+  icon,
+  title,
+  testID,
+  children,
+}: {
+  tone: keyof typeof NOTICE_TONE;
+  icon: FeatherName;
+  title: string;
+  testID?: string;
+  children: ReactNode;
+}) {
+  const t = NOTICE_TONE[tone];
+  return (
+    <View style={[s.notice, t.box]} testID={testID}>
+      <View style={[s.noticeIcon, t.icon]}>
+        <Feather name={icon} size={16} color={t.text.color} />
+      </View>
+      <View style={s.noticeBody}>
+        <Text style={[s.noticeTitle, t.text]}>{title}</Text>
+        <Text style={[s.noticeText, t.text]}>{children}</Text>
+      </View>
+    </View>
+  );
+}
+
+function FormBanner({
+  tone,
+  message,
+  testID,
+}: {
+  tone: 'success' | 'error';
+  message: string;
+  testID: string;
+}) {
+  const t = NOTICE_TONE[tone];
+  return (
+    <View
+      style={[s.formBanner, t.box]}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+      testID={testID}>
+      <Feather
+        name={tone === 'success' ? 'check-circle' : 'alert-circle'}
+        size={16}
+        color={t.text.color}
+      />
+      <Text style={[s.formBannerText, t.text]}>{message}</Text>
+    </View>
+  );
+}
+
+function CardHeader({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: FeatherName;
+  title: string;
+  subtitle: string;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={s.cardHeader}>
+      <View style={s.cardIcon}>
+        <Feather name={icon} size={18} color={palette.primary[500]} />
+      </View>
+      <View style={s.cardHeaderText}>
+        <Text style={[s.cardTitle, { color: colors.text.primary }]}>{title}</Text>
+        <Text style={[s.cardSubtitle, { color: colors.text.secondary }]}>{subtitle}</Text>
+      </View>
+    </View>
+  );
+}
+
+const KIND_OPTIONS: { value: SubmissionValues['kind']; label: string; icon: FeatherName }[] = [
+  { value: 'link', label: 'Share link', icon: 'link' },
+  { value: 'image', label: 'Upload image', icon: 'image' },
+];
 
 function SubmitForm({
   engagementId,
@@ -206,151 +369,238 @@ function SubmitForm({
 }) {
   const { colors } = useTheme();
   const dispatch = useDispatch<Dispatch>();
-  const [kind, setKind] = useState<'image' | 'link'>('link');
-  const [externalUrl, setExternalUrl] = useState('');
-  const [image, setImage] = useState<PickedImageAsset | null>(null);
-  const [caption, setCaption] = useState('');
-  const [errors, setErrors] = useState<Partial<Record<SubmissionField, string>>>({});
-  const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    setError,
+    clearErrors,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SubmissionValues>({
+    resolver: zodResolver(submissionSchema),
+    defaultValues: submissionDefaultValues(),
+    mode: 'onTouched',
+  });
+  const kind = useWatch({ control, name: 'kind' });
+  const image = useWatch({ control, name: 'image' });
+  const caption = useWatch({ control, name: 'caption' }) ?? '';
+
+  function changeKind(next: SubmissionValues['kind']) {
+    if (next === kind) return;
+    setValue('kind', next);
+    clearErrors(['externalUrl', 'image']);
+    clearErrors('root');
+    setSubmitted(false);
+  }
 
   async function pickImage() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.8,
-    });
-    const asset = !result.canceled ? result.assets[0] : undefined;
-    if (asset) {
-      setImage({ uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName ?? undefined });
-      setErrors(current => ({ ...current, image: undefined }));
+    clearErrors('image');
+    clearErrors('root');
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError('image', { message: 'Allow photo access in Settings to upload an image.' });
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      const asset = !result.canceled ? result.assets[0] : undefined;
+      if (asset) {
+        setValue(
+          'image',
+          { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName ?? undefined },
+          { shouldValidate: true, shouldDirty: true },
+        );
+        setSubmitted(false);
+      }
+    } catch {
+      setError('image', { message: "Couldn't open your photos. Please try again." });
     }
   }
 
-  async function submit() {
-    const found = validateSubmission({ kind, externalUrl, image, caption });
-    setErrors(found);
-    setMessage(null);
-    if (Object.keys(found).length) return;
-    setBusy(true);
+  function removeImage() {
+    setValue('image', null, { shouldDirty: true });
+    clearErrors('image');
+  }
+
+  async function onSubmit(values: SubmissionValues) {
+    setSubmitted(false);
     try {
       await submitDeliverable(
-        kind === 'link'
-          ? { engagementId, pieceId, kind, externalUrl, caption }
-          : { engagementId, pieceId, kind, image: image as PickedImageAsset, caption },
+        values.kind === 'link' || !values.image
+          ? {
+              engagementId,
+              pieceId,
+              kind: 'link',
+              externalUrl: values.externalUrl,
+              caption: values.caption,
+            }
+          : { engagementId, pieceId, kind: 'image', image: values.image, caption: values.caption },
       );
       invalidateAfterSubmit(dispatch, engagementId);
-      setExternalUrl('');
-      setImage(null);
-      setCaption('');
-      setMessage({ tone: 'success', text: 'Submitted for review.' });
+      reset(submissionDefaultValues(values.kind));
+      setSubmitted(true);
     } catch (err) {
-      const error = err instanceof ApiError ? err : null;
-      if (error?.statusCode === 409) {
-        setMessage({ tone: 'error', text: error.message });
-        onRefetch();
-      } else if (error?.statusCode === 422 && error.errors) {
-        setErrors({
-          externalUrl: error.errors.externalUrl,
-          caption: error.errors.caption,
-          image: error.errors.file ? "That image type isn't supported." : undefined,
-        });
-        setMessage({ tone: 'error', text: error.message });
-      } else {
-        setMessage({ tone: 'error', text: GENERIC_SUBMIT_ERROR });
-      }
-    } finally {
-      setBusy(false);
+      if (applySubmissionError(err, setError)) onRefetch();
     }
   }
 
   return (
-    <View style={[s.form, { borderColor: colors.border }]} testID="piece-submit-form">
-      <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-        {isResubmit ? 'Submit a new revision' : 'Submit your work'}
-      </Text>
-      <View style={s.toggle} accessibilityRole="radiogroup">
-        {(['image', 'link'] as const).map(option => (
-          <Pressable
-            key={option}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: kind === option }}
-            onPress={() => setKind(option)}
-            style={[
-              s.toggleOption,
-              { borderColor: colors.border },
-              kind === option && s.toggleOptionActive,
-            ]}
-            testID={`piece-kind-${option}`}>
-            <Text style={[s.toggleText, { color: colors.text.primary }]}>
-              {option === 'image' ? 'Upload image' : 'Share link'}
-            </Text>
-          </Pressable>
-        ))}
+    <View
+      style={[s.card, { borderColor: colors.border, backgroundColor: colors.card }]}
+      testID="piece-submit-form">
+      <CardHeader
+        icon="upload-cloud"
+        title={isResubmit ? 'Submit a new revision' : 'Submit your work'}
+        subtitle="Share a link to your content or upload an image."
+      />
+
+      <View
+        style={[s.segmented, { backgroundColor: colors.surface }]}
+        accessibilityRole="radiogroup">
+        {KIND_OPTIONS.map(option => {
+          const active = kind === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: active }}
+              onPress={() => changeKind(option.value)}
+              disabled={isSubmitting}
+              style={[s.segment, active && s.segmentActive]}
+              testID={`piece-kind-${option.value}`}>
+              <Feather
+                name={option.icon}
+                size={15}
+                color={active ? palette.primary[500] : colors.text.secondary}
+              />
+              <Text
+                style={[
+                  s.segmentText,
+                  { color: colors.text.secondary },
+                  active && s.segmentTextActive,
+                ]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {kind === 'link' ? (
-        <TextField
+        <ControlledTextField
+          control={control}
+          name="externalUrl"
           label="Link to your content"
           placeholder="https://"
           autoCapitalize="none"
+          autoCorrect={false}
           keyboardType="url"
-          value={externalUrl}
-          onChangeText={setExternalUrl}
-          error={errors.externalUrl}
+          editable={!isSubmitting}
+          leftAdornment={<Feather name="link" size={16} color={colors.text.secondary} />}
           accessibilityLabel="Link to your content"
           testID="piece-url"
         />
+      ) : image ? (
+        <View style={{ gap: 6 }}>
+          <View style={s.preview}>
+            <Image source={{ uri: image.uri }} style={s.previewImage} contentFit="cover" />
+            <View style={s.previewActions}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Change image"
+                onPress={pickImage}
+                disabled={isSubmitting}
+                style={s.previewAction}
+                testID="piece-pick-image">
+                <Feather name="refresh-cw" size={12} color={palette.white} />
+                <Text style={s.previewActionText}>Change</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Remove image"
+                onPress={removeImage}
+                disabled={isSubmitting}
+                style={s.previewAction}
+                testID="piece-remove-image">
+                <Feather name="x" size={12} color={palette.white} />
+                <Text style={s.previewActionText}>Remove</Text>
+              </Pressable>
+            </View>
+          </View>
+          {errors.image?.message ? (
+            <Text style={s.fieldError} accessibilityRole="alert">
+              {errors.image.message}
+            </Text>
+          ) : null}
+        </View>
       ) : (
         <View style={{ gap: 6 }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={image ? 'Change image' : 'Choose image'}
+            accessibilityLabel="Choose image"
             onPress={pickImage}
-            style={[s.pickButton, { borderColor: colors.border }]}
+            disabled={isSubmitting}
+            style={[
+              s.dropzone,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+              errors.image && s.dropzoneError,
+            ]}
             testID="piece-pick-image">
-            {image ? <Image source={{ uri: image.uri }} style={s.thumbnail} /> : null}
-            <Text style={s.linkText}>{image ? 'Change image' : 'Choose an image'}</Text>
+            <View style={s.dropzoneIcon}>
+              <Feather name="image" size={22} color={palette.primary[500]} />
+            </View>
+            <Text style={[s.dropzoneTitle, { color: colors.text.primary }]}>Choose an image</Text>
+            <Text style={[s.dropzoneHint, { color: colors.text.secondary }]}>
+              JPEG, PNG, GIF or WebP. Share videos as a link.
+            </Text>
           </Pressable>
-          {errors.image ? <Text style={s.fieldError}>{errors.image}</Text> : null}
-          <Text style={[s.meta, { color: colors.text.secondary }]}>
-            Images only (JPEG, PNG, GIF, WebP). Share videos as a link.
-          </Text>
+          {errors.image?.message ? (
+            <Text style={s.fieldError} accessibilityRole="alert">
+              {errors.image.message}
+            </Text>
+          ) : null}
         </View>
       )}
 
-      <TextField
+      <ControlledTextField
+        control={control}
+        name="caption"
         label="Caption (optional)"
+        placeholder="Anything the business should know"
         multiline
         maxLength={CAPTION_MAX_LENGTH}
-        value={caption}
-        onChangeText={setCaption}
-        error={errors.caption}
+        editable={!isSubmitting}
         inputStyle={s.multiline}
         accessibilityLabel="Caption"
         testID="piece-caption"
       />
+      <Text
+        style={[
+          s.counter,
+          { color: colors.text.secondary },
+          caption.length >= CAPTION_MAX_LENGTH && s.counterOver,
+        ]}>
+        {caption.length}/{CAPTION_MAX_LENGTH}
+      </Text>
 
-      {message ? (
-        <View
-          style={[s.banner, message.tone === 'success' ? s.successBanner : s.errorBanner]}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          testID="piece-submit-message">
-          <Text style={message.tone === 'success' ? s.successText : s.errorText}>
-            {message.text}
-          </Text>
-        </View>
+      {errors.root?.message ? (
+        <FormBanner tone="error" message={errors.root.message} testID="piece-submit-message" />
+      ) : submitted ? (
+        <FormBanner tone="success" message="Submitted for review." testID="piece-submit-message" />
       ) : null}
 
       <Button
         title={isResubmit ? 'Resubmit' : 'Submit'}
         style={s.primaryButton}
         titleStyle={s.primaryTitle}
-        onPress={submit}
-        isLoading={busy}
-        disabled={busy}
+        onPress={handleSubmit(onSubmit)}
+        isLoading={isSubmitting}
+        disabled={isSubmitting}
         testID="piece-submit"
       />
     </View>
@@ -360,126 +610,186 @@ function SubmitForm({
 function LivePostForm({ piece, engagementId }: { piece: DeliverablePiece; engagementId: string }) {
   const { colors } = useTheme();
   const approved = piece.submissions.find(submission => submission.status === 'approved');
-  const [url, setUrl] = useState(approved?.livePostUrl ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
-  const [recordPosted, { isLoading }] = useRecordPostedMutation();
+  const [saved, setSaved] = useState(false);
+  const [recordPosted] = useRecordPostedMutation();
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LivePostValues>({
+    resolver: zodResolver(livePostSchema),
+    defaultValues: { livePostUrl: approved?.livePostUrl ?? '' },
+    mode: 'onTouched',
+  });
 
-  async function save() {
-    const invalid = validateLivePostUrl(url);
-    setError(invalid);
-    setMessage(null);
-    if (invalid) return;
+  async function onSave(values: LivePostValues) {
+    setSaved(false);
     try {
-      await recordPosted({ engagementId, pieceId: piece.id, livePostUrl: url.trim() }).unwrap();
-      setMessage({ tone: 'success', text: 'Live post saved.' });
+      await recordPosted({
+        engagementId,
+        pieceId: piece.id,
+        livePostUrl: values.livePostUrl.trim(),
+      }).unwrap();
+      setSaved(true);
     } catch (err) {
-      const apiError = err instanceof ApiError ? err : null;
-      if (apiError?.statusCode === 422 && apiError.errors?.livePostUrl) {
-        setError(apiError.errors.livePostUrl);
-      } else {
-        setMessage({
-          tone: 'error',
-          text: apiError?.statusCode === 409 ? apiError.message : GENERIC_POSTED_ERROR,
-        });
-      }
+      applyLivePostError(err, setError);
     }
   }
 
   return (
-    <View style={[s.form, { borderColor: colors.border }]} testID="piece-live-post">
-      <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Live post link</Text>
-      <Text style={[s.meta, { color: colors.text.secondary }]}>
-        Where the approved content was published.
-      </Text>
-      <TextField
+    <View
+      style={[s.card, { borderColor: colors.border, backgroundColor: colors.card }]}
+      testID="piece-live-post">
+      <CardHeader
+        icon="globe"
+        title="Live post link"
+        subtitle="Where the approved content was published."
+      />
+      <ControlledTextField
+        control={control}
+        name="livePostUrl"
         label="Live post URL"
         placeholder="https://"
         autoCapitalize="none"
+        autoCorrect={false}
         keyboardType="url"
-        value={url}
-        onChangeText={setUrl}
-        error={error ?? undefined}
+        editable={!isSubmitting}
+        leftAdornment={<Feather name="link" size={16} color={colors.text.secondary} />}
         accessibilityLabel="Live post URL"
         testID="piece-live-post-url"
       />
-      {message ? (
-        <View
-          style={[s.banner, message.tone === 'success' ? s.successBanner : s.errorBanner]}
-          accessibilityRole="alert"
-          testID="piece-live-post-message">
-          <Text style={message.tone === 'success' ? s.successText : s.errorText}>
-            {message.text}
-          </Text>
-        </View>
+      {errors.root?.message ? (
+        <FormBanner tone="error" message={errors.root.message} testID="piece-live-post-message" />
+      ) : saved ? (
+        <FormBanner tone="success" message="Live post saved." testID="piece-live-post-message" />
       ) : null}
       <Button
         title="Save link"
         style={s.primaryButton}
         titleStyle={s.primaryTitle}
-        onPress={save}
-        isLoading={isLoading}
-        disabled={isLoading}
+        onPress={handleSubmit(onSave)}
+        isLoading={isSubmitting}
+        disabled={isSubmitting}
         testID="piece-live-post-save"
       />
     </View>
   );
 }
 
-const SUBMISSION_STATUS_LABEL: Record<DeliverableSubmission['status'], string> = {
-  submitted: 'Awaiting review',
-  approved: 'Approved',
-  changes_requested: 'Changes requested',
-  superseded: 'Superseded',
-  withdrawn: 'Withdrawn',
+const SUBMISSION_STATUS: Record<
+  DeliverableSubmission['status'],
+  { label: string; dot: string; tag: { color: string; backgroundColor: string } }
+> = {
+  submitted: {
+    label: 'Awaiting review',
+    dot: palette.primary[400],
+    tag: { color: palette.warning[700], backgroundColor: palette.warning[50] },
+  },
+  approved: {
+    label: 'Approved',
+    dot: palette.success[500],
+    tag: { color: palette.success[700], backgroundColor: palette.success[50] },
+  },
+  changes_requested: {
+    label: 'Changes requested',
+    dot: palette.warning[500],
+    tag: { color: palette.warning[700], backgroundColor: palette.warning[50] },
+  },
+  superseded: {
+    label: 'Superseded',
+    dot: palette.gray[200],
+    tag: { color: palette.gray[500], backgroundColor: palette.gray[25] },
+  },
+  withdrawn: {
+    label: 'Withdrawn',
+    dot: palette.gray[200],
+    tag: { color: palette.gray[500], backgroundColor: palette.gray[25] },
+  },
 };
 
-function SubmissionItem({ submission }: { submission: DeliverableSubmission }) {
+function SubmissionItem({
+  submission,
+  isLast,
+}: {
+  submission: DeliverableSubmission;
+  isLast: boolean;
+}) {
   const { colors } = useTheme();
   const link = safeHttpUrl(submission.externalUrl);
+  const status = SUBMISSION_STATUS[submission.status];
 
   return (
-    <View
-      style={[s.historyItem, { borderColor: colors.border }]}
-      testID={`submission-${submission.revisionNo}`}>
-      <View style={s.rowHeader}>
-        <Text style={[s.meta, { color: colors.text.secondary, fontWeight: '600' }]}>
-          Revision {submission.revisionNo} · {SUBMISSION_STATUS_LABEL[submission.status]}
-        </Text>
-        <Text style={[s.meta, { color: colors.text.secondary }]}>
-          {formatOfferDate(submission.submittedAt)}
-        </Text>
+    <View style={s.timelineItem}>
+      <View style={s.timelineRail}>
+        <View style={[s.timelineDot, { borderColor: status.dot, backgroundColor: colors.card }]} />
+        {!isLast ? <View style={[s.timelineLine, { backgroundColor: colors.border }]} /> : null}
       </View>
-      {submission.isLate ? <Text style={s.lateTag}>Late</Text> : null}
-      {submission.externalUrl ? (
-        link ? (
-          <Pressable
-            accessibilityRole="link"
-            onPress={() => void Linking.openURL(link)}
-            testID={`submission-${submission.revisionNo}-link`}>
-            <Text style={s.linkText} numberOfLines={2}>
-              {link}
-            </Text>
-          </Pressable>
-        ) : (
-          <Text style={[s.hintText, { color: colors.text.primary }]}>{submission.externalUrl}</Text>
-        )
-      ) : submission.mediaId ? (
-        <Text style={[s.hintText, { color: colors.text.secondary }]}>Uploaded image</Text>
-      ) : null}
-      {submission.caption ? (
-        <Text style={[s.hintText, { color: colors.text.primary }]}>{submission.caption}</Text>
-      ) : null}
-      {submission.reviewDecision ? (
-        <View style={s.reviewBox}>
-          <Text style={[s.hintText, { color: colors.text.primary }]}>
-            {submission.reviewDecision === 'approved'
-              ? 'The business approved this.'
-              : 'The business requested changes.'}
-            {submission.reviewReason ? ` ${submission.reviewReason}` : ''}
+      <View
+        style={[s.historyCard, { borderColor: colors.border, backgroundColor: colors.card }]}
+        testID={`submission-${submission.revisionNo}`}>
+        <View style={s.historyHeader}>
+          <Text style={[s.historyTitle, { color: colors.text.primary }]}>
+            Revision {submission.revisionNo}
+          </Text>
+          <Text style={[s.historyDate, { color: colors.text.secondary }]}>
+            {formatOfferDate(submission.submittedAt)}
           </Text>
         </View>
-      ) : null}
+        <View style={s.historyTags}>
+          <Text style={[s.tag, status.tag]}>{status.label}</Text>
+          {submission.isLate ? <Text style={[s.tag, s.lateTag]}>Late</Text> : null}
+        </View>
+
+        {submission.externalUrl ? (
+          <View style={s.attachment}>
+            <Feather name="link" size={14} color={colors.text.secondary} />
+            {link ? (
+              <Pressable
+                accessibilityRole="link"
+                onPress={() => void Linking.openURL(link)}
+                style={{ flex: 1 }}
+                testID={`submission-${submission.revisionNo}-link`}>
+                <Text style={[s.attachmentText, s.linkText]} numberOfLines={2}>
+                  {link}
+                </Text>
+              </Pressable>
+            ) : (
+              <Text style={[s.attachmentText, { color: colors.text.primary }]}>
+                {submission.externalUrl}
+              </Text>
+            )}
+          </View>
+        ) : submission.mediaId ? (
+          <View style={s.attachment}>
+            <Feather name="image" size={14} color={colors.text.secondary} />
+            <Text style={[s.attachmentText, { color: colors.text.secondary }]}>Uploaded image</Text>
+          </View>
+        ) : null}
+
+        {submission.caption ? (
+          <Text style={[s.hintText, { color: colors.text.primary }]}>{submission.caption}</Text>
+        ) : null}
+
+        {submission.reviewDecision ? (
+          <View
+            style={[
+              s.reviewBox,
+              submission.reviewDecision === 'approved' ? s.reviewApproved : s.reviewChanges,
+            ]}>
+            <Text style={[s.reviewTitle, { color: colors.text.primary }]}>
+              {submission.reviewDecision === 'approved'
+                ? 'The business approved this.'
+                : 'The business requested changes.'}
+            </Text>
+            {submission.reviewReason ? (
+              <Text style={[s.hintText, { color: colors.text.primary }]}>
+                {submission.reviewReason}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
