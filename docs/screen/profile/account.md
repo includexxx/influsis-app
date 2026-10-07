@@ -54,7 +54,7 @@ The Profile tab's landing screen: a settings menu, not a data display. Shows the
 
 The destinations and the logout flow are as specified; the presentation was redesigned:
 
-- Menu rows are a tinted Feather-icon chip + title + one-line subtitle + chevron, grouped into rounded `colors.card` cards with inset hairline dividers under uppercase section labels. Each row has its own accent (primary, navy, success, warning) from `scenes/profile/components/tones.ts`, which swaps the 50-step tints for low-alpha washes on the dark theme.
+- Menu rows are a tinted Feather-icon chip + title + one-line subtitle + chevron, grouped into rounded `colors.card` cards with inset hairline dividers under uppercase section labels. Each row has its own accent (primary, navy, success, warning) from `theme/accentTones.ts`, which swaps the 50-step tints for low-alpha washes on the dark theme.
 - The rows are regrouped into Account / Work / Support (was General / About), and "Ballance" now reads "Balance" (the route is still `/ballance`). Row `testID`s are unchanged.
 - The header extends under the status bar (the `SafeAreaView` only handles left/right; the header adds the top inset itself), and a header-colored cap above the content covers the iOS overscroll bounce.
 - Stats and profile strength only use fields `GET /profiles/me` returns - no invented follower or rating numbers.

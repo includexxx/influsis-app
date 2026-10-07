@@ -1,6 +1,6 @@
-import { palette } from '@/theme';
+import { palette } from './colors';
 
-// Accent tones for the Profile tab's icon chips. On white paper a chip is a
+// Accent tones for tinted icon chips (Profile tab, Campaign Details). On white paper a chip is a
 // 50-step tint behind a 600-step glyph; on the dark theme's near-black cards
 // those tints glare, so the chip becomes a low-alpha wash of the accent and
 // the glyph moves to a lighter step.

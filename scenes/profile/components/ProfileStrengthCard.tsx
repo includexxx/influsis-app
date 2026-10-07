@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { accountStyle } from '../account.style';
-import { toneColors } from './tones';
+import { toneColors } from '@/theme';
 
 export interface ProfileStrengthCardProps {
   percent: number;

@@ -17,7 +17,7 @@ import ProfileHeader, { PROFILE_HEADER_TOP } from './components/ProfileHeader';
 import ProfileStats from './components/ProfileStats';
 import ProfileStrengthCard from './components/ProfileStrengthCard';
 import { ProfileMenuItem, ProfileMenuSection } from './components/ProfileMenu';
-import { toneColors } from './components/tones';
+import { toneColors } from '@/theme';
 import { capitalize } from './utils/profileDisplay';
 import { completionHint, getProfileCompletion, verificationBadge } from './utils/profileCompletion';
 
