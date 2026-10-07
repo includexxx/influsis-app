@@ -186,7 +186,7 @@ describe('validateOptionalText', () => {
 
 describe('formatOfferDate', () => {
   test('formats an ISO timestamp as day, month and year', () => {
-    expect(formatOfferDate('2026-09-28T10:00:00')).toBe('28 Sep 2026');
+    expect(formatOfferDate('2026-09-28T10:00:00')).toBe('28 Sep, 2026');
   });
 
   test('returns an empty string for an invalid value', () => {

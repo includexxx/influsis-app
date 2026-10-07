@@ -29,7 +29,7 @@ describe('<FeedCampaignCard />', () => {
     expect(screen.getByText('New Shop Openning')).not.toBeNull();
     expect(screen.getByText('Dhaka Delights Ltd.')).not.toBeNull();
     expect(screen.getByText('BDT 6,000')).not.toBeNull();
-    expect(screen.getByText('10 Oct 2026')).not.toBeNull();
+    expect(screen.getByText('10 Oct, 2026')).not.toBeNull();
   });
 
   test('shows an Applied badge when the creator already applied', () => {

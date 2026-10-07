@@ -248,7 +248,7 @@ describe('<OfferScreen />', () => {
     expect(screen.queryByTestId('offer-counter')).toBeNull();
 
     fireEvent.press(screen.getByTestId('offer-view-agreement'));
-    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+    expect(await screen.findByText('Agreement confirmed · 30 Sep, 2026')).toBeTruthy();
     expect(screen.queryByTestId('agreement-accept')).toBeNull();
   });
 
@@ -289,7 +289,7 @@ describe('<OfferScreen />', () => {
         data: { offerId: 'offer-1' },
       }),
     );
-    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+    expect(await screen.findByText('Agreement confirmed · 30 Sep, 2026')).toBeTruthy();
   });
 
   test('Back to offer closes the agreement without accepting', async () => {

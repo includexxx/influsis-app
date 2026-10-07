@@ -4,72 +4,57 @@ import { useSkeletonPulse } from '@/scenes/business/hooks/useSkeletonPulse';
 import { campaignDetailsStyle } from '../campaignDetails.style';
 
 const styles = StyleSheet.create({
-  businessNameBlock: {
-    width: '35%',
-    height: 14,
-    borderRadius: 6,
-    marginTop: 8,
+  businessRow: {
+    height: 74,
+    borderRadius: 20,
   },
-  titleBlock: {
-    width: '75%',
-    height: 22,
-    borderRadius: 6,
-    marginTop: 8,
+  budgetCard: {
+    height: 132,
+    borderRadius: 24,
   },
-  statBlock: {
-    flex: 1,
-    height: 72,
-    borderRadius: 12,
+  factGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  sectionTitleBlock: {
-    width: '40%',
-    height: 18,
-    borderRadius: 6,
-    marginTop: 24,
+  factTile: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    height: 104,
+    borderRadius: 18,
   },
-  lineBlock: {
-    width: '100%',
-    height: 14,
-    borderRadius: 6,
-    marginTop: 10,
-  },
-  lineBlockShort: {
-    width: '65%',
-    height: 14,
-    borderRadius: 6,
-    marginTop: 8,
+  sectionCard: {
+    height: 150,
+    borderRadius: 20,
   },
 });
 
-// Loading placeholder for the Campaign Details screen, shaped like its real
-// layout (campaignDetails.style.ts): full-bleed banner with an overlapping
-// avatar, business name, title, the stat tile row, then a text section.
+// Loading placeholder for Campaign Details, shaped like the real layout
+// (campaignDetails.style.ts): the full-bleed cover, then the overlapping
+// content sheet with the business row, budget card, fact tiles and a
+// section card. The screen floats its back button over this.
 function CampaignDetailsSkeleton() {
-  const { palette } = useTheme();
+  const { colors, palette, isDark } = useTheme();
   const opacity = useSkeletonPulse();
+  const blockColor = isDark ? palette.gray[700] : palette.gray[50];
 
   function block(style: StyleProp<ViewStyle>) {
-    return <Animated.View style={[style, { backgroundColor: palette.gray[50], opacity }]} />;
+    return <Animated.View style={[style, { backgroundColor: blockColor, opacity }]} />;
   }
 
   return (
     <View testID="campaign-details-skeleton">
-      <View style={campaignDetailsStyle.bannerWrap}>
-        {block(campaignDetailsStyle.banner)}
-        {block(campaignDetailsStyle.avatar)}
-      </View>
-      <View style={campaignDetailsStyle.content}>
-        {block(styles.businessNameBlock)}
-        {block(styles.titleBlock)}
-        <View style={campaignDetailsStyle.statRow}>
-          {block(styles.statBlock)}
-          {block(styles.statBlock)}
-          {block(styles.statBlock)}
+      {block(campaignDetailsStyle.cover)}
+      <View style={[campaignDetailsStyle.sheet, { backgroundColor: colors.background }]}>
+        {block(styles.businessRow)}
+        {block(styles.budgetCard)}
+        <View style={styles.factGrid}>
+          {block(styles.factTile)}
+          {block(styles.factTile)}
+          {block(styles.factTile)}
+          {block(styles.factTile)}
         </View>
-        {block(styles.sectionTitleBlock)}
-        {block(styles.lineBlock)}
-        {block(styles.lineBlock)}
-        {block(styles.lineBlockShort)}
+        {block(styles.sectionCard)}
       </View>
     </View>
   );

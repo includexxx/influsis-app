@@ -97,7 +97,7 @@ describe('formatRelativeTime', () => {
   });
 
   test('shows a date after a week and nothing for an invalid value', () => {
-    expect(formatRelativeTime('2026-07-01T12:00:00.000Z', now)).toMatch(/^1 Jul 2026$/);
+    expect(formatRelativeTime('2026-07-01T12:00:00.000Z', now)).toMatch(/^01 Jul, 2026$/);
     expect(formatRelativeTime('not a date', now)).toBe('');
   });
 });

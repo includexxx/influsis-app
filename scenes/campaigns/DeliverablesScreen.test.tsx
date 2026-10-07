@@ -177,7 +177,7 @@ describe('<DeliverablesScreen />', () => {
 
     fireEvent.press(await screen.findByTestId('deliverables-view-agreement'));
 
-    expect(await screen.findByText('Agreement confirmed · 30 Sep 2026')).toBeTruthy();
+    expect(await screen.findByText('Agreement confirmed · 30 Sep, 2026')).toBeTruthy();
     expect(screen.getByText('2 × Instagram Reels')).toBeTruthy();
     expect(screen.getByText('No deadline set')).toBeTruthy();
     expect(screen.getByLabelText("You'll receive 25,000 taka")).toBeTruthy();
@@ -200,7 +200,7 @@ describe('<DeliverablesScreen />', () => {
     });
     renderScreen();
 
-    expect(await screen.findByText('Content deadline · 10 Oct 2026')).toBeTruthy();
+    expect(await screen.findByText('Content deadline · 10 Oct, 2026')).toBeTruthy();
   });
 
   test('leaves the deadline out when the campaign is no longer live', async () => {

@@ -2,10 +2,14 @@ import { describe, expect, jest, test } from '@jest/globals';
 import { CampaignFeedDetail, CampaignRequirementSection } from '../types/campaignFeed';
 import {
   formatCampaignLocation,
+  formatCategoryLabel,
   formatDeliverable,
+  formatPostedDate,
   formatPreferredGender,
+  getAudienceGroups,
   getBriefSections,
   getCampaignDetailsAvatarUrl,
+  getDeadlineCountdown,
 } from './mapCampaignDetails';
 
 jest.mock('@/utils/config', () => ({
@@ -105,5 +109,88 @@ describe('getBriefSections', () => {
       section({ id: 'dos', sortOrder: 0 }),
     ]);
     expect(result.map(s => s.id)).toEqual(['dos', 'timing']);
+  });
+});
+
+describe('getDeadlineCountdown', () => {
+  const today = new Date(2026, 9, 7); // 07 Oct, 2026, local time
+
+  test('counts whole calendar days left', () => {
+    expect(getDeadlineCountdown('2026-10-20', today)).toEqual({
+      label: '13 days left',
+      state: 'open',
+    });
+    expect(getDeadlineCountdown('2026-10-10', today)).toEqual({
+      label: '3 days left',
+      state: 'soon',
+    });
+    expect(getDeadlineCountdown('2026-10-08', today)).toEqual({
+      label: '1 day left',
+      state: 'soon',
+    });
+  });
+
+  test('marks today and past deadlines', () => {
+    expect(getDeadlineCountdown('2026-10-07', today)).toEqual({
+      label: 'Closes today',
+      state: 'today',
+    });
+    expect(getDeadlineCountdown('2026-10-06', today)).toEqual({ label: 'Closed', state: 'closed' });
+  });
+
+  test('ignores a late hour on the current day', () => {
+    expect(getDeadlineCountdown('2026-10-08', new Date(2026, 9, 7, 23, 59))?.label).toBe(
+      '1 day left',
+    );
+  });
+
+  test('returns null for a missing or malformed deadline', () => {
+    expect(getDeadlineCountdown(null, today)).toBeNull();
+    expect(getDeadlineCountdown('soon', today)).toBeNull();
+  });
+});
+
+describe('formatPostedDate', () => {
+  test('formats the date part of the timestamp', () => {
+    expect(formatPostedDate('2026-09-26T10:19:12.511Z')).toBe('26 Sep, 2026');
+    expect(formatPostedDate(null)).toBeNull();
+    expect(formatPostedDate('garbage')).toBeNull();
+  });
+});
+
+describe('formatCategoryLabel', () => {
+  test('uses the known label, else capitalizes the key', () => {
+    expect(formatCategoryLabel('beauty')).toBe('Beauty & Lifestyle');
+    expect(formatCategoryLabel('gadgets')).toBe('Gadgets');
+  });
+});
+
+describe('getAudienceGroups', () => {
+  test('keeps only the filled-in groups, in order', () => {
+    expect(
+      getAudienceGroups({
+        audienceLocation: 'Dhaka',
+        ageRanges: ['18-24'],
+        interests: [],
+        subCategories: [],
+        objectives: ['Awareness'],
+      }),
+    ).toEqual([
+      { label: 'Location', items: ['Dhaka'] },
+      { label: 'Age range', items: ['18-24'] },
+      { label: 'Objectives', items: ['Awareness'] },
+    ]);
+  });
+
+  test('is empty when nothing is targeted', () => {
+    expect(
+      getAudienceGroups({
+        audienceLocation: null,
+        ageRanges: [],
+        interests: [],
+        subCategories: [],
+        objectives: [],
+      }),
+    ).toEqual([]);
   });
 });

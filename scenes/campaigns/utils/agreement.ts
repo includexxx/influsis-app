@@ -13,10 +13,14 @@ import { scopeFromList } from './scope';
 
 const LICENSING_PERCENT: Record<1 | 2 | 3, 0 | 25 | 50> = { 1: 0, 2: 25, 3: 50 };
 
+/** The licensing uplift for a tier: 0, 25 or 50 (percent). */
+export function licensingPercent(tier: 1 | 2 | 3): number {
+  return LICENSING_PERCENT[tier] ?? 0;
+}
+
 /** Same as the backend accept trigger: integer division; tier 2 = 25%, 3 = 50%, else 0. */
 export function licensingMarkupMinor(amountMinor: number, tier: 1 | 2 | 3): number {
-  const percent = LICENSING_PERCENT[tier] ?? 0;
-  return Math.floor((amountMinor * percent) / 100);
+  return Math.floor((amountMinor * licensingPercent(tier)) / 100);
 }
 
 export type AgreementMode = 'confirm' | 'confirmed';

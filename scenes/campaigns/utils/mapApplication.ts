@@ -3,7 +3,7 @@ import { CampaignCardProps } from '@/components/elements/CampaignCard';
 import { palette } from '@/theme';
 import { resolveMediaKeyOrUrl } from '@/utils/media';
 import { EngagementStatus, MyEngagementItem } from '../types/myEngagement';
-import { MONTH_LABELS, formatCampaignPrice } from './mapCampaignFeedItem';
+import { MONTH_LABELS, formatCampaignPrice, formatDisplayDate } from './mapCampaignFeedItem';
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -44,7 +44,7 @@ export function formatRelativeTime(iso: string, now: number = Date.now()): strin
   if (elapsed < HOUR_MS) return `${Math.floor(elapsed / MINUTE_MS)} min ago`;
   if (elapsed < DAY_MS) return `${Math.floor(elapsed / HOUR_MS)} h ago`;
   if (elapsed < WEEK_MS) return `${Math.floor(elapsed / DAY_MS)} d ago`;
-  return `${date.getDate()} ${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`;
+  return formatDisplayDate(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 export type AppliedCampaignCardProps = Pick<

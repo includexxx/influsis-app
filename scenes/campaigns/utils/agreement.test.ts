@@ -99,7 +99,7 @@ describe('buildCreatorAgreement - confirm', () => {
       businessAvatarUrl: 'avatars/pathao.webp',
       campaignTitle: 'Pathao Summer Push',
       scope: [{ platform: 'instagram', type: 'reels', count: 2 }],
-      contentDeadline: '10 Oct 2026',
+      contentDeadline: '10 Oct, 2026',
       youReceiveMinor: 1_250_000,
       licensingMinor: 250_000,
       licensingPercent: 25,
@@ -154,7 +154,7 @@ describe('buildCreatorAgreement - confirmed', () => {
     expect(agreement?.youReceiveMinor).toBe(2_875_000);
     expect(agreement?.licensingMinor).toBe(575_000);
     expect(agreement?.offerId).toBeNull();
-    expect(agreement?.acceptedAt).toBe('30 Sep 2026');
+    expect(agreement?.acceptedAt).toBe('30 Sep, 2026');
     expect(agreement?.isCompleted).toBe(false);
   });
 

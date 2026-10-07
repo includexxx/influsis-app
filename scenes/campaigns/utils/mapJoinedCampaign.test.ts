@@ -41,7 +41,7 @@ describe('mapJoinedCampaignToCard', () => {
       businessAvatar: null,
       title: 'New Shop Openning',
       price: 'BDT 5,500',
-      dueDate: '10 Oct 2026',
+      dueDate: '10 Oct, 2026',
     });
   });
 
@@ -52,7 +52,7 @@ describe('mapJoinedCampaignToCard', () => {
       campaign: { ...engagement.campaign!, contentDeadline: null },
     });
     expect(result.price).toBe('BDT 6,000');
-    expect(result.dueDate).toBe('1 Oct 2026');
+    expect(result.dueDate).toBe('01 Oct, 2026');
   });
 
   test('handles a missing campaign summary', () => {

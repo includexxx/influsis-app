@@ -33,12 +33,12 @@ const baseCampaign: CampaignFeedItem = {
 
 describe('formatCampaignDueDate', () => {
   test('renders a YYYY-MM-DD field as "D Mon YYYY"', () => {
-    expect(formatCampaignDueDate('2026-10-01')).toBe('1 Oct 2026');
-    expect(formatCampaignDueDate('2022-01-21')).toBe('21 Jan 2022');
+    expect(formatCampaignDueDate('2026-10-01')).toBe('01 Oct, 2026');
+    expect(formatCampaignDueDate('2022-01-21')).toBe('21 Jan, 2022');
   });
 
   test('is stable across timezones (no UTC-midnight shift)', () => {
-    expect(formatCampaignDueDate('2026-01-01')).toBe('1 Jan 2026');
+    expect(formatCampaignDueDate('2026-01-01')).toBe('01 Jan, 2026');
   });
 
   test('falls back to "No deadline" for null or malformed input', () => {
@@ -69,7 +69,7 @@ describe('mapCampaignFeedItemToCard', () => {
     expect(result.businessName).toBe('Bkash Ltd. Company');
     expect(result.title).toBe('Bkash Branding Campaign');
     expect(result.price).toBe('BDT 500');
-    expect(result.dueDate).toBe('1 Oct 2026');
+    expect(result.dueDate).toBe('01 Oct, 2026');
   });
 
   test('leaves cover/avatar null when unset so the card falls back', () => {

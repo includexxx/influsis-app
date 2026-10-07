@@ -1,16 +1,16 @@
 import { EngagementOffer, EngagementStatus, MyEngagementDetail } from '../types/myEngagement';
-import { MONTH_LABELS } from './mapCampaignFeedItem';
+import { formatDisplayDate } from './mapCampaignFeedItem';
 
 // Backend @MaxLength(2000) on the counter-offer note and on the decline /
 // withdraw reason.
 export const NEGOTIATION_TEXT_MAX_LENGTH = 2000;
 
-// "28 Sep 2026" from an ISO timestamp, read in local time - offer dates and
+// "28 Sep, 2026" from an ISO timestamp, read in local time - offer dates and
 // the escrow funding deadline. Empty for an unparseable value.
 export function formatOfferDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return `${date.getDate()} ${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`;
+  return formatDisplayDate(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 // Only these engagement statuses accept a counter, accept, decline, or

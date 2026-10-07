@@ -18,6 +18,12 @@ export const MONTH_LABELS = [
   'Dec',
 ];
 
+// "01 Jan, 2026" - the one format every full campaign date uses (deadlines,
+// offer and agreement dates, older activity). `monthIndex` is 0-based.
+export function formatDisplayDate(year: number, monthIndex: number, day: number): string {
+  return `${String(day).padStart(2, '0')} ${MONTH_LABELS[monthIndex]}, ${year}`;
+}
+
 // Parses the `YYYY-MM-DD` field manually instead of `new Date(string)` +
 // `Intl.DateTimeFormat`, which reads a date-only string as UTC midnight and
 // can render a day early in negative-UTC-offset timezones.
@@ -25,7 +31,7 @@ export function formatCampaignDueDate(date: string | null): string {
   if (!date) return 'No deadline';
   const [year, month, day] = date.split('-').map(Number);
   if (!year || !month || !day) return 'No deadline';
-  return `${day} ${MONTH_LABELS[month - 1]} ${year}`;
+  return formatDisplayDate(year, month - 1, day);
 }
 
 export function formatCampaignPrice(budgetAmountMinor: number | null, currency: string): string {

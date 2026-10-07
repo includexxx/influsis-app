@@ -2,76 +2,68 @@
 
 | | |
 |---|---|
-| **Figma node** | [`6001:37641`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-37641&m=dev) — "Campaign Details_Sample 1" |
+| **Figma node** | [`6001:37641`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-37641&m=dev) — "Campaign Details_Sample 1" (original layout; the screen has since been redesigned, see "Presentation") |
 | **Route** | `/campaign/[id]` (`app/(details)/campaign/[id].tsx`) |
-| **Scene** | `scenes/main/CampaignDetails.tsx` |
-| **Data** | `data/campaigns.ts` |
-| **Components used** | `ScreenHeader`, `Image`, `Button`, `BulletList`, `InfoCard` (all existing); `StatTile` (new, `components/elements/`) |
+| **Scene** | `scenes/campaigns/CampaignDetails.tsx` (+ `campaignDetails.style.ts`) |
+| **Data** | CB2 `GET /feed/campaigns/:id` (`useGetFeedCampaignQuery`) |
+| **Components used** | `CampaignCover`, `GlassBackButton`, `BusinessRow`, `BudgetCard`, `FactGrid`, `DetailSection`, `BriefSection`, `DeliverableList`, `AudienceGroups`, `ApplyBar` (`scenes/campaigns/components/details/`); `CampaignDetailsSkeleton`, `CampaignsEmptyState`; shared `FallbackImage`, `StatusBadge`, `ScreenHeader` |
 
 ## Purpose
 
-The full detail view for a single campaign — banner photo, business identity, title, budget/duration/follower stats, an "About campaign" description, requirements, deliverables ("What you need to create"), a business description, a website link, an application deadline, and an "Apply Now" CTA. Reached by tapping any campaign, anywhere in the app.
+The full view of one live campaign: what it is, who posted it, what it pays, when it's due, what to create, the business's brief and the audience - and the way to apply. Reached by tapping any campaign card in the app.
 
 ## User flow
 
 ```
-/home (hero + list)   /campaigns   /live-campaign   /search results   /business/[id] (Ongoing Campaign)
-  │ tap a CampaignCard    │ tap a card  │ tap a card     │ tap a result card  │ tap a card
-  └──────────────┬────────┴─────────────┴────────────────┴─────────────────────┘
-                  ▼
-            /campaign/[id]
-                  │
-                  ├─ tap back chevron (ScreenHeader) → back to wherever the tap came from
-                  ├─ tap "Apply Now" → /campaign/[id]/apply (see docs/screen/apply-campaign/README.md)
-                  └─ "Visit website" has no onPress; there's no browser-linking pattern yet
+any CampaignCard (Home, /campaigns, /live-campaign, /search, /business/[id])
+  ▼
+/campaign/[id]
+  ├─ back (frosted button on the cover)  → router.back()
+  ├─ tap the business row                → /business/[businessId]
+  ├─ tap "Read more"                     → expands a long description
+  ├─ tap a link in a "links" brief section → opens it in the browser
+  └─ tap "Apply Now" (bottom bar)        → /campaign/[id]/apply (docs/screen/apply-campaign)
 ```
 
-`/campaign/[id]` is a dynamic route inside the `app/(details)/` route group (outside the `(main)` Tabs group), the same "no tab bar" reasoning as every other screen in that group. Every `CampaignCard` in the app now passes the same `onPress={() => router.push(\`/campaign/${item.id}\`)}` — Home's "Active Campaigns" hero row and "Campaigns" list section, the full `/campaigns` list, `/live-campaign`, `/search` results, and Business Details' "Ongoing Campaign" section (`scenes/main/Home.tsx`, `Campaigns.tsx`, `LiveCampaign.tsx`, `Search.tsx`, `BusinessDetails.tsx`) — closing the gap each of those screens' docs previously flagged as "no campaign-detail screen yet - inert".
+A `404` (campaign not live) or a missing `id` redirects to `/home`.
 
 ## Sections (top to bottom)
 
-| # | Section | Layout | Component |
-|---|---|---|---|
-| 1 | Header | Back chevron + centered "Campaign details" title | `ScreenHeader` |
-| 2 | Banner + avatar | Full-bleed banner photo with a circular logo overlapping its bottom-left corner | `Image` ×2 |
-| 3 | Business name + title | Small business name + verified badge, then the campaign's big title | — |
-| 4 | Stats row | Three tinted tiles: Budget, Duration, Follower wanted | `StatTile` ×3 |
-| 5 | About campaign | Section title + description paragraph | — |
-| 6 | Requirements | Section title + bulleted list | `BulletList` |
-| 7 | What you need to create | Section title + three tinted deliverable cards | `InfoCard` |
-| 8 | About the business | Section title + description paragraph | — |
-| 9 | Footer actions | "Visit website" link, application deadline row, "Apply Now" button | `Button` |
+| # | Section | Content |
+|---|---|---|
+| 1 | Cover | Full-bleed cover photo (bundled fallback when none) under the status bar with a dark scrim; frosted back button; the engagement status ("Applied", "Invited", "Countered", "Accepted") top-right when the creator is engaged; up to 3 frosted category pills, the title and the location |
+| 2 | Business | Avatar, business name + verified badge, "Posted {date}", arrow - opens the business profile |
+| 3 | Budget card | Brand gradient: "CAMPAIGN BUDGET", the amount (or "Negotiable"), and a chip: "+25% / +50% licensing for usage rights" for tier 2 / 3, else "Final pay is agreed in your offer" |
+| 4 | Fact tiles | 2-column grid: Apply by (+ "N days left" / "Closes today" / "Closed" chip, hidden once engaged), Content due, Campaign ends (only when set), Preferred gender |
+| 5 | About this campaign | Description; over 240 characters it starts at 5 lines with "Read more" / "Show less" |
+| 6 | What you'll create | Count chip with the total pieces, then one tile per deliverable: platform icon, "2 × Reels", platform |
+| 7 | Promoting | Check list |
+| 8 | Brief sections | One card per `requirements` section (minus the projected `deliverables` one), in `sortOrder`, rendered by `layout`: `list` → check list, `tags` → pills, `links` → tappable link rows, `code` → dashed promo-code box. `tone: 'danger'` makes the card red and the checks crosses; `hint` shows under the title |
+| 9 | Audience | Labelled pill groups for whichever of audience location, age range, interests, niches and objectives are set; hidden when none are |
+| 10 | Apply bar | Pinned to the bottom: "Apply by {date}" + the budget, and a gradient "Apply Now" pill. Disabled and muted with the engagement status when already engaged, or "Applications closed" (lock icon) once the deadline has passed - the backend `409`s both |
 
-## Data consolidation: one canonical campaign list
+States: a skeleton in the same shape (cover + sheet blocks) with the back button floating over it while loading; `ScreenHeader` + `CampaignsEmptyState` error with retry when the request fails.
 
-Before this screen, campaigns were scattered across five separate arrays with disjoint, non-overlapping ids and no shared lookup: this file's own `campaigns` (`campaign-1..4`), `data/home.ts`'s `activeCampaigns`/`campaigns` (`kfc-branding`, `bkash-branding-hero`, `bkash-1..4`), `data/liveCampaigns.ts` (`live-1..8`), and `data/search.ts`'s `searchResults` (`search-1..3`) — the same pre-consolidation situation `docs/screen/gig-details/README.md` and `docs/screen/creator-profile/README.md` already describe fixing for gigs and creators. Unlike those two cases, these aren't duplicate views of the *same* underlying items — each array holds genuinely distinct mock campaigns — so instead of deduplicating, every literal moved into `data/campaigns.ts` as the one canonical file:
+## Presentation
 
-- `data/campaigns.ts` now exports `campaigns` (`campaign-1..4`, unchanged), `activeCampaigns`, `homeCampaigns`, `liveCampaigns`, and `searchResults` — one array per original source — plus `allCampaigns`, the concatenation of all five, which is what Campaign Details looks a tapped id up in.
-- `data/home.ts` re-exports `activeCampaigns` and `homeCampaigns as campaigns` from `data/campaigns.ts` instead of defining its own literals — `scenes/main/Home.tsx`'s import is unchanged.
-- `data/liveCampaigns.ts` and `data/search.ts` similarly re-export `liveCampaigns`/`searchResults` from `data/campaigns.ts` — `scenes/main/LiveCampaign.tsx` and `Search.tsx`'s imports are unchanged.
-- `data/businesses.ts`'s `campaignIds: ['campaign-1', 'campaign-2']` (used by Business Details' "Ongoing Campaign" section) already pointed at this file's ids, confirming `data/campaigns.ts` was the natural consolidation target.
+- Cover photo, frosted (`expo-blur`) pills and back button follow the glass campaign cards (`components/elements/CampaignCard`).
+- The content is a sheet with 28px rounded top corners pulled up over the cover. Every block is a rounded `colors.card` card with a hairline border and a tinted Feather icon chip; accents come from `theme/accentTones.ts` (`toneColors`), which switches to low-alpha washes on the dark theme.
+- Titles use ClashDisplay; the screen paints the cover's dark base above the content so an iOS overscroll bounce doesn't show a white strip.
 
-## New components
+## Logic
 
-- **`StatTile`** (Figma "Frame" nodes `6001:37683`/`37684`/`37685`) — a tinted icon + label + value tile, three side by side for Budget/Duration/Follower wanted. `backgroundColor` defaults to Figma's confirmed `palette.gray[25]` but is overridable, generic enough for any future icon-stat tile this project doesn't have a design for yet.
+All in `scenes/campaigns/utils/mapCampaignDetails.ts` (unit-tested):
 
-## No changes needed to existing components
-
-`ScreenHeader`, `Image`, `Button`, `BulletList`, and `InfoCard` (with its existing `backgroundColor` override) all reproduce this design exactly as-is — `InfoCard`'s title+description shape already matches the "What you need to create" deliverable cards, `BulletList` already matches "Requirements", and `Button` + `buttonStyle.primary`/`primaryTitle` (the same shared CTA shape Sign In/Sign Up/Verify OTP already use) already matches "Apply Now" (`#F42E9E`, 54px tall, 12px radius, white 18px semibold label). See "Reuse First" in `CLAUDE.md`.
+- `getDeadlineCountdown` - whole calendar days between today and the `YYYY-MM-DD` deadline in local time; "soon" (amber) at 3 days or fewer.
+- `formatPostedDate`, `formatCategoryLabel` (content-category label, else the key capitalized), `getAudienceGroups`.
+- Licensing percent comes from `licensingPercent(tier)` in `utils/agreement.ts`, the same table the agreement sheet uses.
 
 ## Scope notes
 
-- **No real backend.** As with every other flow so far, there's no campaigns API (`docs/PRD.md` §2.2/§4.1) — every campaign's detail fields (new optional fields on the `Campaign` type: `bannerImage`, `avatar`, `budget`, `duration`, `followerWanted`, `about`, `requirements`, `deliverables`, `businessDescription`, `website`, `applicationDeadline`) come from `data/campaigns.ts`.
-- **Figma's one example mirrored across every campaign.** Figma shows a single campaign's detail content (stats, "About campaign" paragraph, requirements, three deliverables, business description, website, deadline) for its one example — applied identically to all 21 campaigns in `data/campaigns.ts` rather than inventing distinct detail content Figma doesn't specify, same as Business Details' description and Gig Details' service breakdown. Each campaign's own `title` and `businessName` (already used on its card) are reused for the header instead of a separate detail-only field, so the header shows real per-campaign content rather than always repeating Figma's "Summer Fashion Collection showcase" example.
-- **Banner/avatar reused from Business Details, not re-exported.** Figma's banner photo and circular logo are the exact same asset pair (identical Figma export hashes) already extracted for `docs/screen/business-details`'s example — referenced directly (`assets/images/business-details/banner.jpg`/`avatar.jpg`) rather than duplicating the files.
-- **"About the business" duplication cleaned up.** Figma's paragraph (node `6001:37699`) is four back-to-back copies of the same sentence pasted together — a designer text-entry error, not intentional repeated content like the mismatches this project otherwise preserves as-is (e.g. Business Details' banner/name mismatch) — so only one clean copy is kept in `data/campaigns.ts`'s `businessDescription`.
-- **"Apply Now" now opens a real application flow.** `router.push(\`/campaign/${campaign.id}/apply\`)` — see [`docs/screen/apply-campaign/README.md`](../apply-campaign/README.md).
-- **"Visit website" is still visual-only.** It has no real destination — this app has no established pattern for opening external URLs (`Linking`) yet, so it stays non-functional per Figma rather than inventing a fake action. Matches this project's established pattern of not building interactions beyond what's been designed (see `docs/screen/home/README.md`'s "Inert tap targets").
-- **`CampaignMiniCard` ("Popular Campaigns" on Home) stays out of scope.** Its shape (`id, image, startedLabel, title`) doesn't carry price/business/detail fields the way `Campaign` does, so it isn't wired to this route — see `docs/screen/home/README.md` "Scope notes".
-- **Invalid `id` falls back to Home.** Same as Gig Details, Creator Profile, and Business Details — an unmatched `/campaign/[id]` renders `<Redirect href="/home" />` rather than a broken page.
-- **New assets.** `assets/images/campaign-details/budget.png`, `duration.png`, `followers.png`, `calendar.png` (20×20 native, rasterized at 4× via `scripts/rasterize-campaign-details-assets.py`) and `website.png` (24×24 native) — all already-colored stroke icons from Figma (pink `#F42E9E` for budget/duration/followers/website, black `#030304` for calendar), same rasterize-then-discard-the-SVG approach as `scripts/rasterize-business-details-assets.py`. The verified badge reuses the existing `assets/images/home/verified-badge.png`.
+- The backend has no website link, follower requirement or business description on CB2, so the original Figma's "Visit website", "Follower wanted" and "About the business" are not shown.
+- `StatTile`, `BulletList` and `InfoCard` are no longer used by this screen (`BulletList` and `InfoCard` still serve the gig screens; `StatTile` now has no callers), nor are the `assets/images/campaign-details/*.png` icons.
 
 ## Navigation
 
-- **Entry:** any `CampaignCard` tap — Home's "Active Campaigns" hero row and "Campaigns" list section (`scenes/main/Home.tsx`), `/campaigns` (`Campaigns.tsx`), `/live-campaign` (`LiveCampaign.tsx`), `/search` results (`Search.tsx`), and Business Details' "Ongoing Campaign" section (`BusinessDetails.tsx`).
-- **Exit:** back chevron (`ScreenHeader`'s `onBack`) → `router.back()` to wherever the tap originated.
+- **Entry:** any `CampaignCard` tap.
+- **Exit:** back → `router.back()`; business row → `/business/[businessId]`; Apply Now → `/campaign/[id]/apply`.

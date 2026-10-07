@@ -20,6 +20,12 @@ jest.mock('expo-router', () => ({
   },
 }));
 
+jest.mock(
+  'react-native-safe-area-context',
+  () =>
+    (jest.requireActual('react-native-safe-area-context/jest/mock') as { default: object }).default,
+);
+
 jest.mock('@/services/http', () => {
   class ApiError extends Error {
     code: string;
@@ -111,6 +117,8 @@ function renderScreen() {
 
 beforeEach(() => {
   jest.useFakeTimers();
+  // Fixed "today" so the 10 Oct, 2026 application deadline stays open.
+  jest.setSystemTime(new Date(2026, 9, 7));
   mockRequest.mockReset();
   mockPush.mockReset();
 });
@@ -133,16 +141,24 @@ describe('<CampaignDetails />', () => {
       expect.objectContaining({ url: `/feed/campaigns/${campaign.id}`, method: 'GET' }),
     );
     expect(screen.getByText('Dhaka Delights Ltd.')).toBeTruthy();
+    expect(screen.getByText('Posted 26 Sep, 2026')).toBeTruthy();
     expect(screen.getByText('Dhaka, Bangladesh')).toBeTruthy();
-    expect(screen.getByText('BDT 6,000')).toBeTruthy();
+    expect(screen.getByText('Food')).toBeTruthy(); // category pill on the cover
+    // The budget card and the pinned apply bar.
+    expect(screen.getAllByText('BDT 6,000')).toHaveLength(2);
+    expect(screen.getByText('3 days left')).toBeTruthy();
+    expect(screen.getByText('Apply by 10 Oct, 2026')).toBeTruthy();
     expect(screen.getByText('Celebrate our new Gulshan branch with us.')).toBeTruthy();
     expect(screen.getByText('Grand opening offers')).toBeTruthy();
     expect(screen.getByText('Content due by 2026-10-10')).toBeTruthy();
     expect(screen.getByText('2 × Reels')).toBeTruthy();
-    expect(screen.getByText('Application deadline: 10 Oct 2026')).toBeTruthy();
+    expect(screen.getByText('Instagram')).toBeTruthy();
 
     fireEvent.press(screen.getByText('Apply Now'));
     expect(mockPush).toHaveBeenCalledWith(`/campaign/${campaign.id}/apply`);
+
+    fireEvent.press(screen.getByTestId('campaign-details-business'));
+    expect(mockPush).toHaveBeenCalledWith(`/business/${campaign.businessId}`);
   });
 
   test('shows the engagement status instead of Apply when already applied', async () => {
@@ -152,10 +168,66 @@ describe('<CampaignDetails />', () => {
     });
     renderScreen();
 
-    expect(await screen.findByText('Applied')).toBeTruthy();
+    await screen.findByText('New Shop Openning');
+    // On the cover and in the apply bar.
+    expect(screen.getAllByText('Applied')).toHaveLength(2);
     expect(screen.queryByText('Apply Now')).toBeNull();
     fireEvent.press(screen.getByTestId('campaign-details-apply'));
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  test('closes applications once the deadline has passed', async () => {
+    mockRequest.mockResolvedValue({ ...campaign, applicationDeadline: '2026-10-01' });
+    renderScreen();
+
+    expect(await screen.findByText('Applications closed')).toBeTruthy();
+    expect(screen.getByText('Closed')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('campaign-details-apply'));
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  test('renders brief sections by layout, licensing and audience', async () => {
+    mockRequest.mockResolvedValue({
+      ...campaign,
+      licensingTier: 2,
+      ageRanges: ['18-24'],
+      requirements: [
+        {
+          ...campaign.requirements[0],
+          id: 'donts',
+          sectionKey: 'donts',
+          label: "Don'ts",
+          tone: 'danger',
+          sortOrder: 1,
+          items: ['No competitor brands'],
+        },
+        {
+          ...campaign.requirements[0],
+          id: 'promo',
+          sectionKey: 'promo-code',
+          label: 'Promo code',
+          layout: 'code',
+          sortOrder: 2,
+          items: ['DHAKA20'],
+        },
+      ],
+    });
+    renderScreen();
+
+    expect(await screen.findByText("Don'ts")).toBeTruthy();
+    expect(screen.getByText('No competitor brands')).toBeTruthy();
+    expect(screen.getByText('DHAKA20')).toBeTruthy();
+    expect(screen.getByText('+25% licensing for usage rights')).toBeTruthy();
+    expect(screen.getByText('Audience')).toBeTruthy();
+    expect(screen.getByText('18-24')).toBeTruthy();
+  });
+
+  test('collapses a long description behind Read more', async () => {
+    mockRequest.mockResolvedValue({ ...campaign, description: 'Long story. '.repeat(40) });
+    renderScreen();
+
+    fireEvent.press(await screen.findByText('Read more'));
+    expect(screen.getByText('Show less')).toBeTruthy();
   });
 
   test('shows a retryable error when the request fails', async () => {
