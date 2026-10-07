@@ -4,8 +4,8 @@
 |---|---|
 | **Figma nodes** | [`6001:38957`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6001-38957&m=dev) ("93_Light_account", base state, with tab bar), [`6027:8164`](https://www.figma.com/design/E7VpnelWNYgzs9WoLLNeh8/Influsis-Project-Brand_App-Version?node-id=6027-8164&m=dev) (same screen, logout confirmation popup open) |
 | **Route** | `/profile` (`app/(main)/profile.tsx`, unchanged - the Profile tab) |
-| **Scene** | `scenes/main/Profile.tsx` |
-| **Components used** | `CircleAvatar`, `SettingsRow`, `ConfirmDialog` (new/extended, see [README.md](./README.md)) |
+| **Scene** | `scenes/profile/Profile.tsx` |
+| **Components used** | Scene-local `ProfileHeader`, `ProfileStats`, `ProfileStrengthCard`, `ProfileMenuSection` (`scenes/profile/components/`); shared `CircleAvatar`, `ConfirmDialog` |
 
 ## Purpose
 
@@ -34,11 +34,14 @@ The Profile tab's landing screen: a settings menu, not a data display. Shows the
 
 | # | Section | Layout | Component |
 |---|---|---|---|
-| 1 | Profile header | Full-bleed brand-gradient hero: 84px circular avatar in a translucent ring + name + email, centered | `CircleAvatar` + `LinearGradient` |
-| 2 | General | Uppercase section label + an elevated card grouping 4 divider-separated rows (Profile, Security, Billing, My Applications) | `SettingsRow` (`variant="flat"`) ×4 |
-| 3 | About | Uppercase section label + an elevated card grouping 2 divider-separated rows (Help Center, Privacy Policy) | `SettingsRow` (`variant="flat"`) ×2 |
-| 4 | Logout | Single red/pink row in its own card, no chevron | `SettingsRow` (`destructive`, `showChevron={false}`) |
-| 5 | Logout confirmation | Centered popup, mounted only while open | `ConfirmDialog` |
+| 1 | Profile header | Full-bleed brand gradient (or the cover photo under a brand-tinted overlay) painted under the status bar: "Profile" title + glass edit button, 76px avatar with a green tick when verified, name, `@handle` (or account email), city/country, verification pill, white "View profile" pill | `ProfileHeader` |
+| 2 | Stats | Card overlapping the header's bottom edge: Portfolio / Platforms / Categories counts from the profile, dashes while loading. Hidden for a non-creator account or a failed load | `ProfileStats` |
+| 3 | Profile strength | Percent + gradient progress bar + which fields are missing (`utils/profileCompletion.ts`, 10 equal-weight checks), tapping opens Edit Profile. Hidden at 100%. A creator with no profile yet (404) sees a "Start onboarding" variant instead | `ProfileStrengthCard` |
+| 4 | Account | My Profile, Edit Profile, Security | `ProfileMenuSection` |
+| 5 | Work | Balance, My Applications | `ProfileMenuSection` |
+| 6 | Support | Help Center, Privacy Policy | `ProfileMenuSection` |
+| 7 | Logout | Full-width error-tinted button, then the app version | `Pressable` |
+| 8 | Logout confirmation | Centered popup with a log-out icon and a one-line explanation, mounted only while open | `ConfirmDialog` (`icon`, `message`, `tone="danger"`) |
 
 ## Scope notes
 
@@ -49,11 +52,13 @@ The Profile tab's landing screen: a settings menu, not a data display. Shows the
 
 ## Presentation
 
-The rows, copy and destinations above are as specified; their *presentation* was reworked for a more modern settings-screen look, without changing any content:
+The destinations and the logout flow are as specified; the presentation was redesigned:
 
-- The identity block is a full-bleed vertical brand-gradient header (`primary/400` -> `primary/600`) with rounded bottom corners, two out-of-frame translucent discs for depth, and white type on a translucent avatar ring. The scene's `SafeAreaView` is filled with the gradient's top color so the header reads as continuous under the status bar (the app's global `StatusBar style="light"` already suits it).
-- Menu rows are grouped into `colors.card` cards (`radius.xl`, `colors.border` hairline, `Shadow/sm`) with left-inset dividers between rows, under small uppercase section labels - replacing the previous label + full-width-rule pattern.
-- Each row's glyph sits in a 40px tinted chip (`SettingsRow`'s new opt-in `iconBackground`), primary-tinted on the menu rows and error-tinted on Logout. On the dark theme the 50-step tints are swapped for low-alpha washes of the same accents.
+- Menu rows are a tinted Feather-icon chip + title + one-line subtitle + chevron, grouped into rounded `colors.card` cards with inset hairline dividers under uppercase section labels. Each row has its own accent (primary, navy, success, warning) from `scenes/profile/components/tones.ts`, which swaps the 50-step tints for low-alpha washes on the dark theme.
+- The rows are regrouped into Account / Work / Support (was General / About), and "Ballance" now reads "Balance" (the route is still `/ballance`). Row `testID`s are unchanged.
+- The header extends under the status bar (the `SafeAreaView` only handles left/right; the header adds the top inset itself), and a header-colored cap above the content covers the iOS overscroll bounce.
+- Stats and profile strength only use fields `GET /profiles/me` returns - no invented follower or rating numbers.
+- `ConfirmDialog` gained optional `icon`, `message` and `tone` props. The Figma polarity is kept (Cancel is the prominent button, Log Out the text action); `tone="danger"` colors the Log Out text red so the destructive action is still recognizable.
 
 ## Navigation
 

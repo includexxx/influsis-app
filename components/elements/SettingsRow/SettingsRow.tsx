@@ -93,8 +93,9 @@ const styles = StyleSheet.create({
 // chevron). `trailing` is a generic slot (defaults to the chevron icon on
 // `flat`, since every Account row uses it) rather than a fixed prop, so
 // this same row shape can carry either affordance. `iconBackground` is an
-// opt-in tinted chip behind the glyph (used by the Account screen's grouped
-// setting cards); leaving it unset keeps the bare-glyph rendering.
+// opt-in tinted chip behind the glyph; leaving it unset keeps the bare-glyph
+// rendering. (The Account screen itself now uses its own scene-local
+// `ProfileMenuRow` - scenes/profile/components/ProfileMenu.tsx.)
 function SettingsRow({
   icon,
   iconTint,
