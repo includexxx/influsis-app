@@ -316,10 +316,14 @@ describe('<DeliverablePieceScreen />', () => {
   });
 
   test('an escalated piece shows the dispute notice and no form', async () => {
-    answers(piece({ status: 'escalated', revisionsRemaining: 0 }));
+    answers(piece({ status: 'escalated', revisionsRemaining: 0, rejectionCount: 2 }));
     renderScreen();
 
     expect(await screen.findByTestId('piece-escalated')).toBeTruthy();
+    expect(
+      screen.getByText("The business requested changes twice. Disputes aren't available yet."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/three times/)).toBeNull();
     expect(screen.queryByTestId('piece-submit-form')).toBeNull();
   });
 

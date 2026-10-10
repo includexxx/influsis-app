@@ -59,7 +59,8 @@ export interface DeliverablePiece {
   dueDate: string | null;
   revisionCount: number;
   rejectionCount: number;
-  /** `max(0, 3 - rejectionCount)`. */
+  /** `max(0, MAX_DELIVERABLE_REJECTIONS - rejectionCount)` - the backend's
+   * limit, 2 since backend 703e233 (original + one revision). */
   revisionsRemaining: number;
   escalatedAt: string | null;
   escalationReason: string | null;

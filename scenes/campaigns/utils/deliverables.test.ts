@@ -3,6 +3,8 @@ import { describe, expect, test } from '@jest/globals';
 import { DeliverablePieceStatus, DeliverableSubmission } from '../types/deliverables';
 import {
   canSubmitPiece,
+  formatEscalationReason,
+  formatRevisionsLeft,
   isOverdue,
   latestChangeRequest,
   pieceTitle,
@@ -140,5 +142,23 @@ describe('pieceTitle', () => {
     expect(
       pieceTitle({ platform: 'custom', type: 'custom', title: 'Unboxing clip', pieceNo: 1 }),
     ).toBe('Unboxing clip · 1');
+  });
+});
+
+describe('formatRevisionsLeft', () => {
+  test('pluralizes the server count', () => {
+    expect(formatRevisionsLeft(0)).toBe('No revisions left');
+    expect(formatRevisionsLeft(1)).toBe('1 revision left');
+    expect(formatRevisionsLeft(2)).toBe('2 revisions left');
+    expect(formatRevisionsLeft(3)).toBe('3 revisions left');
+  });
+});
+
+describe('formatEscalationReason', () => {
+  test('says how many change requests escalated the piece', () => {
+    expect(formatEscalationReason(0)).toBe('The business requested changes 0 times.');
+    expect(formatEscalationReason(1)).toBe('The business requested changes once.');
+    expect(formatEscalationReason(2)).toBe('The business requested changes twice.');
+    expect(formatEscalationReason(3)).toBe('The business requested changes 3 times.');
   });
 });

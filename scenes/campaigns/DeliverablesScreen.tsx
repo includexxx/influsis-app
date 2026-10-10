@@ -20,7 +20,13 @@ import { DeliverablePiece } from './types/deliverables';
 import { buildCreatorAgreement } from './utils/agreement';
 import { formatCampaignDueDate } from './utils/mapCampaignFeedItem';
 import { formatOfferDate } from './utils/negotiation';
-import { canSubmitPiece, isOverdue, PIECE_STATUS_BADGE, pieceTitle } from './utils/deliverables';
+import {
+  canSubmitPiece,
+  formatRevisionsLeft,
+  isOverdue,
+  PIECE_STATUS_BADGE,
+  pieceTitle,
+} from './utils/deliverables';
 import { platformIcon } from './utils/platformIcon';
 
 const HERO_GRADIENT = [palette.primary[400], palette.primary[700]] as const;
@@ -280,7 +286,7 @@ export default function DeliverablesScreen() {
                       <View style={s.pieceMetaRow}>
                         <Feather name="refresh-cw" size={13} color={colors.text.secondary} />
                         <Text style={[s.meta, { color: colors.text.secondary }]}>
-                          {piece.revisionsRemaining} revisions left
+                          {formatRevisionsLeft(piece.revisionsRemaining)}
                         </Text>
                       </View>
                     ) : null}

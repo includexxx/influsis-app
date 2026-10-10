@@ -98,6 +98,22 @@ export function safeHttpUrl(value: string | null | undefined): string | null {
   return value && isHttpUrl(value) ? value : null;
 }
 
+// "1 revision left" / "2 revisions left". The count comes from the server's
+// `revisionsRemaining`, so the copy follows the backend's escalation limit
+// (MAX_DELIVERABLE_REJECTIONS, 2 since backend 703e233) without repeating it.
+export function formatRevisionsLeft(revisionsRemaining: number): string {
+  if (revisionsRemaining <= 0) return 'No revisions left';
+  return revisionsRemaining === 1 ? '1 revision left' : `${revisionsRemaining} revisions left`;
+}
+
+// Why an escalated piece is in dispute, from its own `rejectionCount` - the
+// number of change requests that escalated it.
+export function formatEscalationReason(rejectionCount: number): string {
+  const times =
+    rejectionCount === 1 ? 'once' : rejectionCount === 2 ? 'twice' : `${rejectionCount} times`;
+  return `The business requested changes ${times}.`;
+}
+
 // "Instagram Reels · 2", or "Unboxing clip · 2" for a custom piece (18q),
 // named by the custom item's title.
 export function pieceTitle(

@@ -157,6 +157,14 @@ describe('<DeliverablesScreen />', () => {
     expect(screen.getByLabelText('Unboxing clip · 1, To deliver')).toBeTruthy();
   });
 
+  test('says "1 revision left" at the last revision (backend 703e233)', async () => {
+    answers([piece({ id: 'p1', status: 'changes_requested', revisionsRemaining: 1 })]);
+    renderScreen();
+
+    expect(await screen.findByText('1 revision left')).toBeTruthy();
+    expect(screen.queryByText('1 revisions left')).toBeNull();
+  });
+
   test('flags an overdue piece', async () => {
     answers([piece({ dueDate: '2000-01-01' })]);
     renderScreen();

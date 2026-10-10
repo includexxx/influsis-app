@@ -26,6 +26,8 @@ import { formatOfferDate } from './utils/negotiation';
 import {
   CAPTION_MAX_LENGTH,
   canSubmitPiece,
+  formatEscalationReason,
+  formatRevisionsLeft,
   isOverdue,
   latestChangeRequest,
   PIECE_STATUS_BADGE,
@@ -164,7 +166,9 @@ function PieceContent({
                 </HeroChip>
               ) : null}
               {submittable ? (
-                <HeroChip icon="refresh-cw">{`${piece.revisionsRemaining} revisions left`}</HeroChip>
+                <HeroChip icon="refresh-cw">
+                  {formatRevisionsLeft(piece.revisionsRemaining)}
+                </HeroChip>
               ) : null}
             </View>
           </LinearGradient>
@@ -181,7 +185,7 @@ function PieceContent({
 
           {piece.status === 'escalated' ? (
             <Notice tone="error" icon="alert-octagon" title="In dispute" testID="piece-escalated">
-              The business requested changes three times. Disputes aren&apos;t available yet.
+              {formatEscalationReason(piece.rejectionCount)} Disputes aren&apos;t available yet.
             </Notice>
           ) : null}
 
