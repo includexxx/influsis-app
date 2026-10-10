@@ -135,4 +135,10 @@ describe('pieceTitle', () => {
       'Instagram Reels · 2',
     );
   });
+
+  test('names a custom piece by its title (18q)', () => {
+    expect(
+      pieceTitle({ platform: 'custom', type: 'custom', title: 'Unboxing clip', pieceNo: 1 }),
+    ).toBe('Unboxing clip · 1');
+  });
 });

@@ -182,6 +182,8 @@ export const offerScreenStyle = StyleSheet.create({
     backgroundColor: palette.primary[25],
   },
   scopeChipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: palette.primary[700] },
+  customScope: { gap: 4 },
+  customScopeTitle: { fontSize: 14, lineHeight: 21, fontWeight: '600' },
   scopeEditor: { gap: 8 },
   scopeEditorHeader: {
     flexDirection: 'row',

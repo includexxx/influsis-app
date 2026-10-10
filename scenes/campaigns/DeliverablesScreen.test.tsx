@@ -53,6 +53,7 @@ function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
     deliverableId: null,
     platform: 'instagram',
     type: 'reels',
+    title: null,
     pieceNo: 1,
     status: 'pending',
     dueDate: '2099-10-10',
@@ -143,6 +144,17 @@ describe('<DeliverablesScreen />', () => {
     expect(mockRequest).toHaveBeenCalledWith(
       expect.objectContaining({ url: '/engagements/eng-1/deliverables', method: 'GET' }),
     );
+  });
+
+  test('names a custom piece by its title (18q)', async () => {
+    answers([
+      piece({ id: 'p1' }),
+      piece({ id: 'p2', platform: 'custom', type: 'custom', title: 'Unboxing clip' }),
+    ]);
+    renderScreen();
+
+    expect(await screen.findByText('Unboxing clip · 1')).toBeTruthy();
+    expect(screen.getByLabelText('Unboxing clip · 1, To deliver')).toBeTruthy();
   });
 
   test('flags an overdue piece', async () => {

@@ -71,6 +71,26 @@ describe('<AgreementSheet />', () => {
     ).toBeTruthy();
   });
 
+  test('names custom deliverables by their title (18q)', () => {
+    const custom = { platform: 'custom', type: 'custom', description: '<p>Brief</p>' };
+    render(
+      <AgreementSheet
+        agreement={{
+          ...confirm,
+          scope: [
+            ...confirm.scope,
+            { ...custom, count: 1, title: 'Unboxing clip' },
+            { ...custom, count: 2, title: 'Store visit' },
+          ],
+        }}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('1 × Unboxing clip')).toBeTruthy();
+    expect(screen.getByText('2 × Store visit')).toBeTruthy();
+  });
+
   test('shows no licensing line on tier 1 and no business row when unknown', () => {
     render(
       <AgreementSheet

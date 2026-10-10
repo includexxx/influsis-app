@@ -409,6 +409,16 @@ export const campaignDetailsStyle = StyleSheet.create({
     padding: spacing.md,
     borderRadius: radius.xl,
   },
+  deliverableCustom: {
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.xl,
+  },
+  deliverableCustomHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
   deliverableIcon: {
     width: 44,
     height: 44,

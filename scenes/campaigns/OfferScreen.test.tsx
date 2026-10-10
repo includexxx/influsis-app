@@ -471,6 +471,159 @@ describe('<OfferScreen />', () => {
 
     expect(await screen.findByText('duplicate platform/type - send count instead')).toBeTruthy();
   });
+  describe('objective and custom deliverables (backend 18q)', () => {
+    const customItem = {
+      id: 'scope-3',
+      platform: 'custom',
+      type: 'custom',
+      count: 1,
+      title: 'Unboxing clip',
+      description: '<p>Show the <strong>box</strong> opening</p>',
+    };
+    const withCustom = () =>
+      engagement({
+        offers: [offer(1, 'business', 'pending', 2_000_000)],
+        scope: [
+          { id: 'scope-1', platform: 'instagram', type: 'reels', count: 2 },
+          customItem,
+          { ...customItem, id: 'scope-4', title: 'Store visit', description: '<p>Visit</p>' },
+        ],
+      });
+
+    async function openEditor() {
+      fireEvent.press(await screen.findByTestId('offer-counter'));
+      fireEvent.press(screen.getByTestId('offer-change-deliverables'));
+    }
+
+    test("offers only the campaign objective's deliverables, under its labels", async () => {
+      answerWith(cfg =>
+        isCampaignRequest(cfg)
+          ? { ...feedCampaign, objective: 'brand_awareness' }
+          : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }),
+      );
+      renderScreen();
+
+      await openEditor();
+      expect(await screen.findByText('Post video on Instagram (Reel)')).toBeTruthy();
+      expect(mockRequest.mock.calls.some(([cfg]) => isCampaignRequest(cfg as RequestConfig))).toBe(
+        true,
+      );
+
+      fireEvent.press(screen.getByTestId('offer-scope-editor-add'));
+      expect(await screen.findByText('Post on TikTok')).toBeTruthy();
+      expect(screen.queryByText('Image for Facebook')).toBeNull();
+      fireEvent.press(screen.getByText('Post on TikTok'));
+      expect(screen.getByLabelText('Increase Post on TikTok')).toBeTruthy();
+    });
+
+    test('keeps Add disabled while the campaign loads', async () => {
+      answerWith(cfg =>
+        isCampaignRequest(cfg)
+          ? new Promise(() => {})
+          : engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] }),
+      );
+      renderScreen();
+
+      await openEditor();
+      expect(screen.getByTestId('offer-scope-editor-add').props.accessibilityState?.disabled).toBe(
+        true,
+      );
+      // Existing rows can still be adjusted.
+      expect(screen.getByLabelText('Increase Instagram Reels')).toBeTruthy();
+      expect(screen.queryByTestId('offer-scope-options-error')).toBeNull();
+    });
+
+    test('keeps Add disabled and says why when the campaign fails to load', async () => {
+      answerWith(cfg => {
+        if (isCampaignRequest(cfg)) {
+          throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' } as never);
+        }
+        return engagement({ offers: [offer(1, 'business', 'pending', 2_000_000)] });
+      });
+      renderScreen();
+
+      await openEditor();
+      expect(await screen.findByTestId('offer-scope-options-error')).toBeTruthy();
+      expect(screen.getByText("Couldn't load this campaign's deliverable options.")).toBeTruthy();
+      expect(screen.getByTestId('offer-scope-editor-add').props.accessibilityState?.disabled).toBe(
+        true,
+      );
+    });
+
+    test("shows each custom item's title and description in the Deliverables card", async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      answerWith(() => withCustom());
+      renderScreen();
+
+      expect(await screen.findByText('1 × Unboxing clip')).toBeTruthy();
+      expect(screen.getByText('1 × Store visit')).toBeTruthy();
+      expect(screen.getAllByTestId('offer-custom-deliverable')).toHaveLength(2);
+      expect(screen.getByText('Show the box opening')).toBeTruthy();
+      expect(consoleError.mock.calls.some(call => String(call[0]).includes('unique "key"'))).toBe(
+        false,
+      );
+      consoleError.mockRestore();
+    });
+
+    test('a counter that only re-counts a custom item sends it with its fields', async () => {
+      answerWith(cfg =>
+        isCampaignRequest(cfg) ? { ...feedCampaign, objective: 'ugc_content' } : withCustom(),
+      );
+      renderScreen();
+
+      await openEditor();
+      fireEvent.press(await screen.findByLabelText('Increase Unboxing clip'));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('offer-counter-submit'));
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/engagements/eng-1/offers',
+          method: 'POST',
+          data: {
+            amountMinor: 2_000_000,
+            scope: [
+              { platform: 'instagram', type: 'reels', count: 2 },
+              {
+                platform: 'custom',
+                type: 'custom',
+                count: 2,
+                title: 'Unboxing clip',
+                description: '<p>Show the <strong>box</strong> opening</p>',
+              },
+              {
+                platform: 'custom',
+                type: 'custom',
+                count: 1,
+                title: 'Store visit',
+                description: '<p>Visit</p>',
+              },
+            ],
+          },
+        }),
+      );
+    });
+
+    test('keeping the current deliverables sends no scope', async () => {
+      answerWith(cfg =>
+        isCampaignRequest(cfg) ? { ...feedCampaign, objective: 'ugc_content' } : withCustom(),
+      );
+      renderScreen();
+
+      await openEditor();
+      fireEvent.press(await screen.findByLabelText('Increase Unboxing clip'));
+      fireEvent.press(screen.getByTestId('offer-keep-deliverables'));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('offer-counter-submit'));
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ method: 'POST', data: { amountMinor: 2_000_000 } }),
+      );
+    });
+  });
+
   test('offers Deliver work only once accepted or completed (item 25)', async () => {
     answerWith(() =>
       engagement({

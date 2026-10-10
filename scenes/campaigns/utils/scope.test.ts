@@ -4,15 +4,22 @@ import {
   addableScopeOptions,
   addScopeItem,
   isSameScope,
-  SCOPE_CATALOG,
   SCOPE_MESSAGES,
   scopeErrorsFromApi,
   scopeFromList,
   scopeItemLabel,
   scopeListErrorFromApi,
-  scopePairKey,
+  scopeRowKey,
   validateScope,
 } from './scope';
+
+const custom = (title: string, description = '<p>Brief</p>', count = 1) => ({
+  platform: 'custom',
+  type: 'custom',
+  count,
+  title,
+  description,
+});
 
 describe('scopeFromList', () => {
   test('drops ids and keeps order', () => {
@@ -25,6 +32,39 @@ describe('scopeFromList', () => {
       { platform: 'tiktok', type: 'video', count: 1 },
       { platform: 'instagram', type: 'reels', count: 2 },
     ]);
+  });
+
+  test('keeps custom title and description untouched and drops nulls on catalogue items', () => {
+    // CF3 scope rows, ids included.
+    const rows = [
+      { id: 'a', platform: 'tiktok', type: 'video', count: 1, title: null, description: null },
+      {
+        id: 'b',
+        platform: 'custom',
+        type: 'custom',
+        count: 2,
+        title: ' Unboxing ',
+        description: '<p>Show the <strong>box</strong></p>',
+      },
+    ];
+    expect(scopeFromList(rows)).toEqual([
+      { platform: 'tiktok', type: 'video', count: 1 },
+      {
+        platform: 'custom',
+        type: 'custom',
+        count: 2,
+        title: ' Unboxing ',
+        description: '<p>Show the <strong>box</strong></p>',
+      },
+    ]);
+  });
+});
+
+describe('scopeRowKey', () => {
+  test('keys catalogue rows by pair and custom rows by position', () => {
+    expect(scopeRowKey({ platform: 'instagram', type: 'reels' }, 3)).toBe('instagram:reels');
+    expect(scopeRowKey(custom('A'), 1)).toBe('custom:1');
+    expect(scopeRowKey(custom('A'), 2)).not.toBe(scopeRowKey(custom('A'), 1));
   });
 });
 
@@ -72,6 +112,18 @@ describe('validateScope', () => {
       ]),
     ).toEqual({ ok: false, error: null, rowErrors: { 1: SCOPE_MESSAGES.duplicate } });
   });
+
+  test('allows repeated custom items and still checks their count', () => {
+    expect(validateScope([custom('A'), custom('B')])).toEqual({
+      ok: true,
+      scope: [custom('A'), custom('B')],
+    });
+    expect(validateScope([custom('A', '<p>x</p>', 0)])).toEqual({
+      ok: false,
+      error: null,
+      rowErrors: { 0: SCOPE_MESSAGES.count },
+    });
+  });
 });
 
 describe('isSameScope', () => {
@@ -99,6 +151,26 @@ describe('isSameScope', () => {
       false,
     );
   });
+
+  test('treats a custom title-only or description-only change as a change', () => {
+    expect(isSameScope([custom('A')], [custom('A')])).toBe(true);
+    expect(isSameScope([custom('A')], [custom('B')])).toBe(false);
+    expect(isSameScope([custom('A', '<p>x</p>')], [custom('A', '<p>y</p>')])).toBe(false);
+  });
+
+  test('compares repeated custom items as a multiset', () => {
+    expect(isSameScope([custom('A'), custom('B')], [custom('B'), custom('A')])).toBe(true);
+    expect(isSameScope([custom('A'), custom('A')], [custom('A'), custom('B')])).toBe(false);
+  });
+
+  test('treats a missing and a null custom field as equal', () => {
+    expect(
+      isSameScope(
+        [{ platform: 'tiktok', type: 'video', count: 1 }],
+        [{ platform: 'tiktok', type: 'video', count: 1, title: null, description: null }],
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('scopeItemLabel', () => {
@@ -110,16 +182,25 @@ describe('scopeItemLabel', () => {
   test('falls back to raw values for an unknown pair', () => {
     expect(scopeItemLabel({ platform: 'snapchat', type: 'lens' })).toBe('snapchat lens');
   });
-});
 
-describe('SCOPE_CATALOG', () => {
-  test('has no duplicate pairs and only backend platforms/types', () => {
-    const keys = SCOPE_CATALOG.map(scopePairKey);
-    expect(new Set(keys).size).toBe(keys.length);
-    for (const item of SCOPE_CATALOG) {
-      expect(['facebook', 'instagram', 'tiktok', 'youtube', 'ugc']).toContain(item.platform);
-      expect(['video', 'shorts', 'reels', 'story', 'post', 'photo']).toContain(item.type);
-    }
+  test("uses the objective's label when it lists the pair", () => {
+    expect(scopeItemLabel({ platform: 'instagram', type: 'photo' }, 'ugc_content')).toBe(
+      'Image for Instagram',
+    );
+    expect(scopeItemLabel({ platform: 'tiktok', type: 'post' }, 'brand_awareness')).toBe(
+      'Post on TikTok',
+    );
+  });
+
+  test('keeps the generic label for a pair the objective does not list (retired ugc)', () => {
+    expect(scopeItemLabel({ platform: 'ugc', type: 'video' }, 'ugc_content')).toBe('UGC Video');
+  });
+
+  test('names a custom item by its title', () => {
+    expect(scopeItemLabel(custom('Unboxing clip'), 'ugc_content')).toBe('Unboxing clip');
+    expect(scopeItemLabel({ platform: 'custom', type: 'custom', title: null })).toBe(
+      'Custom deliverable',
+    );
   });
 });
 
@@ -131,6 +212,17 @@ describe('scopeErrorsFromApi', () => {
         amountMinor: 'must be positive',
       }),
     ).toEqual({ 2: 'duplicate platform/type - send count instead' });
+  });
+
+  test('maps custom title and description keys to their row, first message wins', () => {
+    expect(
+      scopeErrorsFromApi({
+        'scope[1].description': 'must contain text',
+        'scope[1].title': 'required for a custom deliverable',
+        'scope[3].title': 'must be at most 200 characters',
+        'scope[x].title': 'ignored',
+      }),
+    ).toEqual({ 1: 'must contain text', 3: 'must be at most 200 characters' });
   });
 
   test('returns nothing for a missing error map', () => {
@@ -152,28 +244,44 @@ describe('scopeListErrorFromApi', () => {
 describe('addableScopeOptions / addScopeItem', () => {
   const rows = [{ platform: 'instagram', type: 'reels', count: 2 }];
 
-  test('offers only catalog pairs not already listed', () => {
-    const options = addableScopeOptions(rows);
-    expect(options.map(option => option.value)).not.toContain('instagram:reels');
+  test("offers only the objective's pairs not already listed, under its labels", () => {
+    const ugc = addableScopeOptions(rows, 'ugc_content');
+    expect(ugc.map(option => option.value)).not.toContain('instagram:reels');
+    expect(ugc).toContainEqual({ label: 'Image for Instagram', value: 'instagram:photo' });
+    expect(ugc.map(option => option.value)).not.toContain('facebook:story');
+    expect(ugc).toHaveLength(6);
+
+    const awareness = addableScopeOptions(rows, 'brand_awareness');
+    expect(awareness).toContainEqual({ label: 'Post on TikTok', value: 'tiktok:post' });
+    expect(awareness.map(option => option.value)).not.toContain('facebook:photo');
+    expect(awareness).toHaveLength(9);
+  });
+
+  test('offers every non-retired pair, generically labelled, with no objective', () => {
+    const options = addableScopeOptions([], null);
+    expect(options).toHaveLength(13);
     expect(options).toContainEqual({ label: 'TikTok Video', value: 'tiktok:video' });
-    expect(options).toHaveLength(SCOPE_CATALOG.length - 1);
+    expect(options.some(option => option.value.startsWith('ugc:'))).toBe(false);
+    expect(options.some(option => option.value.startsWith('custom:'))).toBe(false);
   });
 
   test('appends a picked pair with count 1', () => {
-    expect(addScopeItem(rows, 'tiktok:video')).toEqual([
+    expect(addScopeItem(rows, 'tiktok:video', 'ugc_content')).toEqual([
       ...rows,
       { platform: 'tiktok', type: 'video', count: 1 },
     ]);
   });
 
-  test('ignores unknown, duplicate, or over-limit picks', () => {
-    expect(addScopeItem(rows, 'snapchat:lens')).toEqual(rows);
-    expect(addScopeItem(rows, 'instagram:reels')).toEqual(rows);
+  test('ignores unknown, off-objective, retired, duplicate, or over-limit picks', () => {
+    expect(addScopeItem(rows, 'snapchat:lens', null)).toEqual(rows);
+    expect(addScopeItem(rows, 'facebook:story', 'ugc_content')).toEqual(rows);
+    expect(addScopeItem(rows, 'ugc:video', null)).toEqual(rows);
+    expect(addScopeItem(rows, 'instagram:reels', 'ugc_content')).toEqual(rows);
     const full = Array.from({ length: 30 }, (_, index) => ({
       platform: 'x',
       type: `t${index}`,
       count: 1,
     }));
-    expect(addScopeItem(full, 'tiktok:video')).toHaveLength(30);
+    expect(addScopeItem(full, 'tiktok:video', 'ugc_content')).toHaveLength(30);
   });
 });

@@ -71,12 +71,21 @@ export interface CampaignFeedFilters {
 
 export type CampaignFeedFilteredPageArgs = CampaignFeedPageArgs & CampaignFeedFilters;
 
+// Backend 18q - a campaign's single objective. It decides which deliverables
+// the campaign and its engagements may hold (utils/objectives.ts).
+export type CampaignObjective = 'ugc_content' | 'brand_awareness';
+
 export interface CampaignDeliverable {
   id: string;
-  platform: CampaignFeedPlatform;
-  /** e.g. `video`, `shorts`, `reels`, `story`, `post`, `photo`. */
+  /** `custom` for a business-written deliverable (18q). */
+  platform: CampaignFeedPlatform | 'custom';
+  /** e.g. `video`, `shorts`, `reels`, `story`, `post`, `photo`, or `custom`. */
   type: string;
   count: number;
+  /** Custom items only (18q): plain text - render escaped. */
+  title: string | null;
+  /** Custom items only (18q): server-sanitized HTML - render through RichText. */
+  description: string | null;
 }
 
 // One brief section. The backend appends read-only sections projected from
@@ -126,7 +135,8 @@ export interface CampaignFeedDetail {
   campaignEndDate: string | null;
   preferredPostingDates: string | null;
   promoting: string[];
-  objectives: string[];
+  /** `null` for a campaign created before 18q. */
+  objective: CampaignObjective | null;
   categories: string[];
   subCategories: string[];
   ageRanges: string[];

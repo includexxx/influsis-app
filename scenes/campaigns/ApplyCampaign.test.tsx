@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import { ReactNode } from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import { ApiError, request } from '@/services/http';
 import { campaignFeedApi } from './api/campaignFeedApi';
@@ -84,7 +84,7 @@ const campaign: CampaignFeedDetail = {
   campaignEndDate: '2026-10-10',
   preferredPostingDates: null,
   promoting: ['Grand opening offers'],
-  objectives: [],
+  objective: null,
   categories: ['food'],
   subCategories: [],
   ageRanges: [],
@@ -103,7 +103,9 @@ const campaign: CampaignFeedDetail = {
       readOnly: true,
     },
   ],
-  deliverables: [{ id: 'd1', platform: 'instagram', type: 'reels', count: 2 }],
+  deliverables: [
+    { id: 'd1', platform: 'instagram', type: 'reels', count: 2, title: null, description: null },
+  ],
   business: {
     businessId: '8ba43b43-fb06-4ee2-a25d-caa71f4189b5',
     businessName: 'Dhaka Delights Ltd.',
@@ -315,5 +317,136 @@ describe('<ApplyCampaign />', () => {
 
     expect(screen.getAllByText('Add at least one deliverable.').length).toBeGreaterThan(0);
     expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
+
+  describe('objective and custom deliverables (backend 18q)', () => {
+    const customItem = {
+      id: 'd2',
+      platform: 'custom' as const,
+      type: 'custom',
+      count: 1,
+      title: 'Unboxing clip',
+      description: '<p>Show the <strong>box</strong></p>',
+    };
+    const ugcCampaign: CampaignFeedDetail = {
+      ...campaign,
+      objective: 'ugc_content',
+      deliverables: [...campaign.deliverables, customItem],
+    };
+
+    test('labels rows by the objective and offers only its deliverables', async () => {
+      answerWith(() => ugcCampaign);
+      renderScreen();
+
+      expect(await screen.findByText('2 × Video for Instagram (Reel)')).toBeTruthy();
+      expect(screen.getByText('1 × Unboxing clip')).toBeTruthy();
+
+      fireEvent.press(screen.getByTestId('apply-propose-deliverables'));
+      fireEvent.press(screen.getByTestId('apply-scope-editor-add'));
+
+      expect(await screen.findByText('Image for Instagram')).toBeTruthy();
+      expect(screen.getByText('Video for TikTok (Reel)')).toBeTruthy();
+      expect(screen.queryByText('Story on Facebook')).toBeNull();
+      expect(screen.queryByText(/UGC/)).toBeNull();
+    });
+
+    test('a campaign without an objective offers no retired UGC pair', async () => {
+      answerWith(() => campaign);
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+      fireEvent.press(screen.getByTestId('apply-scope-editor-add'));
+
+      expect(await screen.findByText('TikTok Post')).toBeTruthy();
+      expect(screen.queryByText('UGC Video')).toBeNull();
+      expect(screen.queryByText('UGC Photo')).toBeNull();
+    });
+
+    test('re-counting a custom item sends its title and description unchanged', async () => {
+      answerWith(({ method }) =>
+        method === 'POST' ? { id: 'eng-1', status: 'pending' } : ugcCampaign,
+      );
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+      fireEvent.press(screen.getByLabelText('Increase Unboxing clip'));
+      await fillAndSubmit();
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          data: expect.objectContaining({
+            scope: [
+              { platform: 'instagram', type: 'reels', count: 2 },
+              {
+                platform: 'custom',
+                type: 'custom',
+                count: 2,
+                title: 'Unboxing clip',
+                description: '<p>Show the <strong>box</strong></p>',
+              },
+            ],
+          }),
+        }),
+      );
+    });
+
+    test('removing a custom item sends scope without it', async () => {
+      answerWith(({ method }) =>
+        method === 'POST' ? { id: 'eng-1', status: 'pending' } : ugcCampaign,
+      );
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+      fireEvent.press(screen.getByLabelText('Remove Unboxing clip'));
+      await fillAndSubmit();
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          data: expect.objectContaining({
+            scope: [{ platform: 'instagram', type: 'reels', count: 2 }],
+          }),
+        }),
+      );
+    });
+
+    test('an untouched list with a custom item sends no scope', async () => {
+      answerWith(({ method }) =>
+        method === 'POST' ? { id: 'eng-1', status: 'pending' } : ugcCampaign,
+      );
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+      await fillAndSubmit();
+
+      const post = mockRequest.mock.calls.find(([cfg]) => (cfg as RequestConfig).method === 'POST');
+      expect((post?.[0] as RequestConfig).data).not.toHaveProperty('scope');
+    });
+
+    test("shows a custom item's description error on its row", async () => {
+      answerWith(({ method }) => {
+        if (method === 'POST') {
+          throw new ApiError({
+            code: 'VALIDATION_FAILED',
+            statusCode: 422,
+            message: 'Validation failed',
+            errors: { 'scope[1].description': 'must contain text' },
+          });
+        }
+        return ugcCampaign;
+      });
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('apply-propose-deliverables'));
+      fireEvent.press(screen.getByLabelText('Increase Unboxing clip'));
+      await fillAndSubmit();
+
+      expect(
+        await within(screen.getByTestId('apply-scope-editor-row-1')).findByText(
+          'must contain text',
+        ),
+      ).toBeTruthy();
+    });
   });
 });

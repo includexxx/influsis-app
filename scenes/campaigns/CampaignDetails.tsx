@@ -37,6 +37,7 @@ import {
   getCampaignDetailsAvatarUrl,
   getDeadlineCountdown,
 } from './utils/mapCampaignDetails';
+import { objectiveLabel } from './utils/objectives';
 
 // At most this many category pills on the cover, so they stay on one line.
 const MAX_COVER_TAGS = 3;
@@ -104,6 +105,8 @@ function CampaignDetailsContent({ campaign: item }: { campaign: CampaignFeedDeta
   const engagementStatus = formatCampaignEngagementStatus(item.myEngagement);
   const briefSections = getBriefSections(item.requirements);
   const audienceGroups = getAudienceGroups(item);
+  // 18q - null for a campaign created before objectives existed.
+  const objective = objectiveLabel(item.objective);
 
   // Already applied or invited: show where it stands instead of a second
   // Apply (the backend would 409 a duplicate). Past the deadline the
@@ -142,6 +145,9 @@ function CampaignDetailsContent({ campaign: item }: { campaign: CampaignFeedDeta
       label: 'Preferred gender',
       value: formatPreferredGender(item.preferredGender),
     },
+    ...(objective
+      ? [{ icon: 'compass', tone: 'navy', label: 'Objective', value: objective } satisfies FactItem]
+      : []),
   ];
 
   return (

@@ -75,11 +75,15 @@ export interface EngagementOffer {
 
 // Backend 18l - one row of an engagement's own deliverables list ("scope"),
 // negotiated with the price. Same rules as a campaign deliverable: platform +
-// type once per list, count 1-50.
+// type once per list, count 1-50. A custom item (18q, `platform: 'custom'`)
+// carries the business's `title` and sanitized-HTML `description`, may
+// repeat, and is sent back with both exactly as received.
 export interface ScopeItem {
   platform: string;
   type: string;
   count: number;
+  title?: string | null;
+  description?: string | null;
 }
 
 export interface EngagementScopeItem extends ScopeItem {

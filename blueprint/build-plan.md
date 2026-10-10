@@ -345,3 +345,51 @@ The business side is `web` item 38.
       accepted summary, which leaves the markup out of what the creator
       receives. Out of scope: escrow status and payment copy (escrow item 27),
       notifications, web.
+
+## Campaign objective & bundle delivery (backend 18q/18r)
+
+Product decision 2026-10-10: every campaign has one objective, **UGC Content**
+or **Brand Awareness**, and it decides which deliverables a campaign or
+engagement can hold; businesses can add custom deliverables described in rich
+text. Delivery becomes one bundle per engagement in two phases: a draft round
+(original + up to 2 revisions; a 3rd request for changes escalates to a
+dispute), then a final round (UGC: a link to the files per piece; Brand
+Awareness: post on the platform and send the live post URL per piece). Backend
+18q is shipped on `../backend` `feat/campaign-negotiation`; 18r is planned, not
+built. Contract: `../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_CATALOGUE.md`
+and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
+`feat/escrow` already uses 26-33. The business side is `web` items 44-46.
+
+- [x] 35. **Campaign objective and custom deliverables (backend 18q `CB1`-`CB3`, `CF1`, `CG2`, `CI1`)** -
+      campaign cards and details show the objective (UGC Content / Brand
+      Awareness) and list custom deliverables: the title as plain text, the
+      description as rich text rendered through a sanitizing HTML renderer
+      (e.g. `react-native-render-html` limited to paragraphs, bold/italic/
+      underline/strike, lists, h3/h4, quote and http(s) links). The deliverables
+      editor on Apply and on the Offer screen's counter offers only the campaign
+      objective's options, labelled per objective; existing custom items can
+      have their count changed or be removed. A campaign with no objective
+      (created before 18q) keeps the full catalogue minus the retired `ugc`
+      options, and a retired item already in the scope stays listed. The
+      deliverables screen names custom pieces by `title`. `422` per-row errors
+      (`scope[i]`, `scope[i].title|description`) show on the row. **TODO
+      (confirm):** may a creator write a new custom item on mobile (needs a
+      rich-text input), or only keep/adjust the business's? Out of scope:
+      bundle delivery (36).
+- [ ] 36. **Deliver all content together, then make the final delivery (backend 18r)** -
+      **blocked until backend 18r ships.** Replaces item 25's per-piece submit
+      and "record posted" flow. One "Submit delivery" screen lists a slot for
+      every piece (upload or link, plus a caption; Brand Awareness drafts
+      include the caption to be posted); Submit stays disabled until every slot
+      is filled and sends the whole round at once. After changes are requested
+      the screen shows the business's overall reason and per-item comments,
+      pre-fills unchanged pieces from the previous round (carried over, no
+      re-upload) and shows revisions remaining (original + 2). Once the draft is
+      approved, "Final delivery" asks for a file link per piece (UGC Content) or
+      the live post URL per piece after posting (Brand Awareness; the URL must
+      match the piece's platform). Escalated engagements show "In dispute" with
+      no actions; a completed engagement never says "paid". Open (decided in
+      backend 18r): whether a final round can be sent back for a fix, and
+      whether video drafts are uploaded (today's media limit is 5 MB) or linked.
+      Note: `feat/escrow` item 28 (per-piece money and decline reasons) is
+      written against per-piece review and must be re-scoped to rounds.

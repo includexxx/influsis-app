@@ -30,7 +30,7 @@ import {
   scopeFromList,
   scopeItemLabel,
   scopeListErrorFromApi,
-  scopePairKey,
+  scopeRowKey,
   validateScope,
 } from './utils/scope';
 
@@ -51,6 +51,9 @@ const backChevronIcon = require('@/assets/images/icons/back-chevron.png');
 // links are sent, though the backend currently validates and discards them.
 // Backend 18l: the campaign's deliverables are shown, and the creator can
 // propose a different list - sent as CF1 `scope` only when it differs.
+// Backend 18q: the editor offers only the campaign objective's deliverables,
+// under its labels; the business's custom items can be re-counted or removed
+// and are sent back with their title and description untouched.
 export default function ApplyCampaign() {
   const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -100,6 +103,7 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const engagementStatus = formatCampaignEngagementStatus(campaign.myEngagement);
   const campaignScope = scopeFromList(campaign.deliverables ?? []);
+  const objective = campaign.objective ?? null;
   // null = accept the campaign's deliverables (editor closed).
   const [scopeRows, setScopeRows] = useState<ScopeItem[] | null>(null);
   const [scopeRowErrors, setScopeRowErrors] = useState<Record<number, string>>({});
@@ -239,9 +243,9 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
                 </Text>
               </Pressable>
               <DeliverablesEditor
-                items={scopeRows.map(row => ({
-                  key: scopePairKey(row),
-                  label: scopeItemLabel(row),
+                items={scopeRows.map((row, index) => ({
+                  key: scopeRowKey(row, index),
+                  label: scopeItemLabel(row, objective),
                   count: row.count,
                 }))}
                 onCountChange={(index, count) =>
@@ -250,7 +254,8 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
                 onRemove={index => changeScope(scopeRows.filter((_, i) => i !== index))}
                 onAddPress={() => setScopeSheetOpen(true)}
                 addDisabled={
-                  scopeRows.length >= SCOPE_MAX_ITEMS || addableScopeOptions(scopeRows).length === 0
+                  scopeRows.length >= SCOPE_MAX_ITEMS ||
+                  addableScopeOptions(scopeRows, objective).length === 0
                 }
                 rowErrors={scopeRowErrors}
                 error={scopeListError}
@@ -260,11 +265,11 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
           ) : (
             <>
               {campaignScope.length ? (
-                campaignScope.map(item => (
+                campaignScope.map((item, index) => (
                   <Text
-                    key={scopePairKey(item)}
+                    key={scopeRowKey(item, index)}
                     style={[applyCampaignStyle.scopeLine, { color: colors.text.primary }]}>
-                    {item.count} × {scopeItemLabel(item)}
+                    {item.count} × {scopeItemLabel(item, objective)}
                   </Text>
                 ))
               ) : (
@@ -328,9 +333,9 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
 
       {scopeSheetOpen && scopeRows ? (
         <OptionSheet
-          options={addableScopeOptions(scopeRows)}
+          options={addableScopeOptions(scopeRows, objective)}
           onSelect={value => {
-            changeScope(addScopeItem(scopeRows, value));
+            changeScope(addScopeItem(scopeRows, value, objective));
             setScopeSheetOpen(false);
           }}
           onClose={() => setScopeSheetOpen(false)}

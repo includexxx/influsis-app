@@ -51,6 +51,8 @@ export interface DeliverablePiece {
   deliverableId: string | null;
   platform: string;
   type: string;
+  /** The custom item's title (18q); `null` for catalogue pieces. */
+  title: string | null;
   pieceNo: number;
   status: DeliverablePieceStatus;
   /** `YYYY-MM-DD`, frozen from the campaign's content deadline. */

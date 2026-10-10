@@ -11,7 +11,7 @@ import Image from '@/components/elements/Image';
 import StatusBadge from '@/components/elements/StatusBadge';
 import { CreatorAgreement } from '../utils/agreement';
 import { formatCampaignPrice } from '../utils/mapCampaignFeedItem';
-import { scopeItemLabel, scopePairKey } from '../utils/scope';
+import { scopeItemLabel, scopeRowKey } from '../utils/scope';
 
 export interface AgreementSheetProps {
   /** null while loading, or when there is nothing to show. */
@@ -338,8 +338,8 @@ function AgreementSheet({
           <DetailRow icon="package" label="Deliverables" testID="agreement-deliverables">
             {agreement.scope.length ? (
               <View style={styles.scopeChips}>
-                {agreement.scope.map(item => (
-                  <View key={scopePairKey(item)} style={styles.scopeChip}>
+                {agreement.scope.map((item, index) => (
+                  <View key={scopeRowKey(item, index)} style={styles.scopeChip}>
                     <Text style={styles.scopeChipText}>
                       {item.count} × {scopeItemLabel(item)}
                     </Text>

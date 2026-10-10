@@ -78,6 +78,7 @@ function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
     deliverableId: null,
     platform: 'instagram',
     type: 'reels',
+    title: null,
     pieceNo: 1,
     status: 'pending',
     dueDate: '2099-10-10',
@@ -145,6 +146,15 @@ describe('<DeliverablePieceScreen />', () => {
       }),
     );
     expect(await screen.findByText('Submitted for review.')).toBeTruthy();
+  });
+
+  test('names a custom piece by its title (18q)', async () => {
+    answers(piece({ platform: 'custom', type: 'custom', title: 'Unboxing clip' }), () =>
+      submission({}),
+    );
+    renderScreen();
+
+    expect(await screen.findByText('Unboxing clip · 1')).toBeTruthy();
   });
 
   test('uploads a picked image as multipart', async () => {

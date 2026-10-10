@@ -45,11 +45,18 @@ export function getCampaignDetailsAvatarUrl(campaign: CampaignFeedDetail): strin
     : null;
 }
 
-// One "What you need to create" card: "3 × Reels" on Instagram.
+// One "What you need to create" card: "3 × Reels" on Instagram. A custom
+// deliverable (18q) is named by its own title.
 export function formatDeliverable(deliverable: CampaignDeliverable): {
   title: string;
   description: string;
 } {
+  if (deliverable.platform === 'custom') {
+    return {
+      title: `${deliverable.count} × ${deliverable.title || 'Custom deliverable'}`,
+      description: 'Custom deliverable',
+    };
+  }
   const type = DELIVERABLE_TYPE_LABELS[deliverable.type] ?? deliverable.type;
   return {
     title: `${deliverable.count} × ${type}`,
@@ -128,7 +135,7 @@ export function formatCategoryLabel(value: string): string {
 export function getAudienceGroups(
   campaign: Pick<
     CampaignFeedDetail,
-    'audienceLocation' | 'ageRanges' | 'interests' | 'subCategories' | 'objectives'
+    'audienceLocation' | 'ageRanges' | 'interests' | 'subCategories'
   >,
 ): { label: string; items: string[] }[] {
   const groups = [
@@ -136,7 +143,6 @@ export function getAudienceGroups(
     { label: 'Age range', items: campaign.ageRanges },
     { label: 'Interests', items: campaign.interests.map(formatCategoryLabel) },
     { label: 'Niches', items: campaign.subCategories.map(formatCategoryLabel) },
-    { label: 'Objectives', items: campaign.objectives },
   ];
   return groups.filter(group => group.items.length > 0);
 }

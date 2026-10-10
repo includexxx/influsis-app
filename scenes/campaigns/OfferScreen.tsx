@@ -15,6 +15,7 @@ import TextField from '@/components/elements/TextField';
 import ConfirmDialog from '@/components/elements/ConfirmDialog';
 import DeliverablesEditor from '@/components/elements/DeliverablesEditor';
 import OptionSheet from '@/components/elements/OptionSheet';
+import RichText from '@/components/elements/RichText';
 import { offerScreenStyle as s } from './offerScreen.style';
 import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
@@ -52,9 +53,10 @@ import {
   scopeFromList,
   scopeItemLabel,
   scopeListErrorFromApi,
-  scopePairKey,
+  scopeRowKey,
   validateScope,
 } from './utils/scope';
+import { isCustomItem } from './utils/objectives';
 import { openDeliverables } from './utils/openDeliverables';
 import { FeatherName } from './utils/platformIcon';
 
@@ -158,12 +160,15 @@ export default function OfferScreen() {
   const [reviewed, setReviewed] = useState<CreatorAgreement | null>(null);
   const autoReviewed = useRef(false);
 
-  // CB2 - the confirm mode's pay depends on the campaign's licensing tier.
-  // Fetched only while the sheet is open; 404 for a campaign that isn't live.
+  // CB2 - the confirm mode's pay depends on the campaign's licensing tier,
+  // and the deliverables editor offers only the campaign objective's options
+  // (18q; CF3 carries no objective). Fetched only while the sheet or the
+  // editor is open; 404 for a campaign that isn't live.
   const campaign = useGetFeedCampaignQuery(
     { id: data?.campaignId ?? '' },
-    { skip: !data?.campaignId || !sheet },
+    { skip: !data?.campaignId || (!sheet && scopeRows === null) },
   );
+  const objective = campaign.data?.objective ?? null;
   const liveAgreement = useMemo(
     () => (data && sheet ? buildCreatorAgreement(data, campaign.data ?? null, sheet, title) : null),
     [data, campaign.data, sheet, title],
@@ -483,14 +488,28 @@ export default function OfferScreen() {
               testID="offer-deliverables">
               <SectionTitle icon="package" title="Deliverables" count={data.scope.length} />
               <View style={s.scopeChips}>
-                {data.scope.map(item => (
-                  <View key={scopePairKey(item)} style={s.scopeChip}>
+                {data.scope.map((item, index) => (
+                  <View key={scopeRowKey(item, index)} style={s.scopeChip}>
                     <Text style={s.scopeChipText}>
-                      {item.count} × {scopeItemLabel(item)}
+                      {item.count} × {scopeItemLabel(item, objective)}
                     </Text>
                   </View>
                 ))}
               </View>
+              {/* 18q - the business's brief for each custom deliverable. */}
+              {data.scope.map((item, index) =>
+                isCustomItem(item) && item.description ? (
+                  <View
+                    key={scopeRowKey(item, index)}
+                    style={s.customScope}
+                    testID="offer-custom-deliverable">
+                    <Text style={[s.customScopeTitle, { color: colors.text.primary }]}>
+                      {scopeItemLabel(item)}
+                    </Text>
+                    <RichText html={item.description} color={colors.text.secondary} />
+                  </View>
+                ) : null,
+              )}
             </View>
           ) : null}
 
@@ -532,9 +551,9 @@ export default function OfferScreen() {
                     </Pressable>
                   </View>
                   <DeliverablesEditor
-                    items={scopeRows.map(row => ({
-                      key: scopePairKey(row),
-                      label: scopeItemLabel(row),
+                    items={scopeRows.map((row, index) => ({
+                      key: scopeRowKey(row, index),
+                      label: scopeItemLabel(row, objective),
                       count: row.count,
                     }))}
                     onCountChange={(index, count) =>
@@ -545,14 +564,23 @@ export default function OfferScreen() {
                     onRemove={index => changeScope(scopeRows.filter((_, i) => i !== index))}
                     onAddPress={() => setScopeSheetOpen(true)}
                     addDisabled={
+                      // The objective's options are unknown until CB2 loads.
+                      !campaign.data ||
                       scopeRows.length >= SCOPE_MAX_ITEMS ||
-                      addableScopeOptions(scopeRows).length === 0
+                      addableScopeOptions(scopeRows, objective).length === 0
                     }
                     rowErrors={shownScopeRowErrors}
                     error={shownScopeListError}
                     disabled={disabled}
                     testID="offer-scope-editor"
                   />
+                  {campaign.isError ? (
+                    <Text
+                      style={[s.hintText, { color: colors.text.secondary }]}
+                      testID="offer-scope-options-error">
+                      Couldn&apos;t load this campaign&apos;s deliverable options.
+                    </Text>
+                  ) : null}
                 </View>
               ) : (
                 <Pressable
@@ -699,11 +727,11 @@ export default function OfferScreen() {
         </SafeAreaView>
       ) : null}
 
-      {scopeSheetOpen && scopeRows ? (
+      {scopeSheetOpen && scopeRows && campaign.data ? (
         <OptionSheet
-          options={addableScopeOptions(scopeRows)}
+          options={addableScopeOptions(scopeRows, objective)}
           onSelect={value => {
-            changeScope(addScopeItem(scopeRows, value));
+            changeScope(addScopeItem(scopeRows, value, objective));
             setScopeSheetOpen(false);
           }}
           onClose={() => setScopeSheetOpen(false)}

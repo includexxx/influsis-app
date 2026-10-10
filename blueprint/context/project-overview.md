@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 5d414ed054a8e486df2791b4a1970ded0f8f6fd0db79412c1c20fab8e0efad28 -->
+<!-- blueprint:source-hash e542da066fd2444507c0647e1dd45582e9e32767637bb63386c9fd90ec31be33 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -94,17 +94,46 @@ propose a different list (`CF1` `scope`). 25: an accepted engagement's pieces
 request, and recording the live post URL (`CI4`); a completed engagement
 never says "paid".
 
-**Next up - item 34, review the agreement before accepting (backend 18e
-`CF3`, `CF4`).** Accept on the Offer screen and on Request-tab invitation
-cards opens an agreement sheet - business, campaign, `scope`, content
-deadline, and "You'll receive ৳X" (the pending offer plus the licensing
-markup for the campaign's tier; after acceptance `agreedAmountMinor` +
-`licensingMarkupMinor`) - and confirming sends `CF4`. The creator never sees
-the platform fee, VAT, processing fee or the business's total (F-2: the
-creator receives 100% of the deal; F-6: licensing tiers raise the deal).
-Accepted engagements get a read-only "View agreement" on the Offer and
-deliverables screens. Numbered 34 because the escrow items on `feat/escrow`
-use 26-33; escrow status and payment copy stay with escrow item 27.
+**Item 34 (review the agreement before accepting) is complete.** Accept on
+the Offer screen and Request-tab invitation cards opens an agreement sheet
+(business, campaign, `scope`, content deadline, "You'll receive ৳X" = pending
+offer + the tier's licensing markup, or `agreedAmountMinor` +
+`licensingMarkupMinor` once accepted); confirming sends `CF4`. The creator
+never sees the platform fee, VAT, processing fee or the business's total
+(F-2: creator receives 100% of the deal; F-6: licensing tiers raise it).
+Accepted engagements get a read-only "View agreement". Items 26-33 are the
+backend-19 escrow items on `feat/escrow`, not in this checklist.
+
+**Campaign objective & bundle delivery (backend 18q/18r).** Product decision
+2026-10-10: each campaign has one objective, **UGC Content** or **Brand
+Awareness**, which decides the deliverables it can hold; businesses can add
+custom deliverables described in rich text. Delivery becomes one bundle per
+engagement: a draft round (original + up to 2 revisions; a 3rd change request
+escalates to a dispute), then a final round. Contract:
+`../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_CATALOGUE.md`
+and `../platform-context/api-contracts/campaigns.md`. Business side: `web`
+items 44-46.
+
+35. **Campaign objective and custom deliverables (backend 18q, next up)** -
+    cards and details show the objective and list custom deliverables (plain
+    `title`, `description` rendered through a sanitizing HTML renderer limited
+    to paragraphs, bold/italic/underline/strike, lists, h3/h4, quote, http(s)
+    links). The deliverables editor on Apply and Counter offers only the
+    objective's options, labelled per objective; custom items can be
+    re-counted or removed. No-objective (pre-18q) campaigns keep the full
+    catalogue minus retired `ugc` options; a retired item already in scope
+    stays listed. The deliverables screen names custom pieces by `title`;
+    `422` errors (`scope[i]`, `scope[i].title|description`) show per row.
+36. **Deliver all content together, then the final delivery (backend 18r)** -
+    **blocked until backend 18r ships.** Replaces item 25's per-piece submit
+    and "record posted" flow: one "Submit delivery" screen with a slot per
+    piece (upload or link + caption), Submit disabled until every slot is
+    filled. After a change request it shows the overall reason and per-item
+    comments, carries over unchanged pieces, and shows revisions remaining.
+    Once the draft is approved, "Final delivery" takes a file link per piece
+    (UGC) or the live post URL per piece (Brand Awareness; must match the
+    piece's platform). Escalated = "In dispute", no actions; completed never
+    says "paid".
 
 Other product screens (orders, gigs, messaging, balance) still run on
 `data/*.ts` mock fixtures.
@@ -140,7 +169,13 @@ mock types where they'll carry over directly.
 
 - `id`, `businessId` (-> Business), `title`, `price`/`budget`, `dueDate`,
   `applicationDeadline`, `status`, `tags[]`, `requirements[]`,
-  `deliverables[]` (title, description), `followerWanted`
+  `followerWanted`
+- `objective` ('ugc_content' | 'brand_awareness' | null) - null only for
+  campaigns created before backend 18q (item 35)
+- `deliverables[]`: `id`, `value` (catalogue key, or `"custom"`), `label`,
+  `platform`, `type`, `count`, `title` (string | null), `description`
+  (sanitized HTML | null) - `title`/`description` set only on custom items;
+  each `(platform, type)` must be offered for the objective (item 35)
 
 ### Gig
 
@@ -160,6 +195,11 @@ mock types where they'll carry over directly.
   expired|completed|cancelled, and an `offers[]` negotiation thread (item 23);
   its own negotiated deliverables list (`scope`, item 24) and the deliverable
   pieces created from it on acceptance, each with its submissions (item 25)
+- `scope[]`: `id`, `platform`, `type`, `count`, `title`, `description` - same
+  rules as Campaign `deliverables` (1-30 items; item 35)
+- Delivery (item 36, backend 18r, shape TBD): one bundle per engagement in
+  rounds - draft (original + 2 revisions, then dispute) and final (file link
+  or live post URL per piece); replaces item 25's per-piece submissions
 
 ### Order
 
@@ -239,11 +279,14 @@ design, not the original boilerplate). Automatic light/dark theme via
 Main routes (`app/`, Expo Router groups):
 
 - `(auth)/onboarding`, `(auth)/auth/*` - intro, sign-in/up, OTP, password reset
-- `(auth)/profile-verification/*` - post-signup wizard
+- `(auth)/creator-onboarding` - ten-step post-registration wizard (item 20;
+  replaced `(auth)/profile-verification/*`)
 - `(main)/home`, `(main)/order`, `(main)/create-gig`, `(main)/message`,
   `(main)/profile` - the Tabs shell
 - `(details)/*` - campaign, gig, creator, business, chat, order, withdraw
   detail/sub-flows
+- `(details)/engagement/[id]` - Offer screen: negotiation, agreement,
+  deliverables (items 23-25, 34)
 
 ## Deployment
 
@@ -261,7 +304,15 @@ Main routes (`app/`, Expo Router groups):
 
 ## Open questions
 
-- Exact commission structure (rate, who it's deducted from).
+- Item 35: may a creator write a new custom deliverable on mobile (needs a
+  rich-text input), or only keep/adjust the business's?
+- Item 36 (decided in backend 18r): can a final round be sent back for a fix;
+  are video drafts uploaded (today's media limit is 5 MB) or linked?
+- `feat/escrow` item 28 (per-piece money and decline reasons) assumes
+  per-piece review and must be re-scoped to delivery rounds.
+- Exact commission structure. F-2 (creator receives 100% of the deal) implies
+  the fee is charged to the business, but `project-plan.md` §6 still lists
+  this as undecided.
 - Production/staging API endpoints and hosting target.
 - Cross-repo `platform-context/open-questions.md` #1 (gig marketplace entity
   model) still blocks wiring the Create Gig wizard to a real endpoint.

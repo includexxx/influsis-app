@@ -67,17 +67,42 @@ describe('getCampaignDetailsAvatarUrl', () => {
 
 describe('formatDeliverable', () => {
   test('labels count, type and platform', () => {
-    expect(formatDeliverable({ id: 'd', platform: 'instagram', type: 'reels', count: 3 })).toEqual({
-      title: '3 × Reels',
-      description: 'Instagram',
-    });
+    expect(
+      formatDeliverable({
+        id: 'd',
+        platform: 'instagram',
+        type: 'reels',
+        count: 3,
+        title: null,
+        description: null,
+      }),
+    ).toEqual({ title: '3 × Reels', description: 'Instagram' });
+  });
+
+  test('names a custom deliverable by its title', () => {
+    expect(
+      formatDeliverable({
+        id: 'd',
+        platform: 'custom',
+        type: 'custom',
+        count: 2,
+        title: 'Unboxing clip',
+        description: '<p>Show the box</p>',
+      }),
+    ).toEqual({ title: '2 × Unboxing clip', description: 'Custom deliverable' });
   });
 
   test('passes unknown values through', () => {
-    expect(formatDeliverable({ id: 'd', platform: 'ugc', type: 'livestream', count: 1 })).toEqual({
-      title: '1 × livestream',
-      description: 'UGC',
-    });
+    expect(
+      formatDeliverable({
+        id: 'd',
+        platform: 'ugc',
+        type: 'livestream',
+        count: 1,
+        title: null,
+        description: null,
+      }),
+    ).toEqual({ title: '1 × livestream', description: 'UGC' });
   });
 });
 
@@ -173,12 +198,10 @@ describe('getAudienceGroups', () => {
         ageRanges: ['18-24'],
         interests: [],
         subCategories: [],
-        objectives: ['Awareness'],
       }),
     ).toEqual([
       { label: 'Location', items: ['Dhaka'] },
       { label: 'Age range', items: ['18-24'] },
-      { label: 'Objectives', items: ['Awareness'] },
     ]);
   });
 
@@ -189,7 +212,6 @@ describe('getAudienceGroups', () => {
         ageRanges: [],
         interests: [],
         subCategories: [],
-        objectives: [],
       }),
     ).toEqual([]);
   });

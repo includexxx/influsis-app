@@ -4,9 +4,11 @@ import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { AccentTone, toneColors } from '@/theme';
 import { openLink } from '@/scenes/profile/utils/profileDisplay';
+import RichText from '@/components/elements/RichText';
 import { campaignDetailsStyle as s } from '../../campaignDetails.style';
 import { CampaignDeliverable, CampaignRequirementSection } from '../../types/campaignFeed';
 import { DELIVERABLE_TYPE_LABELS, PLATFORM_LABELS } from '../../utils/mapCampaignDetails';
+import { isCustomItem } from '../../utils/objectives';
 import { platformIcon } from '../../utils/platformIcon';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
@@ -229,7 +231,9 @@ export function BriefSection({ section }: { section: CampaignRequirementSection 
   );
 }
 
-/** "What you'll create": a tile per deliverable with its platform glyph. */
+/** "What you'll create": a tile per deliverable with its platform glyph. A
+ * custom deliverable (18q) shows the business's title - always as plain text
+ * - and its rich-text description below, through the sanitizing RichText. */
 export function DeliverableList({ deliverables }: { deliverables: CampaignDeliverable[] }) {
   const { colors, palette, isDark } = useTheme();
   const tone = toneColors('primary', isDark);
@@ -238,6 +242,37 @@ export function DeliverableList({ deliverables }: { deliverables: CampaignDelive
   return (
     <View style={s.deliverableGrid}>
       {deliverables.map(deliverable => {
+        if (isCustomItem(deliverable)) {
+          const title = deliverable.title || 'Custom deliverable';
+          return (
+            <View
+              key={deliverable.id}
+              style={[s.deliverableCustom, { backgroundColor: tileBackground }]}
+              testID="campaign-details-custom-deliverable">
+              <View
+                style={s.deliverableCustomHead}
+                accessible
+                accessibilityLabel={`${deliverable.count} ${title}`}>
+                <View style={[s.deliverableIcon, { backgroundColor: tone.background }]}>
+                  <Feather
+                    name={platformIcon(deliverable.platform)}
+                    size={20}
+                    color={tone.foreground}
+                  />
+                </View>
+                <View style={s.deliverableText}>
+                  <Text style={[s.deliverableTitle, { color: colors.text.primary }]}>
+                    {`${deliverable.count} × ${title}`}
+                  </Text>
+                  <Text style={[s.deliverableMeta, { color: palette.gray[300] }]}>
+                    Custom deliverable
+                  </Text>
+                </View>
+              </View>
+              <RichText html={deliverable.description} color={colors.text.secondary} />
+            </View>
+          );
+        }
         const type = DELIVERABLE_TYPE_LABELS[deliverable.type] ?? deliverable.type;
         const platform = PLATFORM_LABELS[deliverable.platform] ?? deliverable.platform;
         return (

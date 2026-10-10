@@ -67,7 +67,7 @@ const campaign: CampaignFeedDetail = {
   campaignEndDate: '2026-10-10',
   preferredPostingDates: null,
   promoting: ['Grand opening offers'],
-  objectives: [],
+  objective: null,
   categories: ['food'],
   subCategories: [],
   ageRanges: [],
@@ -86,7 +86,9 @@ const campaign: CampaignFeedDetail = {
       readOnly: true,
     },
   ],
-  deliverables: [{ id: 'd1', platform: 'instagram', type: 'reels', count: 2 }],
+  deliverables: [
+    { id: 'd1', platform: 'instagram', type: 'reels', count: 2, title: null, description: null },
+  ],
   business: {
     businessId: '8ba43b43-fb06-4ee2-a25d-caa71f4189b5',
     businessName: 'Dhaka Delights Ltd.',
@@ -159,6 +161,50 @@ describe('<CampaignDetails />', () => {
 
     fireEvent.press(screen.getByTestId('campaign-details-business'));
     expect(mockPush).toHaveBeenCalledWith(`/business/${campaign.businessId}`);
+  });
+
+  test('shows the campaign objective as a fact', async () => {
+    mockRequest.mockResolvedValue({ ...campaign, objective: 'brand_awareness' });
+    renderScreen();
+
+    expect(await screen.findByText('Brand Awareness')).toBeTruthy();
+    expect(screen.getByText('Objective')).toBeTruthy();
+  });
+
+  test('hides the objective fact when the campaign predates objectives', async () => {
+    mockRequest.mockResolvedValue(campaign);
+    renderScreen();
+
+    await screen.findByText('New Shop Openning');
+    expect(screen.queryByText('Objective')).toBeNull();
+  });
+
+  test('renders a custom deliverable: escaped title and formatted description', async () => {
+    mockRequest.mockResolvedValue({
+      ...campaign,
+      objective: 'ugc_content',
+      deliverables: [
+        ...campaign.deliverables,
+        {
+          id: 'd2',
+          value: 'custom',
+          platform: 'custom',
+          type: 'custom',
+          count: 1,
+          title: 'Unboxing <b>clip</b>',
+          description: '<p>Show the <strong>box</strong> opening</p><script>alert(1)</script>',
+        },
+      ],
+    });
+    renderScreen();
+
+    expect(await screen.findByText('1 × Unboxing <b>clip</b>')).toBeTruthy();
+    expect(screen.getByText('Custom deliverable')).toBeTruthy();
+    expect(screen.getByText('Show the box opening')).toBeTruthy();
+    expect(screen.queryByText(/alert/)).toBeNull();
+    expect(screen.getByLabelText('1 Unboxing <b>clip</b>')).toBeTruthy();
+    // Catalogue tiles are unchanged.
+    expect(screen.getByText('2 × Reels')).toBeTruthy();
   });
 
   test('shows the engagement status instead of Apply when already applied', async () => {

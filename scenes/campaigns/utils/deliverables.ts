@@ -98,7 +98,11 @@ export function safeHttpUrl(value: string | null | undefined): string | null {
   return value && isHttpUrl(value) ? value : null;
 }
 
-// "Instagram Reels · 2".
-export function pieceTitle(piece: Pick<DeliverablePiece, 'platform' | 'type' | 'pieceNo'>): string {
+// "Instagram Reels · 2", or "Unboxing clip · 2" for a custom piece (18q),
+// named by the custom item's title.
+export function pieceTitle(
+  piece: Pick<DeliverablePiece, 'platform' | 'type' | 'pieceNo'> &
+    Partial<Pick<DeliverablePiece, 'title'>>,
+): string {
   return `${scopeItemLabel(piece)} · ${piece.pieceNo}`;
 }
