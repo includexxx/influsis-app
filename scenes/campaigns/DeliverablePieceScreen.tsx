@@ -319,6 +319,11 @@ function SubmissionItem({
         <View style={s.historyTags}>
           <Text style={[s.tag, status.tag]}>{status.label}</Text>
           {submission.isLate ? <Text style={[s.tag, s.lateTag]}>Late</Text> : null}
+          {submission.livePostUrl ? (
+            <Text style={[s.tag, s.liveTag]} testID={`submission-${submission.revisionNo}-live`}>
+              Live post
+            </Text>
+          ) : null}
         </View>
 
         {submission.externalUrl ? (

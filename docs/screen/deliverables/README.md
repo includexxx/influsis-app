@@ -1,9 +1,10 @@
 # Screen Specs — Deliverables (deliver the work)
 
 Three screens for the creator's side of an accepted engagement. Since
-build-plan item 36a (backend 18r1/18r3) every piece is delivered **together
-as one round** and reviewed as a whole: the Deliverables overview, the Submit
-delivery screen, and one piece's read-only history.
+build-plan item 36 (backend 18r1-18r3) every piece is delivered **together as
+one round** and reviewed as a whole - draft rounds (36a), then the final
+round (36b): the Deliverables overview, the Submit delivery screen, and one
+piece's read-only history.
 
 - `app/(details)/engagement/[id]/deliverables.tsx` → `scenes/campaigns/DeliverablesScreen.tsx`
 - `app/(details)/engagement/[id]/submit-delivery.tsx` → `scenes/campaigns/SubmitDeliveryScreen.tsx`
@@ -27,9 +28,12 @@ piece per unit of the negotiated scope ("2 × Instagram Reels" → pieces 1 and
 2). The creator delivers **every piece at once** as a **draft round**; the
 business approves it or requests changes with an overall reason and a comment
 per piece. Original + 2 revisions; the 3rd change request escalates the whole
-engagement to a dispute. After the draft is approved comes the **final round**
-(item 36b — read-only here until then). **Nothing here says "paid"** — there
-is no escrow until backend item 19.
+engagement to a dispute. After the draft is approved comes the **final round**:
+a link per piece — a link to the final files (UGC Content) or the live post on
+the piece's platform (Brand Awareness). The final can be sent back once; the
+2nd final change request escalates. Approving the final completes the
+engagement. **Nothing here says "paid"** — there is no escrow until backend
+item 19.
 
 ## User flow
 
@@ -39,7 +43,9 @@ Live Campaigns row / Home Active Campaigns card / Offer screen "Deliver work"
        ├─ awaiting_draft          → "Submit delivery"      → Submit delivery
        ├─ draft_in_review         → "Draft submitted", no action
        ├─ draft_changes_requested → reason + revisions left → "Submit revised draft"
-       ├─ awaiting_final / final_* → "Draft approved. Final delivery is coming soon." (36b)
+       ├─ awaiting_final          → "Draft approved"           → "Send final delivery"
+       ├─ final_in_review         → "Final delivery submitted", no action
+       ├─ final_changes_requested → reason + revisions left  → "Resend final delivery"
        ├─ delivered               → "Delivered. This campaign is complete."
        ├─ escalated               → "In dispute", no actions
        ├─ "View agreement" → read-only agreement sheet (feature 34)
@@ -51,9 +57,9 @@ Live Campaigns row / Home Active Campaigns card / Offer screen "Deliver work"
 | # | Section | Content |
 |---|---|---|
 | 1 | Header | Back + "Deliverables" |
-| 2 | Summary card | Gradient card: "CAMPAIGN" eyebrow, a stage chip (To deliver / In review / Changes requested / Draft approved / Completed / In dispute), title (route param `title`), "Content deadline · {date}" (or "No deadline set") from CB2 — left out when CB2 fails, e.g. `404` once the campaign isn't live — and "Approval progress": "{approved} of {n} approved" with a progress bar (cancelled pieces don't count) |
+| 2 | Summary card | Gradient card: "CAMPAIGN" eyebrow, a stage chip (To deliver / In review / Changes requested / Final due / Completed / In dispute), title (route param `title`), "Content deadline · {date}" (or "No deadline set") from CB2 — left out when CB2 fails, e.g. `404` once the campaign isn't live — and "Approval progress": "{approved} of {n} approved" with a progress bar (cancelled pieces don't count) |
 | 3 | Actions | Two half-width pills: "View campaign" (`/campaign/[campaignId]`) and "View agreement" (the agreement sheet in `confirmed` mode) |
-| 4 | Status card | One card for the stage (`utils/delivery.ts` `deliveryStatusView`): title, body, "Submitted {date}" while in review, "{n} revision(s) left" while changes are requested, and the primary **Submit delivery** / **Submit revised draft** button when the creator can submit. Escalated: "In dispute" with "The business requested changes to the draft {n} times." / "…to the final delivery twice." / "This delivery was escalated to a dispute.", then "Disputes aren't available yet." The backend's `escalationReason` wording is never shown |
+| 4 | Status card | One card for the stage (`utils/delivery.ts` `deliveryStatusView`): title, body, "Submitted {date}" while a draft or the final is in review, "{n} revision(s) left" while changes are requested (draft: 2 → 0; final: 1 → 0), and the primary **Submit delivery** / **Submit revised draft** / **Send final delivery** / **Resend final delivery** button when the creator can submit. Escalated: "In dispute" with "The business requested changes to the draft {n} times." / "…to the final delivery twice." / "This delivery was escalated to a dispute.", then "Disputes aren't available yet." The backend's `escalationReason` wording is never shown |
 | 5 | Pieces | "Your deliverables" + count chip, then one elevated card per piece: platform icon tile, "Instagram Reels · 2" (a custom piece shows its title), status badge, "Due {date}" (+ red "Overdue" and a red border while not approved or cancelled), chevron |
 
 Status badges: To deliver (`pending`), In progress, Awaiting review
@@ -71,8 +77,9 @@ deadline rows.
 
 ## Submit delivery screen
 
-Only the draft stages (`awaiting_draft`, `draft_changes_requested`) can
-submit; any other stage shows "Nothing to submit right now." with **Back**.
+The draft stages (`awaiting_draft`, `draft_changes_requested`) and the final
+stages (`awaiting_final`, `final_changes_requested`) can submit; any other
+stage shows "Nothing to submit right now." with **Back**.
 
 | # | Section | Content |
 |---|---|---|
@@ -80,7 +87,23 @@ submit; any other stage shows "Nothing to submit right now." with **Back**.
 | 2 | Intro card | Campaign title, one line of guidance, and — after changes were requested — an amber "The business asked for changes" notice with the round's reason plus "{n} revision(s) left". Hint: "Videos are shared as links. Images can be JPEG, PNG, GIF or WebP up to 5 MB." |
 | 3 | Slots | One card per non-cancelled piece: title, due date, the business's comment for that piece (amber, from the latest round), a pill **Keep previous** / **Link** / **Image** switch, the field for the chosen source, and an optional caption (≤2000). **Keep previous** is offered — and pre-selected — only when the latest round has an item for the piece; it shows the earlier link or "Uploaded image", and its caption field shows the old caption as the placeholder (left empty, the old caption is kept) |
 | 4 | Error banner | A `409` server message, a `422` form-level message, or a generic / network message |
-| 5 | Submit | **Submit delivery** / **Submit revised draft**, disabled until every slot is ready (a full `http(s)` link ≤2048, a picked image, or a kept item; captions ≤2000) |
+| 5 | Submit | **Submit delivery** / **Submit revised draft** (draft) or **Send final delivery** / **Resend final delivery** (final), disabled until every slot is ready (a full `http(s)` link ≤2048, a picked image, or a kept item; captions ≤2000) |
+
+**Final mode.** A final item is always a link (`pieces[].finalKind`, set by
+the backend): there is no **Image** option, and **Keep previous** is offered
+only when the piece's item in the latest round is a link — the approved draft
+round while awaiting the final, the final round after a change request. It's
+pre-selected only when the kept link passes the checks below; a draft upload
+can't be kept, so that piece starts on **Link**. Per slot:
+
+- `file_link` — "Link to your files", hint "Share the final files, e.g. a
+  Google Drive or Dropbox link."; any `http(s)` link.
+- `live_post` — "Live post URL", hint "Post it on {Platform}, then paste the
+  live post link." The host must be the platform's domain or a subdomain of
+  it (`facebook.com`/`fb.com`/`fb.watch`, `instagram.com`, `tiktok.com`,
+  `youtube.com`/`youtu.be`), else "Paste the {Platform} post link." A custom
+  piece takes any `http(s)` link ("Post it, then paste the link to the live
+  post."). The server re-checks and its `422` lands on the slot.
 
 On submit, picked images are uploaded one by one (`POST /media`); a `413`
 shows "That image is too large (max 5 MB)." and a `422` "That image type
@@ -101,7 +124,7 @@ slot. Inputs are locked while sending.
 | 1 | Summary card | Gradient card: platform icon, "DELIVERABLE" eyebrow, title, status badge, and chips for the due date and "Overdue" (red) |
 | 2 | Change request | Amber notice "The business asked for changes" + the latest reason (plain text), when `changes_requested` |
 | 3 | Notices | "Cancelled" (grey), "Approved" with the date (green), or — while the piece still needs work — "Delivered together: Submit or update this piece from the Deliverables screen." |
-| 4 | Submissions | "Submissions" + count chip, then a timeline, newest first: a status-coloured dot per revision, card with revision, date, status tag, "Late" tag, the link (opens only when `http(s)`) or "Uploaded image", caption, and the business's decision + reason |
+| 4 | Submissions | "Submissions" + count chip, then a timeline, newest first: a status-coloured dot per revision, card with revision, date, status tag, "Late" tag, a green "Live post" tag when the item recorded a live post (a Brand Awareness final), the link (opens only when `http(s)`) or "Uploaded image", caption, and the business's decision + reason |
 
 Data: CI1 (`GET /engagements/:id/deliverables`), read-only.
 
@@ -111,12 +134,12 @@ Data: CI1 (`GET /engagements/:id/deliverables`), read-only.
 |---|---|---|
 | Read the delivery | Deliverables, Submit delivery | `GET /engagements/:id/delivery` |
 | Upload an image | Submit, per image slot | `POST /media` (multipart `file`, 5 MB) → `id` |
-| Submit a round | `awaiting_draft` / `draft_changes_requested` | `POST /engagements/:id/delivery/rounds` `{ items: [{ pieceId, externalUrl \| mediaId \| reuseItemId, caption? }] }` |
+| Submit a round | `awaiting_draft` / `draft_changes_requested` (draft), `awaiting_final` / `final_changes_requested` (final — no `mediaId`) | `POST /engagements/:id/delivery/rounds` `{ items: [{ pieceId, externalUrl \| mediaId \| reuseItemId, caption? }] }` |
 | Piece history | Piece | `GET /engagements/:id/deliverables` (CI1) |
 
 The per-piece `CI2` (submit), `CI3` (review) and `CI4` (record posted) were
-removed by the backend (`404`) and are no longer called. Recording a live post
-comes back in item 36b as a Brand Awareness final item.
+removed by the backend (`404`) and are no longer called. A live post is now
+recorded as a Brand Awareness final item.
 
 ## Scope notes
 
@@ -124,6 +147,8 @@ comes back in item 36b as a Brand Awareness final item.
   `mediaId` for an upload; the app shows "Uploaded image".
 - **Carry-over reuses the latest round only** — earlier, superseded per-piece
   submissions aren't offered.
+- **The post itself isn't checked** — only the link's host, as on the
+  backend.
 - **`reviewDueAt` isn't shown** — nothing enforces it yet (backend item 19),
   so the app never suggests an auto-release.
 - **The Order tab stays mock** (`scenes/order`, `data/orders.ts`); wiring it

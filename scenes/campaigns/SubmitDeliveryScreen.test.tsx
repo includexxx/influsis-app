@@ -439,4 +439,186 @@ describe('<SubmitDeliveryScreen />', () => {
     fireEvent.press(screen.getByTestId('submit-delivery-back'));
     expect(mockBack).toHaveBeenCalled();
   });
+  describe('the final delivery (backend 18r2)', () => {
+    function approvedDraft(items: DeliveryRound['items']): DeliveryRound {
+      return {
+        ...changesRequested(),
+        status: 'approved',
+        reviewDecision: 'approved',
+        reviewReason: null,
+        items,
+      };
+    }
+    const linkItem = (id: string, pieceId: string, externalUrl: string) => ({
+      ...changesRequested().items[0],
+      id,
+      pieceId,
+      externalUrl,
+      reviewComment: null,
+      status: 'approved',
+    });
+
+    test('UGC: no Image option, the approved draft link is kept, Send final delivery', async () => {
+      answers(
+        delivery({
+          stage: 'awaiting_final',
+          pieces: twoPieces.slice(0, 2),
+          rounds: [
+            approvedDraft([
+              linkItem('item-1', 'p1', 'https://drive.test/final-1'),
+              { ...linkItem('item-2', 'p2', ''), externalUrl: null, mediaId: 'media-old' },
+            ]),
+          ],
+        }),
+      );
+      renderScreen();
+
+      expect(await screen.findByText('Send final delivery')).toBeTruthy();
+      expect(screen.queryByTestId('delivery-slot-0-image')).toBeNull();
+      expect(screen.queryByTestId('delivery-slot-1-image')).toBeNull();
+      expect(screen.getByTestId('delivery-slot-0-keep').props.accessibilityState?.checked).toBe(
+        true,
+      );
+      // A draft upload can't be a final item: the slot starts on Link.
+      expect(screen.queryByTestId('delivery-slot-1-keep')).toBeNull();
+      expect(
+        screen.getAllByText('Share the final files, e.g. a Google Drive or Dropbox link.'),
+      ).toHaveLength(2);
+      expect(submitButton().props.accessibilityState?.disabled).toBe(true);
+
+      fireEvent.changeText(screen.getByTestId('delivery-slot-1-url'), 'https://drive.test/final-2');
+      await pressSubmit();
+
+      expect(posted()?.data).toEqual({
+        items: [
+          { pieceId: 'p1', reuseItemId: 'item-1' },
+          { pieceId: 'p2', externalUrl: 'https://drive.test/final-2' },
+        ],
+      });
+      expect(mockUpload).not.toHaveBeenCalled();
+    });
+
+    test('Brand Awareness: a live post must be on the piece platform', async () => {
+      answers(
+        delivery({
+          stage: 'awaiting_final',
+          objective: 'brand_awareness',
+          pieces: [
+            piece({ id: 'p1', finalKind: 'live_post' }),
+            piece({
+              id: 'p2',
+              platform: 'custom',
+              type: 'custom',
+              title: 'Store visit',
+              finalKind: 'live_post',
+            }),
+          ],
+          rounds: [approvedDraft([])],
+        }),
+      );
+      renderScreen();
+
+      expect(
+        await screen.findByText('Post it on Instagram, then paste the live post link.'),
+      ).toBeTruthy();
+      expect(screen.getByText('Post it, then paste the link to the live post.')).toBeTruthy();
+
+      fireEvent.changeText(screen.getByTestId('delivery-slot-0-url'), 'https://tiktok.com/@me/1');
+      fireEvent.changeText(screen.getByTestId('delivery-slot-1-url'), 'https://blog.example.com/p');
+      expect(screen.getByText('Paste the Instagram post link.')).toBeTruthy();
+      expect(submitButton().props.accessibilityState?.disabled).toBe(true);
+
+      fireEvent.changeText(
+        screen.getByTestId('delivery-slot-0-url'),
+        'https://www.instagram.com/reel/abc',
+      );
+      expect(screen.queryByText('Paste the Instagram post link.')).toBeNull();
+      expect(submitButton().props.accessibilityState?.disabled).toBe(false);
+      await pressSubmit();
+
+      expect(posted()?.data).toEqual({
+        items: [
+          { pieceId: 'p1', externalUrl: 'https://www.instagram.com/reel/abc' },
+          { pieceId: 'p2', externalUrl: 'https://blog.example.com/p' },
+        ],
+      });
+    });
+
+    test('final changes requested: the final reason, comments, no revisions left, Resend', async () => {
+      answers(
+        delivery({
+          stage: 'final_changes_requested',
+          objective: 'brand_awareness',
+          finalRevisionsRemaining: 0,
+          finalChangeRequests: 1,
+          pieces: [piece({ id: 'p1', finalKind: 'live_post' })],
+          rounds: [
+            approvedDraft([linkItem('item-1', 'p1', 'https://drive.test/draft')]),
+            {
+              ...changesRequested(),
+              id: 'round-f1',
+              phase: 'final',
+              reviewReason: 'The caption must tag the brand account',
+              items: [
+                {
+                  ...linkItem('item-f1', 'p1', 'https://www.instagram.com/reel/v1'),
+                  reviewComment: 'Tag @brand in the caption',
+                  status: 'changes_requested',
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      renderScreen();
+
+      expect(
+        await screen.findByText('The business asked for changes to the final delivery'),
+      ).toBeTruthy();
+      expect(screen.getByText('The caption must tag the brand account')).toBeTruthy();
+      expect(screen.getByText('Tag @brand in the caption')).toBeTruthy();
+      expect(screen.getByText('No revisions left')).toBeTruthy();
+      expect(screen.getByText('Resend final delivery')).toBeTruthy();
+      // The final round's live post passes, so it's kept.
+      expect(screen.getByTestId('delivery-slot-0-keep').props.accessibilityState?.checked).toBe(
+        true,
+      );
+
+      fireEvent.changeText(screen.getByTestId('delivery-slot-0-caption'), 'Now tagging @brand');
+      await pressSubmit();
+      expect(posted()?.data).toEqual({
+        items: [{ pieceId: 'p1', reuseItemId: 'item-f1', caption: 'Now tagging @brand' }],
+      });
+    });
+
+    test('a server live-post 422 lands on its slot', async () => {
+      answers(
+        delivery({
+          stage: 'awaiting_final',
+          objective: 'brand_awareness',
+          pieces: [piece({ id: 'p1', finalKind: 'live_post' })],
+          rounds: [approvedDraft([])],
+        }),
+        () => {
+          throw new ApiError({
+            code: 'VALIDATION_FAILED',
+            statusCode: 422,
+            message: 'The submitted data is invalid.',
+            errors: { 'items[0].externalUrl': 'must be an Instagram post link' },
+          } as never);
+        },
+      );
+      renderScreen();
+
+      fireEvent.changeText(
+        await screen.findByTestId('delivery-slot-0-url'),
+        'https://instagram.com/reel/abc',
+      );
+      await pressSubmit();
+
+      expect(
+        within(screen.getByTestId('delivery-slot-0')).getByText('must be an Instagram post link'),
+      ).toBeTruthy();
+    });
+  });
 });

@@ -28,7 +28,10 @@ import {
   isSlotReady,
   latestRound,
   roundErrorsFromApi,
+  slotCopy,
   SlotSource,
+  slotSources,
+  submitPhase,
   toRoundItems,
   validateSlot,
 } from './utils/delivery';
@@ -53,16 +56,19 @@ const SOURCE_OPTIONS: { value: SlotSource; label: string; icon: FeatherName }[] 
   { value: 'image', label: 'Image', icon: 'image' },
 ];
 
-// The Submit delivery screen (backend 18r1) - every piece of an accepted
-// engagement delivered together as one draft round: a slot per non-cancelled
-// piece with a link or an image (uploaded first with POST /media) and an
-// optional caption, sent as one POST /engagements/:id/delivery/rounds. After
-// the business requests changes each slot shows its comment and starts on
-// "Keep previous", which carries the earlier item over (`reuseItemId`)
-// without re-uploading. Submit stays disabled until every slot is ready. A
-// 409 refetches the delivery; a 422 lands on the slot it names. Only the
-// draft stages can submit here - the final round is 36b. Pushed from the
-// Deliverables screen; `title` rides along for the header card.
+// The Submit delivery screen (backend 18r1/18r2) - every piece of an
+// accepted engagement delivered together as one round, sent as one
+// POST /engagements/:id/delivery/rounds; the backend picks the phase from the
+// stage. A draft slot takes a link or an image (uploaded first with
+// POST /media) plus an optional caption. Once the draft is approved, the
+// final slot takes a link only: a file link (UGC Content) or the live post on
+// the piece's platform (Brand Awareness; `finalKind` decides). After a change
+// request each slot shows its comment and starts on "Keep previous", which
+// carries the earlier item over (`reuseItemId`) without re-uploading - in a
+// final only when that item is a link that passes. Submit stays disabled
+// until every slot is ready. A 409 refetches the delivery; a 422 lands on the
+// slot it names. Pushed from the Deliverables screen; `title` rides along for
+// the header card.
 export default function SubmitDeliveryScreen() {
   const { colors } = useTheme();
   const { id, title } = useLocalSearchParams<{ id: string; title?: string }>();
@@ -141,8 +147,11 @@ export default function SubmitDeliveryScreen() {
     );
   }
 
-  const revising = data.stage === 'draft_changes_requested';
+  const isFinal = submitPhase(data.stage) === 'final';
+  const revising =
+    data.stage === 'draft_changes_requested' || data.stage === 'final_changes_requested';
   const reason = revising ? (latestRound(data)?.reviewReason ?? null) : null;
+  const revisionsLeft = isFinal ? data.finalRevisionsRemaining : data.revisionsRemaining;
   const ready = slots.length > 0 && slots.every(isSlotReady);
 
   function updateSlot(index: number, patch: Partial<DeliverySlot>) {
@@ -247,9 +256,13 @@ export default function SubmitDeliveryScreen() {
               {title || 'Campaign'}
             </Text>
             <Text style={[p.hintText, { color: colors.text.secondary }]}>
-              {revising
-                ? 'Send a revised draft. Keep the pieces the business was happy with.'
-                : 'Deliver every piece together. The business reviews them as one draft.'}
+              {isFinal
+                ? revising
+                  ? 'Send a corrected final delivery. Keep the pieces the business was happy with.'
+                  : 'Send the final delivery. The business reviews it as one round.'
+                : revising
+                  ? 'Send a revised draft. Keep the pieces the business was happy with.'
+                  : 'Deliver every piece together. The business reviews them as one draft.'}
             </Text>
             {reason ? (
               <View style={[p.notice, p.warningNotice]} testID="submit-delivery-reason">
@@ -257,18 +270,24 @@ export default function SubmitDeliveryScreen() {
                   <Feather name="message-square" size={16} color={p.warningText.color} />
                 </View>
                 <View style={p.noticeBody}>
-                  <Text style={[p.noticeTitle, p.warningText]}>The business asked for changes</Text>
+                  <Text style={[p.noticeTitle, p.warningText]}>
+                    {isFinal
+                      ? 'The business asked for changes to the final delivery'
+                      : 'The business asked for changes'}
+                  </Text>
                   <Text style={[p.noticeText, p.warningText]}>{reason}</Text>
                 </View>
               </View>
             ) : null}
             {revising ? (
               <Text style={[s.metaStrong, { color: colors.text.primary }]}>
-                {formatRevisionsLeft(data.revisionsRemaining)}
+                {formatRevisionsLeft(revisionsLeft)}
               </Text>
             ) : null}
             <Text style={[s.hint, { color: colors.text.secondary }]}>
-              Videos are shared as links. Images can be JPEG, PNG, GIF or WebP up to 5 MB.
+              {isFinal
+                ? 'A final delivery is a link for every piece, never an upload.'
+                : 'Videos are shared as links. Images can be JPEG, PNG, GIF or WebP up to 5 MB.'}
             </Text>
           </View>
 
@@ -296,7 +315,15 @@ export default function SubmitDeliveryScreen() {
           ) : null}
 
           <Button
-            title={revising ? 'Submit revised draft' : 'Submit delivery'}
+            title={
+              isFinal
+                ? revising
+                  ? 'Resend final delivery'
+                  : 'Send final delivery'
+                : revising
+                  ? 'Submit revised draft'
+                  : 'Submit delivery'
+            }
             style={p.primaryButton}
             titleStyle={p.primaryTitle}
             onPress={() => void submit()}
@@ -327,12 +354,16 @@ function SlotCard({
   onPickImage: () => void;
 }) {
   const { colors } = useTheme();
-  const options = SOURCE_OPTIONS.filter(option => option.value !== 'keep' || slot.previous);
-  // Local rule messages show once there's something to judge; the server's
-  // (or an upload's) message wins.
+  const sources = slotSources(slot);
+  const options = SOURCE_OPTIONS.filter(option => sources.includes(option.value));
+  const copy = slotCopy(slot);
+  // Local rule messages show once there's something to judge (a typed link,
+  // or a kept item a final refuses); the server's (or an upload's) message
+  // wins.
   const local = validateSlot(slot);
   const linkError = slot.source === 'link' && slot.externalUrl.trim() ? local.externalUrl : null;
-  const shownError = error ?? linkError ?? local.caption ?? null;
+  const keepError = slot.source === 'keep' ? local.externalUrl : null;
+  const shownError = error ?? linkError ?? keepError ?? local.caption ?? null;
 
   return (
     <View
@@ -346,6 +377,14 @@ function SlotCard({
           </Text>
         ) : null}
       </View>
+
+      {copy.hint ? (
+        <Text
+          style={[s.hint, { color: colors.text.secondary }]}
+          testID={`delivery-slot-${index}-hint`}>
+          {copy.hint}
+        </Text>
+      ) : null}
 
       {slot.comment ? (
         <View style={s.comment} testID={`delivery-slot-${index}-comment`}>
@@ -400,7 +439,7 @@ function SlotCard({
         </View>
       ) : slot.source === 'link' ? (
         <TextField
-          label="Link to your content"
+          label={copy.linkLabel}
           placeholder="https://"
           value={slot.externalUrl}
           onChangeText={externalUrl => onChange({ externalUrl })}

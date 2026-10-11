@@ -376,7 +376,7 @@ and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
       (confirm):** may a creator write a new custom item on mobile (needs a
       rich-text input), or only keep/adjust the business's? Out of scope:
       bundle delivery (36).
-- [ ] 36. **Deliver all content together, then make the final delivery (backend 18r)** -
+- [x] 36. **Deliver all content together, then make the final delivery (backend 18r)** -
       Backend 18r shipped on `../backend` `feat/campaign-negotiation`
       (18r1 draft rounds, 18r2 final round, 18r3 retired per-piece review;
       `../backend/docs/features/campaign/implementations/CI_DELIVERY_ROUNDS.md`).
@@ -409,7 +409,7 @@ and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
         over (`reuseItemId`) and shows revisions left. An escalated delivery
         shows "In dispute" with no actions. The draft-approved and final
         stages show read-only until 36b. Drops the `CI2` submit flow.
-  - [ ] 36b. **Make the final delivery (backend 18r2)** - once the draft is
+  - [x] 36b. **Make the final delivery (backend 18r2)** - once the draft is
         approved, the same screen asks for a link per piece by `finalKind`: a
         file link (UGC Content) or the live post URL on the piece's platform
         (Brand Awareness; the host check mirrors the backend). No uploads;

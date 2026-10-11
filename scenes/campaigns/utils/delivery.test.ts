@@ -11,9 +11,13 @@ import {
   DeliverySlot,
   escalationCopy,
   initialSlots,
+  isLivePostHostFor,
   isSlotReady,
   latestRound,
   roundErrorsFromApi,
+  slotCopy,
+  slotSources,
+  submitPhase,
   toRoundItems,
   validateSlot,
 } from './delivery';
@@ -88,6 +92,9 @@ function slot(overrides: Partial<DeliverySlot> = {}): DeliverySlot {
   return {
     pieceId: 'p1',
     label: 'Instagram Reels · 1',
+    phase: 'draft',
+    platform: 'instagram',
+    finalKind: 'file_link',
     dueDate: null,
     comment: null,
     previous: null,
@@ -162,15 +169,49 @@ describe('deliveryStatusView', () => {
     });
   });
 
-  test('final stages are read-only until 36b', () => {
-    for (const stage of ['awaiting_final', 'final_in_review', 'final_changes_requested'] as const) {
-      expect(deliveryStatusView(delivery({ stage }))).toMatchObject({
-        title: 'Draft approved',
-        body: 'Final delivery is coming soon.',
-        cta: null,
-        canSubmit: false,
-      });
-    }
+  test('awaiting the final offers Send final delivery', () => {
+    expect(deliveryStatusView(delivery({ stage: 'awaiting_final' }))).toMatchObject({
+      statusLabel: 'Final due',
+      title: 'Draft approved',
+      body: 'Now send the final delivery for every piece.',
+      cta: 'Send final delivery',
+      canSubmit: true,
+      inReview: false,
+    });
+  });
+
+  test('a final in review has no action and shows when it was submitted', () => {
+    expect(deliveryStatusView(delivery({ stage: 'final_in_review' }))).toMatchObject({
+      title: 'Final delivery submitted',
+      cta: null,
+      canSubmit: false,
+      inReview: true,
+    });
+    expect(deliveryStatusView(delivery({ stage: 'draft_in_review' }))?.inReview).toBe(true);
+  });
+
+  test('final changes show the final reason, the final budget and a resend', () => {
+    const view = deliveryStatusView(
+      delivery({
+        stage: 'final_changes_requested',
+        revisionsRemaining: 2,
+        finalRevisionsRemaining: 0,
+        finalChangeRequests: 1,
+        rounds: [
+          round({ status: 'approved', reviewReason: null }),
+          round({ id: 'f1', phase: 'final', reviewReason: 'Tag the brand account' }),
+        ],
+      }),
+    );
+    expect(view).toMatchObject({
+      tone: 'warning',
+      title: 'The business asked for changes to the final delivery',
+      body: 'Tag the brand account',
+      revisionsLeft: 'No revisions left',
+      cta: 'Resend final delivery',
+      canSubmit: true,
+    });
+    expect(JSON.stringify(view)).not.toMatch(/coming soon/i);
   });
 
   test('delivered never mentions payment', () => {
@@ -192,6 +233,50 @@ describe('deliveryStatusView', () => {
 
   test('is null outside delivery', () => {
     expect(deliveryStatusView(delivery({ stage: null }))).toBeNull();
+  });
+});
+
+describe('submitPhase', () => {
+  test('follows the stage', () => {
+    expect(submitPhase('awaiting_draft')).toBe('draft');
+    expect(submitPhase('draft_changes_requested')).toBe('draft');
+    expect(submitPhase('awaiting_final')).toBe('final');
+    expect(submitPhase('final_changes_requested')).toBe('final');
+    for (const stage of [
+      'draft_in_review',
+      'final_in_review',
+      'delivered',
+      'escalated',
+      null,
+    ] as const) {
+      expect(submitPhase(stage)).toBeNull();
+    }
+  });
+});
+
+describe('isLivePostHostFor', () => {
+  test('accepts the platform domain and its subdomains', () => {
+    expect(isLivePostHostFor('instagram', 'https://instagram.com/reel/abc')).toBe(true);
+    expect(isLivePostHostFor('instagram', 'https://www.instagram.com/reel/abc')).toBe(true);
+    expect(isLivePostHostFor('instagram', 'HTTPS://WWW.Instagram.COM/p/x')).toBe(true);
+    expect(isLivePostHostFor('tiktok', 'https://vm.tiktok.com/x')).toBe(true);
+    expect(isLivePostHostFor('facebook', 'https://fb.watch/x')).toBe(true);
+    expect(isLivePostHostFor('youtube', 'https://youtu.be/x')).toBe(true);
+    expect(isLivePostHostFor('youtube', 'https://m.youtube.com:443/watch?v=x')).toBe(true);
+  });
+
+  test('refuses look-alikes, other platforms and non-http links', () => {
+    expect(isLivePostHostFor('instagram', 'https://evilinstagram.com/p/x')).toBe(false);
+    expect(isLivePostHostFor('instagram', 'https://instagram.com.evil.test/p/x')).toBe(false);
+    expect(isLivePostHostFor('instagram', 'https://evil.test/@instagram.com')).toBe(false);
+    expect(isLivePostHostFor('instagram', 'https://tiktok.com/@me')).toBe(false);
+    expect(isLivePostHostFor('instagram', 'javascript:alert(1)//instagram.com')).toBe(false);
+    expect(isLivePostHostFor('instagram', 'instagram.com/p/x')).toBe(false);
+  });
+
+  test('takes any http(s) link for a platform with no listed domains (custom)', () => {
+    expect(isLivePostHostFor('custom', 'https://blog.example.com/post')).toBe(true);
+    expect(isLivePostHostFor('custom', 'ftp://example.com/post')).toBe(false);
   });
 });
 
@@ -240,6 +325,118 @@ describe('initialSlots', () => {
       },
     });
     expect(slots[1].previous).toMatchObject({ itemId: 'i2', isUpload: true });
+  });
+});
+
+describe('initialSlots in the final phase', () => {
+  const approvedDraft = round({
+    status: 'approved',
+    reviewDecision: 'approved',
+    reviewReason: null,
+    items: [
+      item({ id: 'i1', pieceId: 'p1', externalUrl: 'https://drive.test/final' }),
+      item({ id: 'i2', pieceId: 'p2', externalUrl: null, mediaId: 'm1' }),
+      item({ id: 'i3', pieceId: 'p3', externalUrl: 'https://drive.test/not-a-post' }),
+      item({ id: 'i4', pieceId: 'p4', externalUrl: 'https://www.instagram.com/reel/ok' }),
+    ],
+  });
+
+  test('keeps a passing link, starts uploads and wrong-host links on Link', () => {
+    const slots = initialSlots(
+      delivery({
+        stage: 'awaiting_final',
+        objective: 'brand_awareness',
+        pieces: [
+          piece({ id: 'p1', platform: 'custom', type: 'custom', finalKind: 'live_post' }),
+          piece({ id: 'p2', finalKind: 'live_post' }),
+          piece({ id: 'p3', finalKind: 'live_post' }),
+          piece({ id: 'p4', finalKind: 'live_post' }),
+        ],
+        rounds: [approvedDraft],
+      }),
+    );
+    expect(slots.map(s => [s.phase, s.source])).toEqual([
+      ['final', 'keep'],
+      ['final', 'link'],
+      ['final', 'link'],
+      ['final', 'keep'],
+    ]);
+    expect(slotSources(slots[1])).toEqual(['link']);
+    expect(slotSources(slots[2])).toEqual(['keep', 'link']);
+  });
+
+  test('a UGC file link carries over unchanged', () => {
+    const [slot] = initialSlots(
+      delivery({ stage: 'awaiting_final', pieces: [piece()], rounds: [approvedDraft] }),
+    );
+    expect(slot).toMatchObject({ phase: 'final', source: 'keep', finalKind: 'file_link' });
+    expect(toRoundItems([slot], {})).toEqual([{ pieceId: 'p1', reuseItemId: 'i1' }]);
+  });
+});
+
+describe('final-phase slot rules', () => {
+  const finalSlot = (overrides: Partial<DeliverySlot> = {}) =>
+    slot({ phase: 'final', finalKind: 'live_post', ...overrides });
+
+  test('refuses an image and a kept upload', () => {
+    expect(validateSlot(finalSlot({ source: 'image', image: { uri: 'file:///a.jpg' } }))).toEqual({
+      image: 'A final delivery takes a link, not an upload.',
+    });
+    const upload = { itemId: 'i1', externalUrl: null, isUpload: true, caption: null };
+    expect(validateSlot(finalSlot({ source: 'keep', previous: upload }))).toEqual({
+      externalUrl: 'That was an uploaded file. Paste a link instead.',
+    });
+  });
+
+  test("checks a live post's host, new or kept", () => {
+    expect(validateSlot(finalSlot({ externalUrl: 'https://tiktok.com/@me/video/1' }))).toEqual({
+      externalUrl: 'Paste the Instagram post link.',
+    });
+    expect(isSlotReady(finalSlot({ externalUrl: 'https://www.instagram.com/reel/abc' }))).toBe(
+      true,
+    );
+    const kept = {
+      itemId: 'i1',
+      externalUrl: 'https://drive.test/x',
+      isUpload: false,
+      caption: null,
+    };
+    expect(validateSlot(finalSlot({ source: 'keep', previous: kept }))).toEqual({
+      externalUrl: 'Paste the Instagram post link.',
+    });
+  });
+
+  test('a file link or a custom live post takes any http(s) link', () => {
+    expect(
+      isSlotReady(finalSlot({ finalKind: 'file_link', externalUrl: 'https://drive.test/x' })),
+    ).toBe(true);
+    expect(
+      isSlotReady(finalSlot({ platform: 'custom', externalUrl: 'https://blog.example.com/post' })),
+    ).toBe(true);
+  });
+
+  test('the draft phase keeps its rules', () => {
+    expect(isSlotReady(slot({ source: 'image', image: { uri: 'file:///a.jpg' } }))).toBe(true);
+    expect(isSlotReady(slot({ externalUrl: 'https://drive.test/x' }))).toBe(true);
+    expect(slotSources(slot())).toEqual(['link', 'image']);
+  });
+});
+
+describe('slotCopy', () => {
+  test('labels and hints by phase and final kind', () => {
+    expect(slotCopy(slot())).toEqual({ linkLabel: 'Link to your content', hint: null });
+    expect(slotCopy(slot({ phase: 'final', finalKind: 'file_link' }))).toEqual({
+      linkLabel: 'Link to your files',
+      hint: 'Share the final files, e.g. a Google Drive or Dropbox link.',
+    });
+    expect(slotCopy(slot({ phase: 'final', finalKind: 'live_post' }))).toEqual({
+      linkLabel: 'Live post URL',
+      hint: 'Post it on Instagram, then paste the live post link.',
+    });
+    expect(slotCopy(slot({ phase: 'final', finalKind: 'live_post', platform: 'custom' }))).toEqual({
+      linkLabel: 'Live post URL',
+      hint: 'Post it, then paste the link to the live post.',
+    });
   });
 });
 

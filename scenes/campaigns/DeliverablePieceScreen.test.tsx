@@ -201,6 +201,27 @@ describe('<DeliverablePieceScreen />', () => {
     expect(openURL).toHaveBeenCalledWith('https://instagram.com/p/rev-1');
   });
 
+  test('tags a published live post', async () => {
+    answers([
+      piece({
+        status: 'approved',
+        submissions: [
+          submission({
+            status: 'approved',
+            reviewDecision: 'approved',
+            externalUrl: 'https://www.instagram.com/reel/live',
+            livePostUrl: 'https://www.instagram.com/reel/live',
+            postedAt: '2026-10-12T10:00:00.000Z',
+          }),
+        ],
+      }),
+    ]);
+    renderScreen();
+
+    expect(await screen.findByTestId('submission-1-live')).toBeTruthy();
+    expect(screen.getByText('Live post')).toBeTruthy();
+  });
+
   test('says when the piece is not part of the engagement', async () => {
     answers([piece({ id: 'other' })]);
     renderScreen();

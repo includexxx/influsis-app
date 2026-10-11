@@ -232,12 +232,64 @@ describe('<DeliverablesScreen />', () => {
     expect(screen.getByText('Submit revised draft')).toBeTruthy();
   });
 
-  test('final stages are read-only until the final delivery ships', async () => {
+  test('awaiting the final offers Send final delivery', async () => {
     answers(delivery({ stage: 'awaiting_final' }));
     renderScreen();
 
-    expect(await screen.findByText('Final delivery is coming soon.')).toBeTruthy();
+    expect(await screen.findByText('Now send the final delivery for every piece.')).toBeTruthy();
+    expect(screen.getByText('Final due')).toBeTruthy();
+    fireEvent.press(screen.getByText('Send final delivery'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/engagement/[id]/submit-delivery',
+      params: { id: 'eng-1', title: 'Pathao Summer Push' },
+    });
+    expect(screen.queryByText(/coming soon/i)).toBeNull();
+  });
+
+  test('a final in review shows when it was submitted and no action', async () => {
+    answers(
+      delivery({
+        stage: 'final_in_review',
+        rounds: [
+          round({ status: 'approved' }),
+          round({ id: 'round-2', phase: 'final', submittedAt: '2026-10-12T10:00:00.000Z' }),
+        ],
+      }),
+    );
+    renderScreen();
+
+    expect(await screen.findByText('Final delivery submitted')).toBeTruthy();
+    expect(screen.getByText('Submitted 12 Oct, 2026')).toBeTruthy();
     expect(screen.queryByTestId('deliverables-submit')).toBeNull();
+  });
+
+  test('final changes show the reason, no revisions left and a resend', async () => {
+    // One final change request leaves none: the next one escalates.
+    answers(
+      delivery({
+        stage: 'final_changes_requested',
+        finalRevisionsRemaining: 0,
+        finalChangeRequests: 1,
+        rounds: [
+          round({ status: 'approved' }),
+          round({
+            id: 'round-2',
+            phase: 'final',
+            status: 'changes_requested',
+            reviewDecision: 'changes_requested',
+            reviewReason: 'The caption must tag the brand account',
+          }),
+        ],
+      }),
+    );
+    renderScreen();
+
+    expect(
+      await screen.findByText('The business asked for changes to the final delivery'),
+    ).toBeTruthy();
+    expect(screen.getByText('The caption must tag the brand account')).toBeTruthy();
+    expect(screen.getByText('No revisions left')).toBeTruthy();
+    expect(screen.getByText('Resend final delivery')).toBeTruthy();
   });
 
   test('delivered says the campaign is complete, never paid', async () => {

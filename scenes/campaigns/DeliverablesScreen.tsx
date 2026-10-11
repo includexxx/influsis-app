@@ -125,8 +125,7 @@ export default function DeliverablesScreen() {
   const list = delivery.data.pieces;
   const view = deliveryStatusView(delivery.data);
   const completed = delivery.data.stage === 'delivered';
-  const submittedAt =
-    delivery.data.stage === 'draft_in_review' ? latestRound(delivery.data)?.submittedAt : null;
+  const submittedAt = view?.inReview ? latestRound(delivery.data)?.submittedAt : null;
   const now = new Date();
   const agreement = engagement.data
     ? buildCreatorAgreement(engagement.data, campaign.data ?? null, 'confirmed', title)

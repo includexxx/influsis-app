@@ -225,6 +225,7 @@ export const pieceStyle = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  liveTag: { color: palette.success[700], backgroundColor: palette.success[50] },
   lateTag: { color: palette.error[700], backgroundColor: palette.error[50] },
   attachment: {
     flexDirection: 'row',
