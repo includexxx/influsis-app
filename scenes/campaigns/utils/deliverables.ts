@@ -4,9 +4,10 @@ import { PickedImageAsset } from '@/utils/onboardingSchemas';
 import { DeliverablePiece, DeliverablePieceStatus } from '../types/deliverables';
 import { scopeItemLabel } from './scope';
 
-// Delivering an engagement's pieces (backend CI1/CI2/CI4). Mirrors the
-// backend's deliverable rules (deliverable-rules.ts) so the app only offers
-// what the server would accept; the server still has the final word.
+// An engagement's pieces (CI1) and the content rules a delivery round item
+// follows (backend deliverable-rules.ts / delivery-round-rules.ts), so the app
+// only offers what the server would accept; the server still has the final
+// word.
 
 export const URL_MAX_LENGTH = 2048;
 export const CAPTION_MAX_LENGTH = 2000;
@@ -24,15 +25,14 @@ export const PIECE_STATUS_BADGE: Record<
     text: palette.warning[700],
   },
   approved: { label: 'Approved', color: palette.success[50], text: palette.success[700] },
-  escalated: { label: 'In dispute', color: palette.error[50], text: palette.error[700] },
   cancelled: { label: 'Cancelled', color: palette.gray[25], text: palette.gray[700] },
 };
 
-// Backend canSubmitToDeliverable: a finished, escalated or cancelled piece
-// takes no more submissions. A piece already awaiting review can take a newer
-// revision - approving one supersedes the others.
+// A piece still waiting on the creator's work - neither approved nor
+// cancelled. Pieces never escalate on their own since backend 18r3; the
+// engagement does (see utils/delivery.ts).
 export function canSubmitPiece(status: DeliverablePieceStatus): boolean {
-  return status !== 'approved' && status !== 'escalated' && status !== 'cancelled';
+  return status !== 'approved' && status !== 'cancelled';
 }
 
 // The business's newest change request on this piece, or null.
@@ -84,34 +84,17 @@ export function validateSubmission(input: {
   return errors;
 }
 
-// `null` when valid.
-export function validateLivePostUrl(value: string): string | null {
-  const url = value.trim();
-  if (!url) return 'Paste the link to the live post.';
-  if (!isHttpUrl(url)) return 'Enter a full link starting with https://';
-  if (url.length > URL_MAX_LENGTH) return `Keep the link under ${URL_MAX_LENGTH} characters.`;
-  return null;
-}
-
 // Only http(s) links may be opened; anything else stays plain text.
 export function safeHttpUrl(value: string | null | undefined): string | null {
   return value && isHttpUrl(value) ? value : null;
 }
 
-// "1 revision left" / "2 revisions left". The count comes from the server's
-// `revisionsRemaining`, so the copy follows the backend's escalation limit
-// (MAX_DELIVERABLE_REJECTIONS, 2 since backend 703e233) without repeating it.
+// "1 revision left" / "2 revisions left". The count comes from the delivery
+// read's `revisionsRemaining` (backend 18r), so the copy follows the backend's
+// limit without repeating it.
 export function formatRevisionsLeft(revisionsRemaining: number): string {
   if (revisionsRemaining <= 0) return 'No revisions left';
   return revisionsRemaining === 1 ? '1 revision left' : `${revisionsRemaining} revisions left`;
-}
-
-// Why an escalated piece is in dispute, from its own `rejectionCount` - the
-// number of change requests that escalated it.
-export function formatEscalationReason(rejectionCount: number): string {
-  const times =
-    rejectionCount === 1 ? 'once' : rejectionCount === 2 ? 'twice' : `${rejectionCount} times`;
-  return `The business requested changes ${times}.`;
 }
 
 // "Instagram Reels · 2", or "Unboxing clip · 2" for a custom piece (18q),

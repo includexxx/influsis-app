@@ -4,9 +4,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { request } from '@/services/http';
+import { ApiError, request } from '@/services/http';
 import { campaignFeedApi } from './api/campaignFeedApi';
-import { DeliverablePiece } from './types/deliverables';
+import { DeliveryPiece, DeliveryRound, EngagementDelivery } from './types/delivery';
 import DeliverablesScreen from './DeliverablesScreen';
 
 const mockPush = jest.fn();
@@ -14,7 +14,10 @@ const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   router: { push: (...args: unknown[]) => mockPush(...args), back: jest.fn() },
   useLocalSearchParams: () => ({ id: 'eng-1', title: 'Pathao Summer Push' }),
-  Redirect: () => null,
+  Redirect: ({ href }: { href: string }) => {
+    const { Text: RNText } = jest.requireActual<typeof import('react-native')>('react-native');
+    return <RNText>{`redirect:${href}`}</RNText>;
+  },
 }));
 
 // See OptionSheet.test.tsx: force BottomSheet's plain-View web fallback so
@@ -46,49 +49,78 @@ function answerWith(handler: (cfg: RequestConfig) => unknown) {
     handler(cfg as RequestConfig)) as typeof request);
 }
 
-function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
+function piece(overrides: Partial<DeliveryPiece>): DeliveryPiece {
   return {
     id: 'piece-1',
     scopeItemId: 'scope-1',
-    deliverableId: null,
     platform: 'instagram',
     type: 'reels',
     title: null,
     pieceNo: 1,
-    status: 'pending',
     dueDate: '2099-10-10',
-    revisionCount: 0,
-    rejectionCount: 0,
-    revisionsRemaining: 3,
-    escalatedAt: null,
-    escalationReason: null,
-    lastSubmittedAt: null,
-    approvedAt: null,
-    approvedByUserId: null,
-    submissions: [],
+    status: 'pending',
+    finalKind: 'file_link',
     ...overrides,
   };
 }
 
-function answers(pieces: DeliverablePiece[] | Error, status = 'accepted') {
+function round(overrides: Partial<DeliveryRound> = {}): DeliveryRound {
+  return {
+    id: 'round-1',
+    phase: 'draft',
+    roundNo: 1,
+    status: 'submitted',
+    converted: false,
+    submittedAt: '2026-10-08T10:00:00.000Z',
+    isLate: false,
+    reviewDueAt: '2026-10-15T10:00:00.000Z',
+    reviewDecision: null,
+    reviewReason: null,
+    reviewedAt: null,
+    reviewedByUserId: null,
+    items: [],
+    ...overrides,
+  };
+}
+
+function delivery(overrides: Partial<EngagementDelivery> = {}): EngagementDelivery {
+  return {
+    stage: 'awaiting_draft',
+    objective: 'ugc_content',
+    revisionsRemaining: 2,
+    draftChangeRequests: 0,
+    finalRevisionsRemaining: 1,
+    finalChangeRequests: 0,
+    escalatedAt: null,
+    escalationReason: null,
+    pieces: [piece({ id: 'p1' })],
+    rounds: [],
+    ...overrides,
+  };
+}
+
+const engagement = {
+  id: 'eng-1',
+  campaignId: 'campaign-1',
+  status: 'accepted',
+  offers: [],
+  scope: [{ id: 'scope-1', platform: 'instagram', type: 'reels', count: 2 }],
+  agreedAmountMinor: 2_000_000,
+  licensingMarkupMinor: 500_000,
+  acceptedAt: '2026-09-30T10:00:00',
+  currency: 'BDT',
+};
+
+function answers(read: EngagementDelivery | Error) {
   answerWith(({ url }) => {
-    if (url === '/me/engagements/eng-1') {
-      return {
-        id: 'eng-1',
-        campaignId: 'campaign-1',
-        status,
-        offers: [],
-        scope: [{ id: 'scope-1', platform: 'instagram', type: 'reels', count: 2 }],
-        agreedAmountMinor: 2_000_000,
-        licensingMarkupMinor: 500_000,
-        acceptedAt: '2026-09-30T10:00:00',
-        currency: 'BDT',
-      };
-    }
+    if (url === '/me/engagements/eng-1') return engagement;
     // CB2 404s once the campaign isn't live.
     if (url === '/feed/campaigns/campaign-1') throw new Error('not found');
-    if (pieces instanceof Error) throw pieces;
-    return pieces;
+    if (url === '/engagements/eng-1/delivery') {
+      if (read instanceof Error) throw read;
+      return read;
+    }
+    throw new Error(`unexpected ${url}`);
   });
 }
 
@@ -121,20 +153,23 @@ afterEach(() => {
 });
 
 describe('<DeliverablesScreen />', () => {
-  test('lists the pieces with status, due date and revisions left', async () => {
-    answers([
-      piece({ id: 'p1' }),
-      piece({ id: 'p2', pieceNo: 2, status: 'changes_requested', revisionsRemaining: 2 }),
-      piece({ id: 'p3', platform: 'tiktok', type: 'video', status: 'approved' }),
-    ]);
+  test('reads the delivery and lists the pieces with status and due date', async () => {
+    answers(
+      delivery({
+        pieces: [
+          piece({ id: 'p1' }),
+          piece({ id: 'p2', pieceNo: 2, status: 'changes_requested' }),
+          piece({ id: 'p3', platform: 'tiktok', type: 'video', status: 'approved' }),
+        ],
+      }),
+    );
     renderScreen();
 
     expect(await screen.findByText('Instagram Reels · 1')).toBeTruthy();
     expect(screen.getByText('Pathao Summer Push')).toBeTruthy();
-    expect(screen.getByText('To deliver')).toBeTruthy();
     expect(screen.getByText('Changes requested')).toBeTruthy();
     expect(screen.getByText('Approved')).toBeTruthy();
-    expect(screen.getByText('2 revisions left')).toBeTruthy();
+    expect(screen.queryByText(/revisions? left/)).toBeNull();
     expect(screen.getByTestId('deliverables-progress').props.children).toEqual([
       1,
       ' of ',
@@ -142,38 +177,133 @@ describe('<DeliverablesScreen />', () => {
       ' approved',
     ]);
     expect(mockRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ url: '/engagements/eng-1/deliverables', method: 'GET' }),
+      expect.objectContaining({ url: '/engagements/eng-1/delivery', method: 'GET' }),
     );
+    // The per-piece CI1 list is no longer read here.
+    expect(
+      mockRequest.mock.calls.some(
+        ([cfg]) => (cfg as RequestConfig).url === '/engagements/eng-1/deliverables',
+      ),
+    ).toBe(false);
+  });
+
+  test('awaiting a draft offers Submit delivery', async () => {
+    answers(delivery());
+    renderScreen();
+
+    expect(await screen.findByText('Deliver every piece together as one draft.')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('deliverables-submit'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/engagement/[id]/submit-delivery',
+      params: { id: 'eng-1', title: 'Pathao Summer Push' },
+    });
+  });
+
+  test('a draft in review shows when it was submitted and no action', async () => {
+    answers(delivery({ stage: 'draft_in_review', rounds: [round()] }));
+    renderScreen();
+
+    expect(await screen.findByText('Draft submitted')).toBeTruthy();
+    expect(screen.getByText("Waiting for the business's review.")).toBeTruthy();
+    expect(screen.getByText('Submitted 08 Oct, 2026')).toBeTruthy();
+    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
+  });
+
+  test('changes requested shows the reason, revisions left and a resubmit', async () => {
+    answers(
+      delivery({
+        stage: 'draft_changes_requested',
+        revisionsRemaining: 1,
+        draftChangeRequests: 1,
+        rounds: [
+          round({
+            status: 'changes_requested',
+            reviewDecision: 'changes_requested',
+            reviewReason: 'Logo must show in the first 3 seconds',
+          }),
+        ],
+      }),
+    );
+    renderScreen();
+
+    expect(await screen.findByText('The business asked for changes')).toBeTruthy();
+    expect(screen.getByText('Logo must show in the first 3 seconds')).toBeTruthy();
+    expect(screen.getByText('1 revision left')).toBeTruthy();
+    expect(screen.getByText('Submit revised draft')).toBeTruthy();
+  });
+
+  test('final stages are read-only until the final delivery ships', async () => {
+    answers(delivery({ stage: 'awaiting_final' }));
+    renderScreen();
+
+    expect(await screen.findByText('Final delivery is coming soon.')).toBeTruthy();
+    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
+  });
+
+  test('delivered says the campaign is complete, never paid', async () => {
+    answers(delivery({ stage: 'delivered', pieces: [piece({ status: 'approved' })] }));
+    renderScreen();
+
+    expect(await screen.findByText('This campaign is complete.')).toBeTruthy();
+    expect(screen.getAllByText('Completed').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/paid|payment/i)).toBeNull();
+    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
+  });
+
+  test.each([
+    [
+      { draftChangeRequests: 3, finalChangeRequests: 0 },
+      "The business requested changes to the draft 3 times. Disputes aren't available yet.",
+    ],
+    [
+      { draftChangeRequests: 1, finalChangeRequests: 2 },
+      "The business requested changes to the final delivery twice. Disputes aren't available yet.",
+    ],
+    [
+      { draftChangeRequests: 0, finalChangeRequests: 0 },
+      "This delivery was escalated to a dispute. Disputes aren't available yet.",
+    ],
+  ])('escalated shows "In dispute" with no actions (%o)', async (counts, copy) => {
+    answers(
+      delivery({
+        stage: 'escalated',
+        escalatedAt: '2026-10-09T10:00:00.000Z',
+        escalationReason: 'auto-escalated after 3 draft change requests',
+        ...counts,
+      }),
+    );
+    renderScreen();
+
+    expect(await screen.findByText(copy)).toBeTruthy();
+    expect(screen.getAllByText('In dispute').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/auto-escalated/)).toBeNull();
+    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
   });
 
   test('names a custom piece by its title (18q)', async () => {
-    answers([
-      piece({ id: 'p1' }),
-      piece({ id: 'p2', platform: 'custom', type: 'custom', title: 'Unboxing clip' }),
-    ]);
+    answers(
+      delivery({
+        pieces: [
+          piece({ id: 'p1' }),
+          piece({ id: 'p2', platform: 'custom', type: 'custom', title: 'Unboxing clip' }),
+        ],
+      }),
+    );
     renderScreen();
 
     expect(await screen.findByText('Unboxing clip · 1')).toBeTruthy();
     expect(screen.getByLabelText('Unboxing clip · 1, To deliver')).toBeTruthy();
   });
 
-  test('says "1 revision left" at the last revision (backend 703e233)', async () => {
-    answers([piece({ id: 'p1', status: 'changes_requested', revisionsRemaining: 1 })]);
-    renderScreen();
-
-    expect(await screen.findByText('1 revision left')).toBeTruthy();
-    expect(screen.queryByText('1 revisions left')).toBeNull();
-  });
-
   test('flags an overdue piece', async () => {
-    answers([piece({ dueDate: '2000-01-01' })]);
+    answers(delivery({ pieces: [piece({ dueDate: '2000-01-01' })] }));
     renderScreen();
 
     expect(await screen.findByText(' · Overdue')).toBeTruthy();
   });
 
   test('opens a piece on tap', async () => {
-    answers([piece({ id: 'p1' })]);
+    answers(delivery({ pieces: [piece({ id: 'p1' })] }));
     renderScreen();
 
     fireEvent.press(await screen.findByTestId('deliverable-p1'));
@@ -183,25 +313,15 @@ describe('<DeliverablesScreen />', () => {
     });
   });
 
-  test('shows the completed banner once the business approved everything', async () => {
-    answers([piece({ status: 'approved' })], 'completed');
-    renderScreen();
-
-    expect(await screen.findByTestId('deliverables-completed')).toBeTruthy();
-    expect(screen.queryByText(/paid/i)).toBeNull();
-  });
-
   test('View agreement shows the confirmed terms, falling back without the campaign', async () => {
-    answers([piece({ id: 'p1' })]);
+    answers(delivery());
     renderScreen();
 
     fireEvent.press(await screen.findByTestId('deliverables-view-agreement'));
 
     expect(await screen.findByText('Agreement confirmed · 30 Sep, 2026')).toBeTruthy();
     expect(screen.getByText('2 × Instagram Reels')).toBeTruthy();
-    expect(screen.getByText('No deadline set')).toBeTruthy();
     expect(screen.getByLabelText("You'll receive 25,000 taka")).toBeTruthy();
-    expect(screen.queryByTestId('agreement-business')).toBeNull();
     expect(screen.queryByTestId('agreement-accept')).toBeNull();
 
     fireEvent.press(screen.getByTestId('agreement-close'));
@@ -210,13 +330,11 @@ describe('<DeliverablesScreen />', () => {
 
   test("shows the campaign's content deadline under the title", async () => {
     answerWith(({ url }) => {
-      if (url === '/me/engagements/eng-1') {
-        return { id: 'eng-1', campaignId: 'campaign-1', status: 'accepted', offers: [], scope: [] };
-      }
+      if (url === '/me/engagements/eng-1') return engagement;
       if (url === '/feed/campaigns/campaign-1') {
         return { id: 'campaign-1', title: 'Pathao Summer Push', contentDeadline: '2026-10-10' };
       }
-      return [piece({ id: 'p1' })];
+      return delivery();
     });
     renderScreen();
 
@@ -224,27 +342,42 @@ describe('<DeliverablesScreen />', () => {
   });
 
   test('leaves the deadline out when the campaign is no longer live', async () => {
-    answers([piece({ id: 'p1' })]);
+    answers(delivery());
     renderScreen();
 
     expect(await screen.findByText('Instagram Reels · 1')).toBeTruthy();
     expect(screen.queryByTestId('deliverables-deadline')).toBeNull();
   });
 
-  test('shows the empty state', async () => {
-    answers([]);
+  test('shows the empty state before any piece exists', async () => {
+    answers(delivery({ stage: null, pieces: [] }));
     renderScreen();
 
     expect(
       await screen.findByText('No deliverables yet. They appear once the offer is accepted.'),
     ).toBeTruthy();
+    expect(screen.queryByTestId('deliverables-status')).toBeNull();
   });
 
-  test('shows a retryable error when the list fails to load', async () => {
+  test('shows the loading skeleton first', () => {
+    answers(delivery());
+    renderScreen();
+
+    expect(screen.getByTestId('deliverables-loading')).toBeTruthy();
+  });
+
+  test('shows a retryable error when the delivery fails to load', async () => {
     answers(new Error('offline'));
     renderScreen();
 
     expect(await screen.findByText('Something went wrong')).toBeTruthy();
     expect(screen.getByText('Try again')).toBeTruthy();
+  });
+
+  test('redirects to Live Campaigns when the engagement is not found', async () => {
+    answers(new ApiError({ code: 'NOT_FOUND', statusCode: 404 } as never));
+    renderScreen();
+
+    expect(await screen.findByText('redirect:/live-campaign')).toBeTruthy();
   });
 });

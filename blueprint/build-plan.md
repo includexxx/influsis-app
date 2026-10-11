@@ -377,7 +377,10 @@ and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
       rich-text input), or only keep/adjust the business's? Out of scope:
       bundle delivery (36).
 - [ ] 36. **Deliver all content together, then make the final delivery (backend 18r)** -
-      **blocked until backend 18r ships.** Replaces item 25's per-piece submit
+      Backend 18r shipped on `../backend` `feat/campaign-negotiation`
+      (18r1 draft rounds, 18r2 final round, 18r3 retired per-piece review;
+      `../backend/docs/features/campaign/implementations/CI_DELIVERY_ROUNDS.md`).
+      Replaces item 25's per-piece submit
       and "record posted" flow. One "Submit delivery" screen lists a slot for
       every piece (upload or link, plus a caption; Brand Awareness drafts
       include the caption to be posted); Submit stays disabled until every slot
@@ -388,8 +391,28 @@ and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
       approved, "Final delivery" asks for a file link per piece (UGC Content) or
       the live post URL per piece after posting (Brand Awareness; the URL must
       match the piece's platform). Escalated engagements show "In dispute" with
-      no actions; a completed engagement never says "paid". Open (decided in
-      backend 18r): whether a final round can be sent back for a fix, and
-      whether video drafts are uploaded (today's media limit is 5 MB) or linked.
-      Note: `feat/escrow` item 28 (per-piece money and decline reasons) is
-      written against per-piece review and must be re-scoped to rounds.
+      no actions; a completed engagement never says "paid". Decided in backend
+      18r: a final can be sent back once (the 2nd final change request
+      escalates); video drafts are links, images are uploaded via `POST /media`
+      (5 MB). Note: `feat/escrow` item 28 (per-piece money and decline reasons)
+      is written against per-piece review and must be re-scoped to rounds.
+      Both sub-items must merge before the next release: the backend already
+      returns `404` for `CI2`/`CI3`/`CI4`.
+  - [x] 36a. **Submit the draft as one delivery (backend 18r1, 18r3)** - the
+        Deliverables screen reads `GET /engagements/:id/delivery` (stage,
+        `revisionsRemaining` 2 -> 0, escalation, rounds) instead of the
+        removed `CI1` piece counters. A "Submit delivery" screen has one slot
+        per piece (a link, or an image uploaded via `POST /media` -> `mediaId`,
+        plus a caption); Submit stays disabled until every slot is filled and
+        sends `POST .../delivery/rounds`. After changes are requested it shows
+        the overall reason and per-piece comments, carries unchanged pieces
+        over (`reuseItemId`) and shows revisions left. An escalated delivery
+        shows "In dispute" with no actions. The draft-approved and final
+        stages show read-only until 36b. Drops the `CI2` submit flow.
+  - [ ] 36b. **Make the final delivery (backend 18r2)** - once the draft is
+        approved, the same screen asks for a link per piece by `finalKind`: a
+        file link (UGC Content) or the live post URL on the piece's platform
+        (Brand Awareness; the host check mirrors the backend). No uploads;
+        draft links can be carried over. Final revisions 1 -> 0; approving the
+        final completes the engagement ("Delivered", never "paid"). Drops
+        `CI4` "record posted".

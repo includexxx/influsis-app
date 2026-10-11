@@ -1,8 +1,7 @@
-import { PickedImageAsset } from '@/utils/onboardingSchemas';
-
-// Campaign API group CI - the creator delivering an accepted engagement's
-// pieces (backend 18g/18h/18m). Mirrors EngagementDeliverablePieceDto (CI1),
-// DeliverableSubmissionSummaryDto, and the CI2/CI4 bodies.
+// Campaign API group CI1 - an accepted engagement's pieces and every
+// submission (backend 18g; read-only since 18r, which delivers all pieces as
+// one round - see ./delivery.ts). Mirrors EngagementDeliverablePieceDto and
+// DeliverableSubmissionSummaryDto as of 18r3.
 
 // Piece statuses (backend CAMPAIGN_APPLICATION_DELIVERABLE_STATUSES).
 export type DeliverablePieceStatus =
@@ -11,7 +10,6 @@ export type DeliverablePieceStatus =
   | 'submitted'
   | 'changes_requested'
   | 'approved'
-  | 'escalated'
   | 'cancelled';
 
 export type DeliverableSubmissionStatus =
@@ -57,31 +55,9 @@ export interface DeliverablePiece {
   status: DeliverablePieceStatus;
   /** `YYYY-MM-DD`, frozen from the campaign's content deadline. */
   dueDate: string | null;
-  revisionCount: number;
-  rejectionCount: number;
-  /** `max(0, MAX_DELIVERABLE_REJECTIONS - rejectionCount)` - the backend's
-   * limit, 2 since backend 703e233 (original + one revision). */
-  revisionsRemaining: number;
-  escalatedAt: string | null;
-  escalationReason: string | null;
   lastSubmittedAt: string | null;
   approvedAt: string | null;
   approvedByUserId: string | null;
   /** `revisionNo` ascending. */
   submissions: DeliverableSubmission[];
-}
-
-// CI2 - a link or an image, never both, plus an optional caption.
-export type SubmitDeliverableArgs = {
-  engagementId: string;
-  pieceId: string;
-  /** Up to 2000 characters. */
-  caption?: string;
-} & ({ kind: 'link'; externalUrl: string } | { kind: 'image'; image: PickedImageAsset });
-
-// CI4 - where the approved content went live.
-export interface RecordPostedArgs {
-  engagementId: string;
-  pieceId: string;
-  livePostUrl: string;
 }

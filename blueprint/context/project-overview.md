@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash e542da066fd2444507c0647e1dd45582e9e32767637bb63386c9fd90ec31be33 -->
+<!-- blueprint:source-hash 055a518e0d6ae211d4ef8395a9ce343ae5cfc893e3ce8264326c9b232b684495 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -109,12 +109,12 @@ backend-19 escrow items on `feat/escrow`, not in this checklist.
 Awareness**, which decides the deliverables it can hold; businesses can add
 custom deliverables described in rich text. Delivery becomes one bundle per
 engagement: a draft round (original + up to 2 revisions; a 3rd change request
-escalates to a dispute), then a final round. Contract:
-`../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_CATALOGUE.md`
-and `../platform-context/api-contracts/campaigns.md`. Business side: `web`
+escalates to a dispute), then a final round (sent back at most once).
+Contracts: `../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_CATALOGUE.md`,
+`CI_DELIVERY_ROUNDS.md` and `../platform-context/api-contracts/campaigns.md`. Business side: `web`
 items 44-46.
 
-35. **Campaign objective and custom deliverables (backend 18q, next up)** -
+35. **Campaign objective and custom deliverables (backend 18q, complete)** -
     cards and details show the objective and list custom deliverables (plain
     `title`, `description` rendered through a sanitizing HTML renderer limited
     to paragraphs, bold/italic/underline/strike, lists, h3/h4, quote, http(s)
@@ -124,16 +124,22 @@ items 44-46.
     catalogue minus retired `ugc` options; a retired item already in scope
     stays listed. The deliverables screen names custom pieces by `title`;
     `422` errors (`scope[i]`, `scope[i].title|description`) show per row.
-36. **Deliver all content together, then the final delivery (backend 18r)** -
-    **blocked until backend 18r ships.** Replaces item 25's per-piece submit
-    and "record posted" flow: one "Submit delivery" screen with a slot per
-    piece (upload or link + caption), Submit disabled until every slot is
-    filled. After a change request it shows the overall reason and per-item
-    comments, carries over unchanged pieces, and shows revisions remaining.
-    Once the draft is approved, "Final delivery" takes a file link per piece
-    (UGC) or the live post URL per piece (Brand Awareness; must match the
-    piece's platform). Escalated = "In dispute", no actions; completed never
-    says "paid".
+36. **Deliver all content together, then the final delivery (backend 18r,
+    shipped as 18r1-18r3)** - replaces item 25's per-piece submit and "record
+    posted" flow; the backend already `404`s `CI2`/`CI3`/`CI4` and 18r3 removed
+    the per-piece counters from `CI1`, so both parts must merge before the
+    next release.
+    - **36a. Submit the draft as one delivery (next up)** - the Deliverables
+      screen reads `GET /engagements/:id/delivery`. "Submit delivery" has a
+      slot per piece (a link, or an image via `POST /media` -> `mediaId`, plus
+      a caption), Submit disabled until every slot is filled. After a change
+      request it shows the overall reason and per-piece comments, carries
+      unchanged pieces over (`reuseItemId`) and shows revisions left (2 -> 0).
+      Escalated = "In dispute", no actions; final stages read-only until 36b.
+    - **36b. Make the final delivery** - a link per piece by `finalKind`:
+      a file link (UGC) or the live post URL on the piece's platform (Brand
+      Awareness). No uploads; final revisions 1 -> 0; approval completes the
+      engagement ("Delivered", never "paid"). Drops `CI4`.
 
 Other product screens (orders, gigs, messaging, balance) still run on
 `data/*.ts` mock fixtures.
@@ -197,9 +203,14 @@ mock types where they'll carry over directly.
   pieces created from it on acceptance, each with its submissions (item 25)
 - `scope[]`: `id`, `platform`, `type`, `count`, `title`, `description` - same
   rules as Campaign `deliverables` (1-30 items; item 35)
-- Delivery (item 36, backend 18r, shape TBD): one bundle per engagement in
-  rounds - draft (original + 2 revisions, then dispute) and final (file link
-  or live post URL per piece); replaces item 25's per-piece submissions
+- Delivery (item 36, `GET /engagements/:id/delivery`): `stage` (computed:
+  awaiting_draft | draft_in_review | draft_changes_requested | awaiting_final |
+  final_in_review | final_changes_requested | delivered | escalated | null),
+  `objective`, `revisionsRemaining` (2 -> 0), `finalRevisionsRemaining`
+  (1 -> 0), escalation, `pieces[]` (with `finalKind` file_link | live_post) and
+  `rounds[]` (phase, roundNo, status, review reason, `items[]` with link or
+  `mediaId`, caption, `reviewComment`); replaces item 25's per-piece
+  submissions and counters
 
 ### Order
 

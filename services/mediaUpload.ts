@@ -44,6 +44,32 @@ export async function uploadPickedImage(
 }
 
 /**
+ * Uploads one picked image to `POST /media` and returns the media row's `id`
+ * - what a delivery round item sends as `mediaId` (backend 18r1). Rejects
+ * with the ApiError from request(): 413 MEDIA_TOO_LARGE (over 5 MB) or 422
+ * MEDIA_INVALID_TYPE.
+ */
+export async function uploadMediaImage(
+  asset: PickedImageAsset,
+  fallbackName = 'deliverable.jpg',
+): Promise<string> {
+  const form = new FormData();
+  form.append('file', {
+    uri: asset.uri,
+    name: asset.fileName ?? fallbackName,
+    type: asset.mimeType ?? 'image/jpeg',
+  } as unknown as Blob);
+
+  const media = await request<MediaUploadResponse>({
+    url: '/media',
+    method: 'POST',
+    data: form,
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return media.id;
+}
+
+/**
  * Uploads every portfolio entry's thumbnail (skipping entries without one),
  * keyed by entry `id` rather than array index — `Promise.all` resolves out of
  * order, and the id is what the mapping layer uses to reattach the key to the

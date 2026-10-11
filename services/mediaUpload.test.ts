@@ -29,7 +29,12 @@ afterEach(() => {
 });
 
 // eslint-disable-next-line import/first
-import { uploadOnboardingMedia, uploadPickedImage, uploadPortfolioThumbnails } from './mediaUpload';
+import {
+  uploadMediaImage,
+  uploadOnboardingMedia,
+  uploadPickedImage,
+  uploadPortfolioThumbnails,
+} from './mediaUpload';
 
 function media(key: string) {
   return {
@@ -50,6 +55,35 @@ function portfolioEntry(overrides: Partial<PortfolioEntry> = {}): PortfolioEntry
     ...overrides,
   };
 }
+
+describe('uploadMediaImage', () => {
+  test('uploads the file part and returns the media id (a round mediaId)', async () => {
+    global.FormData = FakeFormData as any;
+    mockRequest.mockResolvedValueOnce(media('deliverables/abc.jpg'));
+
+    const id = await uploadMediaImage({
+      uri: 'file:///pic.jpg',
+      mimeType: 'image/png',
+      fileName: 'pic.png',
+    });
+
+    expect(id).toBe('m-1');
+    const [cfg] = mockRequest.mock.calls[0] as [
+      { url: string; method: string; headers: Record<string, string>; data: FakeFormData },
+    ];
+    expect(cfg.url).toBe('/media');
+    expect(cfg.method).toBe('POST');
+    expect(cfg.headers).toEqual({ 'Content-Type': 'multipart/form-data' });
+    expect(cfg.data.parts).toEqual([
+      ['file', { uri: 'file:///pic.jpg', name: 'pic.png', type: 'image/png' }],
+    ]);
+  });
+
+  test('rejects with the upload error', async () => {
+    mockRequest.mockRejectedValueOnce(new Error('too large'));
+    await expect(uploadMediaImage({ uri: 'file:///big.jpg' })).rejects.toThrow('too large');
+  });
+});
 
 describe('uploadPickedImage', () => {
   test('builds a { uri, name, type } file part and sets the multipart header', async () => {

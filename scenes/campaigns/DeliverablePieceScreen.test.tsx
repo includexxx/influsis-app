@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import { ReactNode } from 'react';
+import { Linking } from 'react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { ApiError, request } from '@/services/http';
+import { request } from '@/services/http';
 import { campaignFeedApi } from './api/campaignFeedApi';
 import { DeliverablePiece, DeliverableSubmission } from './types/deliverables';
 import DeliverablePieceScreen from './DeliverablePieceScreen';
@@ -15,39 +15,22 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'eng-1', pieceId: 'piece-1' }),
 }));
 
-jest.mock('expo-image-picker', () => ({
-  requestMediaLibraryPermissionsAsync: jest.fn(),
-  launchImageLibraryAsync: jest.fn(),
-}));
-
 jest.mock('@/services/http', () => {
   class ApiError extends Error {
     code: string;
     statusCode: number;
-    errors: Record<string, string> | null;
-    constructor(body: {
-      code?: string;
-      statusCode: number;
-      message?: string;
-      errors?: Record<string, string>;
-    }) {
+    errors: Record<string, string> | null = null;
+    constructor(body: { code?: string; statusCode: number; message?: string }) {
       super(body.message ?? 'api error');
       this.code = body.code ?? 'UNKNOWN';
       this.statusCode = body.statusCode;
-      this.errors = body.errors ?? null;
     }
   }
   return { __esModule: true, request: jest.fn(), ApiError };
 });
 
 const mockRequest = request as jest.MockedFunction<typeof request>;
-const mockPicker = ImagePicker as jest.Mocked<typeof ImagePicker>;
-type RequestConfig = { url: string; method?: string; data?: unknown; headers?: unknown };
-
-function answerWith(handler: (cfg: RequestConfig) => unknown) {
-  mockRequest.mockImplementation((async (cfg: unknown) =>
-    handler(cfg as RequestConfig)) as typeof request);
-}
+type RequestConfig = { url: string; method?: string };
 
 function submission(overrides: Partial<DeliverableSubmission>): DeliverableSubmission {
   return {
@@ -82,11 +65,6 @@ function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
     pieceNo: 1,
     status: 'pending',
     dueDate: '2099-10-10',
-    revisionCount: 0,
-    rejectionCount: 0,
-    revisionsRemaining: 3,
-    escalatedAt: null,
-    escalationReason: null,
     lastSubmittedAt: null,
     approvedAt: null,
     approvedByUserId: null,
@@ -95,9 +73,11 @@ function piece(overrides: Partial<DeliverablePiece>): DeliverablePiece {
   };
 }
 
-// GET returns the given piece; POSTs go to `onPost`.
-function answers(current: DeliverablePiece, onPost: (cfg: RequestConfig) => unknown = () => ({})) {
-  answerWith(cfg => (cfg.method === 'POST' ? onPost(cfg) : [current]));
+function answers(pieces: DeliverablePiece[] | Error) {
+  mockRequest.mockImplementation((async () => {
+    if (pieces instanceof Error) throw pieces;
+    return pieces;
+  }) as typeof request);
 }
 
 let store: ReturnType<typeof makeStore>;
@@ -125,158 +105,45 @@ afterEach(() => {
   store?.dispatch(campaignFeedApi.util.resetApiState());
   jest.runOnlyPendingTimers();
   jest.useRealTimers();
+  jest.restoreAllMocks();
 });
 
 describe('<DeliverablePieceScreen />', () => {
-  test('submits a link as JSON with its caption', async () => {
-    answers(piece({}), () => submission({}));
+  test('is read-only: status, due date, history and a pointer to the Deliverables screen', async () => {
+    answers([
+      piece({
+        status: 'submitted',
+        submissions: [submission({ caption: 'First cut' })],
+      }),
+    ]);
     renderScreen();
 
-    fireEvent.changeText(await screen.findByTestId('piece-url'), 'https://instagram.com/p/1');
-    fireEvent.changeText(screen.getByTestId('piece-caption'), 'First cut');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-
-    expect(mockRequest).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: '/engagements/eng-1/deliverables/piece-1/submissions',
-        method: 'POST',
-        data: { externalUrl: 'https://instagram.com/p/1', caption: 'First cut' },
-      }),
+    expect(await screen.findByText('Instagram Reels · 1')).toBeTruthy();
+    expect(screen.getByTestId('piece-status')).toBeTruthy();
+    expect(screen.getByText('Due 10 Oct, 2099')).toBeTruthy();
+    expect(screen.getByText('Revision 1')).toBeTruthy();
+    expect(screen.getByText('First cut')).toBeTruthy();
+    expect(
+      screen.getByText('Submit or update this piece from the Deliverables screen.'),
+    ).toBeTruthy();
+    // No CI2 submit or CI4 live-post controls, and nothing is sent.
+    expect(screen.queryByTestId('piece-submit-form')).toBeNull();
+    expect(screen.queryByTestId('piece-live-post')).toBeNull();
+    expect(screen.queryByText(/revisions? left/)).toBeNull();
+    expect(mockRequest.mock.calls.every(([cfg]) => (cfg as RequestConfig).method === 'GET')).toBe(
+      true,
     );
-    expect(await screen.findByText('Submitted for review.')).toBeTruthy();
   });
 
   test('names a custom piece by its title (18q)', async () => {
-    answers(piece({ platform: 'custom', type: 'custom', title: 'Unboxing clip' }), () =>
-      submission({}),
-    );
+    answers([piece({ platform: 'custom', type: 'custom', title: 'Unboxing clip' })]);
     renderScreen();
 
     expect(await screen.findByText('Unboxing clip · 1')).toBeTruthy();
   });
 
-  test('uploads a picked image as multipart', async () => {
-    mockPicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
-    mockPicker.launchImageLibraryAsync.mockResolvedValue({
-      canceled: false,
-      assets: [{ uri: 'file:///photo.jpg', mimeType: 'image/jpeg', fileName: 'photo.jpg' }],
-    } as never);
-    answers(piece({}), () => submission({ externalUrl: null, mediaId: 'media-1' }));
-    renderScreen();
-
-    fireEvent.press(await screen.findByTestId('piece-kind-image'));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-pick-image'));
-    });
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-
-    const post = mockRequest.mock.calls
-      .map(([cfg]) => cfg as RequestConfig)
-      .find(cfg => cfg.method === 'POST');
-    expect(post?.url).toBe('/engagements/eng-1/deliverables/piece-1/submissions');
-    expect(post?.data).toBeInstanceOf(FormData);
-    expect(post?.headers).toEqual({ 'Content-Type': 'multipart/form-data' });
-  });
-
-  test('blocks a bad link or a missing image without calling the API', async () => {
-    answers(piece({}));
-    renderScreen();
-
-    fireEvent.changeText(await screen.findByTestId('piece-url'), 'instagram.com/p/1');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-    expect(screen.getByText('Enter a full link starting with https://')).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId('piece-kind-image'));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-    expect(screen.getByText('Choose an image to upload.')).toBeTruthy();
-    expect(mockRequest.mock.calls.every(([cfg]) => (cfg as RequestConfig).method !== 'POST')).toBe(
-      true,
-    );
-  });
-
-  test('shows a link error once the field is touched, and clears it when fixed', async () => {
-    answers(piece({}));
-    renderScreen();
-
-    const url = await screen.findByTestId('piece-url');
-    fireEvent.changeText(url, 'not a link');
-    await act(async () => {
-      fireEvent(url, 'blur');
-    });
-    expect(screen.getByText('Enter a full link starting with https://')).toBeTruthy();
-
-    await act(async () => {
-      fireEvent.changeText(url, 'https://instagram.com/p/1');
-    });
-    expect(screen.queryByText('Enter a full link starting with https://')).toBeNull();
-  });
-
-  test('a denied photo permission explains itself and submits nothing', async () => {
-    mockPicker.launchImageLibraryAsync.mockClear();
-    mockPicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: false } as never);
-    answers(piece({}));
-    renderScreen();
-
-    fireEvent.press(await screen.findByTestId('piece-kind-image'));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-pick-image'));
-    });
-
-    expect(screen.getByText('Allow photo access in Settings to upload an image.')).toBeTruthy();
-    expect(mockPicker.launchImageLibraryAsync).not.toHaveBeenCalled();
-  });
-
-  test('a picked image can be removed again', async () => {
-    mockPicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
-    mockPicker.launchImageLibraryAsync.mockResolvedValue({
-      canceled: false,
-      assets: [{ uri: 'file:///photo.jpg', mimeType: 'image/jpeg', fileName: 'photo.jpg' }],
-    } as never);
-    answers(piece({}));
-    renderScreen();
-
-    fireEvent.press(await screen.findByTestId('piece-kind-image'));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-pick-image'));
-    });
-    fireEvent.press(screen.getByTestId('piece-remove-image'));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-
-    expect(screen.getByText('Choose an image to upload.')).toBeTruthy();
-  });
-
-  test('puts a backend 422 under its field', async () => {
-    answers(piece({}), () => {
-      throw new ApiError({
-        code: 'VALIDATION_FAILED',
-        statusCode: 422,
-        message: 'The submitted data is invalid.',
-        errors: { externalUrl: 'externalUrl must be a URL address' },
-      } as never);
-    });
-    renderScreen();
-
-    fireEvent.changeText(await screen.findByTestId('piece-url'), 'https://instagram.com/p/1');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-
-    expect(await screen.findByText('externalUrl must be a URL address')).toBeTruthy();
-    expect(screen.getByText('The submitted data is invalid.')).toBeTruthy();
-  });
-
-  test("shows the business's change request and offers Resubmit", async () => {
-    answers(
+  test("shows the business's latest change request", async () => {
+    answers([
       piece({
         status: 'changes_requested',
         submissions: [
@@ -287,77 +154,64 @@ describe('<DeliverablePieceScreen />', () => {
           }),
         ],
       }),
-    );
+    ]);
     renderScreen();
 
     expect(await screen.findByTestId('piece-change-request')).toBeTruthy();
     expect(screen.getAllByText(/Add the promo code at the end\./).length).toBeGreaterThan(0);
-    expect(screen.getByText('Resubmit')).toBeTruthy();
   });
 
-  test('shows the server message after a 409', async () => {
-    answers(piece({}), () => {
-      throw new ApiError({
-        code: 'DELIVERABLE_NOT_SUBMITTABLE',
-        statusCode: 409,
-        message: 'This deliverable cannot accept a submission while it is approved.',
-      } as never);
-    });
-    renderScreen();
-
-    fireEvent.changeText(await screen.findByTestId('piece-url'), 'https://instagram.com/p/1');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-submit'));
-    });
-
-    expect(
-      await screen.findByText('This deliverable cannot accept a submission while it is approved.'),
-    ).toBeTruthy();
-  });
-
-  test('an escalated piece shows the dispute notice and no form', async () => {
-    answers(piece({ status: 'escalated', revisionsRemaining: 0, rejectionCount: 2 }));
-    renderScreen();
-
-    expect(await screen.findByTestId('piece-escalated')).toBeTruthy();
-    expect(
-      screen.getByText("The business requested changes twice. Disputes aren't available yet."),
-    ).toBeTruthy();
-    expect(screen.queryByText(/three times/)).toBeNull();
-    expect(screen.queryByTestId('piece-submit-form')).toBeNull();
-  });
-
-  test('an approved piece saves the live post link, and validates it', async () => {
-    answers(
+  test('an approved piece says so, with no live-post form and no submit pointer', async () => {
+    answers([
       piece({
         status: 'approved',
         approvedAt: '2026-09-29T09:00:00.000Z',
         submissions: [submission({ status: 'approved', reviewDecision: 'approved' })],
       }),
-      () => submission({ livePostUrl: 'https://instagram.com/p/live' }),
-    );
+    ]);
     renderScreen();
 
     expect(await screen.findByTestId('piece-approved')).toBeTruthy();
-    expect(screen.queryByTestId('piece-submit-form')).toBeNull();
+    expect(screen.queryByTestId('piece-live-post')).toBeNull();
+    expect(screen.queryByTestId('piece-submit-hint')).toBeNull();
+  });
 
-    fireEvent.changeText(screen.getByTestId('piece-live-post-url'), 'not a link');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-live-post-save'));
-    });
-    expect(screen.getByText('Enter a full link starting with https://')).toBeTruthy();
+  test('flags an overdue piece', async () => {
+    answers([piece({ dueDate: '2000-01-01' })]);
+    renderScreen();
 
-    fireEvent.changeText(screen.getByTestId('piece-live-post-url'), 'https://instagram.com/p/live');
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('piece-live-post-save'));
-    });
-    expect(mockRequest).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: '/engagements/eng-1/deliverables/piece-1/posted',
-        method: 'POST',
-        data: { livePostUrl: 'https://instagram.com/p/live' },
+    expect(await screen.findByTestId('piece-overdue')).toBeTruthy();
+  });
+
+  test('opens an http(s) submission link and labels an upload', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    answers([
+      piece({
+        status: 'changes_requested',
+        submissions: [
+          submission({ id: 'sub-1', revisionNo: 1, externalUrl: null, mediaId: 'media-1' }),
+          submission({ id: 'sub-2', revisionNo: 2 }),
+        ],
       }),
-    );
-    expect(await screen.findByText('Live post saved.')).toBeTruthy();
+    ]);
+    renderScreen();
+
+    expect(await screen.findByText('Uploaded image')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('submission-2-link'));
+    expect(openURL).toHaveBeenCalledWith('https://instagram.com/p/rev-1');
+  });
+
+  test('says when the piece is not part of the engagement', async () => {
+    answers([piece({ id: 'other' })]);
+    renderScreen();
+
+    expect(await screen.findByTestId('piece-not-found')).toBeTruthy();
+  });
+
+  test('shows a retryable error when the pieces fail to load', async () => {
+    answers(new Error('offline'));
+    renderScreen();
+
+    expect(await screen.findByText('Something went wrong')).toBeTruthy();
   });
 });

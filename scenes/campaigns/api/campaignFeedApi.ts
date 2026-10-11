@@ -8,7 +8,8 @@ import {
   CampaignFeedItem,
   CampaignFeedPageArgs,
 } from '../types/campaignFeed';
-import { DeliverablePiece, DeliverableSubmission, RecordPostedArgs } from '../types/deliverables';
+import { DeliverablePiece } from '../types/deliverables';
+import { DeliveryRound, EngagementDelivery, SubmitRoundArgs } from '../types/delivery';
 import {
   ApplyToCampaignArgs,
   CloseEngagementArgs,
@@ -80,7 +81,7 @@ function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageAr
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement', 'Deliverables'],
+  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement', 'Deliverables', 'Delivery'],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
       query: args => ({
@@ -286,8 +287,8 @@ export const campaignFeedApi = createApi({
       invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
     }),
     // Campaign API group CI1 - the accepted engagement's pieces and each
-    // piece's submission history. Submitting (CI2) is multipart for images,
-    // so it lives in ./submitDeliverable.ts and invalidates this tag itself.
+    // piece's submission history, read-only (the piece screen). Content is
+    // submitted as delivery rounds below.
     getEngagementDeliverables: builder.query<DeliverablePiece[], { engagementId: string }>({
       query: ({ engagementId }) => ({
         url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/deliverables`,
@@ -297,16 +298,36 @@ export const campaignFeedApi = createApi({
         { type: 'Deliverables', id: engagementId },
       ],
     }),
-    // Campaign API group CI4 - where approved content went live. 409 until
-    // the piece is approved.
-    recordPosted: builder.mutation<DeliverableSubmission, RecordPostedArgs>({
-      query: ({ engagementId, pieceId, livePostUrl }) => ({
-        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/deliverables/${encodeURIComponent(pieceId)}/posted`,
+    // Delivery rounds (backend 18r1-18r3) - the engagement's stage, revision
+    // budgets, escalation, pieces and every round. Either party may read it;
+    // anyone else gets 404.
+    getEngagementDelivery: builder.query<EngagementDelivery, { engagementId: string }>({
+      query: ({ engagementId }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/delivery`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { engagementId }) => [{ type: 'Delivery', id: engagementId }],
+    }),
+    // One round with an item per non-cancelled piece (JSON - images are
+    // uploaded first with POST /media and sent as `mediaId`). The backend
+    // picks the phase from the stage. The response `meta` (new stage and
+    // budgets) is dropped by request(), so the refetch the tags trigger is
+    // what updates the screens. 409 while in review, completed or escalated;
+    // 422 keyed `items[i]...`.
+    submitDeliveryRound: builder.mutation<DeliveryRound, SubmitRoundArgs>({
+      query: ({ engagementId, items }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/delivery/rounds`,
         method: 'POST',
-        data: { livePostUrl },
+        data: { items },
       }),
       invalidatesTags: (_result, error, { engagementId }) =>
-        error ? [] : [{ type: 'Deliverables' as const, id: engagementId }],
+        error
+          ? []
+          : [
+              { type: 'Delivery' as const, id: engagementId },
+              { type: 'Deliverables' as const, id: engagementId },
+              { type: 'MyEngagement' as const, id: engagementId },
+            ],
     }),
   }),
 });
@@ -342,5 +363,6 @@ export const {
   useWithdrawOfferMutation,
   useWithdrawMyEngagementMutation,
   useGetEngagementDeliverablesQuery,
-  useRecordPostedMutation,
+  useGetEngagementDeliveryQuery,
+  useSubmitDeliveryRoundMutation,
 } = campaignFeedApi;

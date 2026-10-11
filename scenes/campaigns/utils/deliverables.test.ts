@@ -3,13 +3,11 @@ import { describe, expect, test } from '@jest/globals';
 import { DeliverablePieceStatus, DeliverableSubmission } from '../types/deliverables';
 import {
   canSubmitPiece,
-  formatEscalationReason,
   formatRevisionsLeft,
   isOverdue,
   latestChangeRequest,
   pieceTitle,
   safeHttpUrl,
-  validateLivePostUrl,
   validateSubmission,
 } from './deliverables';
 
@@ -49,8 +47,8 @@ describe('canSubmitPiece', () => {
     for (const status of allowed) expect(canSubmitPiece(status)).toBe(true);
   });
 
-  test('refuses approved, escalated and cancelled pieces', () => {
-    for (const status of ['approved', 'escalated', 'cancelled'] as const) {
+  test('refuses approved and cancelled pieces', () => {
+    for (const status of ['approved', 'cancelled'] as const) {
       expect(canSubmitPiece(status)).toBe(false);
     }
   });
@@ -115,14 +113,6 @@ describe('validateSubmission', () => {
   });
 });
 
-describe('validateLivePostUrl', () => {
-  test('requires a full http(s) link', () => {
-    expect(validateLivePostUrl('')).not.toBeNull();
-    expect(validateLivePostUrl('tiktok.com/@me')).not.toBeNull();
-    expect(validateLivePostUrl('https://tiktok.com/@me/video/1')).toBeNull();
-  });
-});
-
 describe('safeHttpUrl', () => {
   test('keeps only http(s) links', () => {
     expect(safeHttpUrl('https://a.com')).toBe('https://a.com');
@@ -151,14 +141,5 @@ describe('formatRevisionsLeft', () => {
     expect(formatRevisionsLeft(1)).toBe('1 revision left');
     expect(formatRevisionsLeft(2)).toBe('2 revisions left');
     expect(formatRevisionsLeft(3)).toBe('3 revisions left');
-  });
-});
-
-describe('formatEscalationReason', () => {
-  test('says how many change requests escalated the piece', () => {
-    expect(formatEscalationReason(0)).toBe('The business requested changes 0 times.');
-    expect(formatEscalationReason(1)).toBe('The business requested changes once.');
-    expect(formatEscalationReason(2)).toBe('The business requested changes twice.');
-    expect(formatEscalationReason(3)).toBe('The business requested changes 3 times.');
   });
 });

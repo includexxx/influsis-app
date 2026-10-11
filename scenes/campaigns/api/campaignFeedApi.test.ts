@@ -5,7 +5,6 @@ import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { ApiError, httpClient } from '@/services/http';
 import { clearTokens, setTokens } from '@/services/tokenStore';
 import { campaignFeedApi } from './campaignFeedApi';
-import { submitDeliverable } from './submitDeliverable';
 import { CampaignFeedItem } from '../types/campaignFeed';
 
 const campaign: CampaignFeedItem = {
@@ -590,64 +589,84 @@ describe('campaignFeedApi', () => {
     expect(call.method).toBe('get');
   });
 
-  test('recordPosted POSTs the live post URL (CI4)', async () => {
+  test('getEngagementDelivery GETs the delivery read (18r)', async () => {
     await withToken();
     const store = makeStore();
-    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' })));
+    adapter.mockImplementation(c =>
+      ok(c, envelope({ stage: 'awaiting_draft', pieces: [], rounds: [] })),
+    );
 
-    await store
-      .dispatch(
-        campaignFeedApi.endpoints.recordPosted.initiate({
-          engagementId: 'eng-1',
-          pieceId: 'piece-1',
-          livePostUrl: 'https://instagram.com/p/live',
-        }),
-      )
+    const result = await store
+      .dispatch(campaignFeedApi.endpoints.getEngagementDelivery.initiate({ engagementId: 'eng-1' }))
       .unwrap();
 
     const call = adapter.mock.calls[0][0];
-    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/posted');
-    expect(call.method).toBe('post');
-    expect(JSON.parse(call.data as string)).toEqual({
-      livePostUrl: 'https://instagram.com/p/live',
-    });
+    expect(call.url).toBe('/engagements/eng-1/delivery');
+    expect(call.method).toBe('get');
+    expect(result.stage).toBe('awaiting_draft');
   });
 
-  test('submitDeliverable sends a link as JSON with a trimmed caption (CI2)', async () => {
+  test('submitDeliveryRound POSTs the items and refetches the delivery (18r1)', async () => {
     await withToken();
-    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' }), 201));
-
-    await submitDeliverable({
-      engagementId: 'eng-1',
-      pieceId: 'piece-1',
-      kind: 'link',
-      externalUrl: ' https://youtube.com/shorts/1 ',
-      caption: '  First cut  ',
+    const store = makeStore();
+    let deliveryReads = 0;
+    adapter.mockImplementation(c => {
+      if (c.method === 'get') {
+        deliveryReads += 1;
+        return ok(c, envelope({ stage: 'awaiting_draft', pieces: [], rounds: [] }));
+      }
+      return ok(c, envelope({ id: 'round-1', phase: 'draft', items: [] }), 201);
     });
+    store.dispatch(
+      campaignFeedApi.endpoints.getEngagementDelivery.initiate({ engagementId: 'eng-1' }),
+    );
+    await jest.runOnlyPendingTimersAsync();
 
-    const call = adapter.mock.calls[0][0];
-    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/submissions');
-    expect(call.method).toBe('post');
-    expect(JSON.parse(call.data as string)).toEqual({
-      externalUrl: 'https://youtube.com/shorts/1',
-      caption: 'First cut',
-    });
+    const items = [
+      { pieceId: 'p1', externalUrl: 'https://drive.test/a', caption: 'Cut 1' },
+      { pieceId: 'p2', mediaId: 'media-2' },
+      { pieceId: 'p3', reuseItemId: 'item-3' },
+    ];
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.submitDeliveryRound.initiate({ engagementId: 'eng-1', items }),
+      )
+      .unwrap();
+    await jest.runOnlyPendingTimersAsync();
+
+    const post = adapter.mock.calls.map(([c]) => c).find(c => c.method === 'post');
+    expect(post?.url).toBe('/engagements/eng-1/delivery/rounds');
+    expect(JSON.parse(post?.data as string)).toEqual({ items });
+    expect(deliveryReads).toBe(2);
   });
 
-  test('submitDeliverable sends an image as multipart with a file part (CI2)', async () => {
+  test('a failed submitDeliveryRound refetches nothing', async () => {
     await withToken();
-    adapter.mockImplementation(c => ok(c, envelope({ id: 'sub-1' }), 201));
-
-    await submitDeliverable({
-      engagementId: 'eng-1',
-      pieceId: 'piece-1',
-      kind: 'image',
-      image: { uri: 'file:///photo.jpg', fileName: 'photo.jpg', mimeType: 'image/jpeg' },
+    const store = makeStore();
+    let deliveryReads = 0;
+    adapter.mockImplementation(c => {
+      if (c.method === 'get') {
+        deliveryReads += 1;
+        return ok(c, envelope({ stage: 'draft_in_review', pieces: [], rounds: [] }));
+      }
+      return ok(c, errorBody('CONFLICT', 409), 409);
     });
+    store.dispatch(
+      campaignFeedApi.endpoints.getEngagementDelivery.initiate({ engagementId: 'eng-1' }),
+    );
+    await jest.runOnlyPendingTimersAsync();
 
-    const call = adapter.mock.calls[0][0];
-    expect(call.url).toBe('/engagements/eng-1/deliverables/piece-1/submissions');
-    expect(call.data).toBeInstanceOf(FormData);
-    expect(String(call.headers?.['Content-Type'])).toContain('multipart/form-data');
+    await expect(
+      store
+        .dispatch(
+          campaignFeedApi.endpoints.submitDeliveryRound.initiate({
+            engagementId: 'eng-1',
+            items: [],
+          }),
+        )
+        .unwrap(),
+    ).rejects.toBeInstanceOf(ApiError);
+    await jest.runOnlyPendingTimersAsync();
+    expect(deliveryReads).toBe(1);
   });
 });

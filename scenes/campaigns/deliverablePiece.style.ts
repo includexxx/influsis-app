@@ -105,16 +105,6 @@ export const pieceStyle = StyleSheet.create({
     gap: 14,
     ...getShadowStyle('sm'),
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.primary[25],
-  },
-  cardHeaderText: { flex: 1, gap: 2 },
   cardTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   cardSubtitle: { fontSize: 13, lineHeight: 18 },
   segmented: {
@@ -144,7 +134,6 @@ export const pieceStyle = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  dropzoneError: { borderColor: palette.error[400], backgroundColor: palette.error[25] },
   dropzoneIcon: {
     width: 52,
     height: 52,
@@ -176,8 +165,6 @@ export const pieceStyle = StyleSheet.create({
   previewActionText: { fontSize: 12, fontWeight: '600', color: palette.white },
   fieldError: { color: palette.error[600], fontSize: 12, lineHeight: 18 },
   multiline: { minHeight: 96, textAlignVertical: 'top' },
-  counter: { alignSelf: 'flex-end', fontSize: 12, lineHeight: 16, marginTop: -8 },
-  counterOver: { color: palette.error[600], fontWeight: '600' },
   formBanner: {
     flexDirection: 'row',
     alignItems: 'center',

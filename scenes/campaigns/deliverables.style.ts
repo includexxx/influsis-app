@@ -88,8 +88,6 @@ export const deliverablesStyle = StyleSheet.create({
   },
   pillButtonPressed: { backgroundColor: palette.primary[25], borderColor: palette.primary[200] },
   pillText: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: palette.primary[500] },
-  bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  bannerText: { flex: 1 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   countChip: {
     minWidth: 24,
@@ -145,13 +143,27 @@ export const deliverablesStyle = StyleSheet.create({
 
   sectionTitle: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
   hintText: { fontSize: 14, lineHeight: 21 },
-  banner: {
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  successBanner: { backgroundColor: palette.success[50] },
-  successText: { color: palette.success[700], fontSize: 14, lineHeight: 21, fontWeight: '500' },
   meta: { fontSize: 13, lineHeight: 19 },
   overdue: { color: palette.error[600], fontWeight: '600' },
+
+  // --- Delivery status card (18r) ---
+  // One card per stage: title, body, revisions left, and the primary action.
+  statusCard: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    padding: 16,
+    gap: 8,
+  },
+  statusHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  statusTitle: { flex: 1, fontSize: 15, lineHeight: 22, fontWeight: '700' },
+  statusBody: { fontSize: 14, lineHeight: 21 },
+  statusMeta: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
+  primaryButton: {
+    height: 52,
+    marginTop: 4,
+    borderRadius: radius.full,
+    backgroundColor: palette.primary[500],
+    ...getShadowStyle('sm'),
+  },
+  primaryTitle: { fontSize: 16, fontWeight: '700', color: palette.white },
 });

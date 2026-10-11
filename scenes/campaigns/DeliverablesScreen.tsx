@@ -7,48 +7,75 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { palette } from '@/theme';
+import Button from '@/components/elements/Button';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import StatusBadge from '@/components/elements/StatusBadge';
 import { deliverablesStyle as s } from './deliverables.style';
 import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
-  useGetEngagementDeliverablesQuery,
+  useGetEngagementDeliveryQuery,
   useGetFeedCampaignQuery,
   useGetMyEngagementQuery,
 } from './api/campaignFeedApi';
-import { DeliverablePiece } from './types/deliverables';
+import { DeliveryPiece } from './types/delivery';
 import { buildCreatorAgreement } from './utils/agreement';
 import { formatCampaignDueDate } from './utils/mapCampaignFeedItem';
 import { formatOfferDate } from './utils/negotiation';
-import {
-  canSubmitPiece,
-  formatRevisionsLeft,
-  isOverdue,
-  PIECE_STATUS_BADGE,
-  pieceTitle,
-} from './utils/deliverables';
-import { platformIcon } from './utils/platformIcon';
+import { canSubmitPiece, isOverdue, PIECE_STATUS_BADGE, pieceTitle } from './utils/deliverables';
+import { deliveryStatusView, DeliveryTone, latestRound } from './utils/delivery';
+import { FeatherName, platformIcon } from './utils/platformIcon';
 
 const HERO_GRADIENT = [palette.primary[400], palette.primary[700]] as const;
 
-// The Deliverables screen - the creator's work on one accepted engagement
-// (campaign API group CI1, GET /engagements/:id/deliverables): one row per
-// piece the negotiated scope expanded into, with its status, due date and
-// revisions left. Tapping a row opens that piece to submit, resubmit, or
-// record the live post. Reached from the Offer screen's "Deliver work" and
-// from Live Campaigns / Home's Active Campaigns rows; `title` rides along
-// because CI1/CF3 carry no campaign summary. Approving is the business's
-// side - once every piece is approved the engagement completes. Nothing here
-// says "paid": there is no escrow yet (backend item 19). "View agreement"
-// reopens the accepted terms read-only (the Agreement sheet's confirmed
-// mode).
+const STATUS_TONE: Record<
+  Exclude<DeliveryTone, 'neutral'>,
+  { background: string; border: string; text: string; icon: FeatherName }
+> = {
+  info: {
+    background: palette.primary[25],
+    border: palette.primary[100],
+    text: palette.primary[700],
+    icon: 'clock',
+  },
+  warning: {
+    background: palette.warning[50],
+    border: palette.warning[200],
+    text: palette.warning[700],
+    icon: 'message-square',
+  },
+  success: {
+    background: palette.success[50],
+    border: palette.success[200],
+    text: palette.success[700],
+    icon: 'check-circle',
+  },
+  error: {
+    background: palette.error[50],
+    border: palette.error[200],
+    text: palette.error[700],
+    icon: 'alert-octagon',
+  },
+};
+
+// The Deliverables screen - the creator's work on one accepted engagement,
+// read from the delivery rounds (backend 18r, GET /engagements/:id/delivery):
+// a status card for the delivery's stage (what happened, revisions left, and
+// the next action), then one row per piece with its status and due date.
+// Every piece is delivered together: "Submit delivery" opens the Submit
+// delivery screen; tapping a row opens that piece's read-only history.
+// Reached from the Offer screen's "Deliver work" and from Live Campaigns /
+// Home's Active Campaigns rows; `title` rides along because the delivery read
+// and CF3 carry no campaign summary. Approving is the business's side.
+// Nothing here says "paid": there is no escrow yet (backend item 19). "View
+// agreement" reopens the accepted terms read-only (the Agreement sheet's
+// confirmed mode).
 export default function DeliverablesScreen() {
   const { colors } = useTheme();
   const { id, title } = useLocalSearchParams<{ id: string; title?: string }>();
   const engagementId = id ?? '';
 
   const engagement = useGetMyEngagementQuery({ engagementId }, { skip: !engagementId });
-  const pieces = useGetEngagementDeliverablesQuery({ engagementId }, { skip: !engagementId });
+  const delivery = useGetEngagementDeliveryQuery({ engagementId }, { skip: !engagementId });
   const [agreementOpen, setAgreementOpen] = useState(false);
   // CB2 only adds the business, title and content deadline; the money is the
   // server's agreed numbers, so a failure (404 once not live) just falls back
@@ -62,11 +89,11 @@ export default function DeliverablesScreen() {
     <ScreenHeader title="Deliverables" onBack={() => router.back()} style={s.headerGap} />
   );
 
-  if (!engagementId || pieces.error?.code === 'NOT_FOUND') {
+  if (!engagementId || delivery.error?.code === 'NOT_FOUND') {
     return <Redirect href="/live-campaign" />;
   }
 
-  if (pieces.isLoading || engagement.isLoading) {
+  if (delivery.isLoading || engagement.isLoading) {
     return (
       <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
         <View style={layoutStyle.scrollContent} testID="deliverables-loading">
@@ -78,7 +105,7 @@ export default function DeliverablesScreen() {
     );
   }
 
-  if (pieces.isError || !pieces.data) {
+  if (delivery.isError || !delivery.data) {
     return (
       <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
         <View style={layoutStyle.scrollContent}>
@@ -86,7 +113,7 @@ export default function DeliverablesScreen() {
           <CampaignsEmptyState
             variant="error"
             onRetry={() => {
-              pieces.refetch();
+              delivery.refetch();
               engagement.refetch();
             }}
           />
@@ -95,8 +122,11 @@ export default function DeliverablesScreen() {
     );
   }
 
-  const list = pieces.data;
-  const completed = engagement.data?.status === 'completed';
+  const list = delivery.data.pieces;
+  const view = deliveryStatusView(delivery.data);
+  const completed = delivery.data.stage === 'delivered';
+  const submittedAt =
+    delivery.data.stage === 'draft_in_review' ? latestRound(delivery.data)?.submittedAt : null;
   const now = new Date();
   const agreement = engagement.data
     ? buildCreatorAgreement(engagement.data, campaign.data ?? null, 'confirmed', title)
@@ -107,12 +137,21 @@ export default function DeliverablesScreen() {
   const approved = active.filter(piece => piece.status === 'approved').length;
   const progress = active.length ? approved / active.length : 0;
 
-  function openPiece(piece: DeliverablePiece) {
+  function openPiece(piece: DeliveryPiece) {
     router.push({
       pathname: '/engagement/[id]/deliverables/[pieceId]',
       params: { id: engagementId, pieceId: piece.id, title: title ?? '' },
     });
   }
+
+  function openSubmit() {
+    router.push({
+      pathname: '/engagement/[id]/submit-delivery',
+      params: { id: engagementId, title: title ?? '' },
+    });
+  }
+
+  const tone = view && view.tone !== 'neutral' ? STATUS_TONE[view.tone] : null;
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -134,7 +173,7 @@ export default function DeliverablesScreen() {
               <Text style={s.heroEyebrow}>CAMPAIGN</Text>
               <View style={s.heroStatus}>
                 <View style={[s.heroStatusDot, completed && s.heroStatusDotDone]} />
-                <Text style={s.heroStatusText}>{completed ? 'Completed' : 'In progress'}</Text>
+                <Text style={s.heroStatusText}>{view?.statusLabel ?? 'In progress'}</Text>
               </View>
             </View>
 
@@ -208,12 +247,55 @@ export default function DeliverablesScreen() {
             ) : null}
           </View>
 
-          {completed ? (
-            <View style={[s.banner, s.successBanner, s.bannerRow]} testID="deliverables-completed">
-              <Feather name="check-circle" size={18} color={palette.success[700]} />
-              <Text style={[s.successText, s.bannerText]}>
-                All deliverables approved. This campaign is complete.
-              </Text>
+          {view ? (
+            <View
+              style={[
+                s.statusCard,
+                tone
+                  ? { backgroundColor: tone.background, borderColor: tone.border }
+                  : { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              accessibilityRole={view.tone === 'error' ? 'alert' : undefined}
+              testID="deliverables-status">
+              <View style={s.statusHead}>
+                <Feather
+                  name={tone?.icon ?? 'package'}
+                  size={18}
+                  color={tone?.text ?? palette.primary[500]}
+                />
+                <Text style={[s.statusTitle, { color: tone?.text ?? colors.text.primary }]}>
+                  {view.title}
+                </Text>
+              </View>
+              {view.body ? (
+                <Text
+                  style={[s.statusBody, { color: tone?.text ?? colors.text.secondary }]}
+                  testID="deliverables-status-body">
+                  {view.body}
+                </Text>
+              ) : null}
+              {submittedAt ? (
+                <Text style={[s.statusMeta, { color: tone?.text ?? colors.text.secondary }]}>
+                  Submitted {formatOfferDate(submittedAt)}
+                </Text>
+              ) : null}
+              {view.revisionsLeft ? (
+                <Text
+                  style={[s.statusMeta, { color: tone?.text ?? colors.text.secondary }]}
+                  testID="deliverables-revisions-left">
+                  {view.revisionsLeft}
+                </Text>
+              ) : null}
+              {view.cta ? (
+                <Button
+                  title={view.cta}
+                  style={s.primaryButton}
+                  titleStyle={s.primaryTitle}
+                  onPress={openSubmit}
+                  accessibilityLabel={view.cta}
+                  testID="deliverables-submit"
+                />
+              ) : null}
             </View>
           ) : null}
 
@@ -279,14 +361,6 @@ export default function DeliverablesScreen() {
                         <Text style={[s.meta, { color: colors.text.secondary }]}>
                           Due {formatOfferDate(piece.dueDate)}
                           {overdue ? <Text style={s.overdue}> · Overdue</Text> : null}
-                        </Text>
-                      </View>
-                    ) : null}
-                    {submittable ? (
-                      <View style={s.pieceMetaRow}>
-                        <Feather name="refresh-cw" size={13} color={colors.text.secondary} />
-                        <Text style={[s.meta, { color: colors.text.secondary }]}>
-                          {formatRevisionsLeft(piece.revisionsRemaining)}
                         </Text>
                       </View>
                     ) : null}

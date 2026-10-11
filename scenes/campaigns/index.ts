@@ -6,3 +6,4 @@ export { default as Applications } from './Applications';
 export { default as OfferScreen } from './OfferScreen';
 export { default as DeliverablesScreen } from './DeliverablesScreen';
 export { default as DeliverablePieceScreen } from './DeliverablePieceScreen';
+export { default as SubmitDeliveryScreen } from './SubmitDeliveryScreen';
