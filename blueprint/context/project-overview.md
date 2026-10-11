@@ -109,7 +109,9 @@ backend-19 escrow items on `feat/escrow`, not in this checklist.
 Awareness**, which decides the deliverables it can hold; businesses can add
 custom deliverables described in rich text. Delivery becomes one bundle per
 engagement: a draft round (original + up to 2 revisions; a 3rd change request
-escalates to a dispute), then a final round (sent back at most once).
+escalates to a dispute), then a final round (approve-only since the backend
+fix of 2026-10-11: approved by the business, or automatically 72 hours after
+submission).
 Contracts: `../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_CATALOGUE.md`,
 `CI_DELIVERY_ROUNDS.md` and `../platform-context/api-contracts/campaigns.md`. Business side: `web`
 items 44-46.
@@ -205,10 +207,10 @@ mock types where they'll carry over directly.
   rules as Campaign `deliverables` (1-30 items; item 35)
 - Delivery (item 36, `GET /engagements/:id/delivery`): `stage` (computed:
   awaiting_draft | draft_in_review | draft_changes_requested | awaiting_final |
-  final_in_review | final_changes_requested | delivered | escalated | null),
-  `objective`, `revisionsRemaining` (2 -> 0), `finalRevisionsRemaining`
-  (1 -> 0), escalation, `pieces[]` (with `finalKind` file_link | live_post) and
-  `rounds[]` (phase, roundNo, status, review reason, `items[]` with link or
+  final_in_review | delivered | escalated | null), `objective`,
+  `revisionsRemaining` (2 -> 0, draft only), escalation, `pieces[]` (with
+  `finalKind` file_link | live_post) and `rounds[]` (phase, roundNo, status,
+  review reason, `reviewDueAt`, `autoApproved`, `items[]` with link or
   `mediaId`, caption, `reviewComment`); replaces item 25's per-piece
   submissions and counters
 
@@ -317,8 +319,8 @@ Main routes (`app/`, Expo Router groups):
 
 - Item 35: may a creator write a new custom deliverable on mobile (needs a
   rich-text input), or only keep/adjust the business's?
-- Item 36 (decided in backend 18r): can a final round be sent back for a fix;
-  are video drafts uploaded (today's media limit is 5 MB) or linked?
+- Item 36 (decided in backend 18r and its 2026-10-11 fix): the final round
+  can't be sent back; video drafts are linked (today's media limit is 5 MB).
 - `feat/escrow` item 28 (per-piece money and decline reasons) assumes
   per-piece review and must be re-scoped to delivery rounds.
 - Exact commission structure. F-2 (creator receives 100% of the deal) implies

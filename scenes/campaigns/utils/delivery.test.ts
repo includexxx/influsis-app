@@ -67,6 +67,7 @@ function round(overrides: Partial<DeliveryRound> = {}): DeliveryRound {
     reviewReason: 'Logo must show in the first 3 seconds',
     reviewedAt: '2026-10-09T10:00:00.000Z',
     reviewedByUserId: 'biz-user',
+    autoApproved: false,
     items: [item()],
     ...overrides,
   };
@@ -78,8 +79,6 @@ function delivery(overrides: Partial<EngagementDelivery> = {}): EngagementDelive
     objective: 'ugc_content',
     revisionsRemaining: 2,
     draftChangeRequests: 0,
-    finalRevisionsRemaining: 1,
-    finalChangeRequests: 0,
     escalatedAt: null,
     escalationReason: null,
     pieces: [piece()],
@@ -118,14 +117,11 @@ describe('latestRound', () => {
 });
 
 describe('escalationCopy', () => {
-  test('names the final or draft limit, else a generic line', () => {
-    expect(escalationCopy({ draftChangeRequests: 1, finalChangeRequests: 2 })).toBe(
-      'The business requested changes to the final delivery twice.',
-    );
-    expect(escalationCopy({ draftChangeRequests: 3, finalChangeRequests: 0 })).toBe(
+  test('names the draft limit, else a generic line', () => {
+    expect(escalationCopy({ draftChangeRequests: 3 })).toBe(
       'The business requested changes to the draft 3 times.',
     );
-    expect(escalationCopy({ draftChangeRequests: 0, finalChangeRequests: 0 })).toBe(
+    expect(escalationCopy({ draftChangeRequests: 0 })).toBe(
       'This delivery was escalated to a dispute.',
     );
   });
@@ -190,28 +186,41 @@ describe('deliveryStatusView', () => {
     expect(deliveryStatusView(delivery({ stage: 'draft_in_review' }))?.inReview).toBe(true);
   });
 
-  test('final changes show the final reason, the final budget and a resend', () => {
+  test('a final in review says when it is approved automatically', () => {
     const view = deliveryStatusView(
       delivery({
-        stage: 'final_changes_requested',
-        revisionsRemaining: 2,
-        finalRevisionsRemaining: 0,
-        finalChangeRequests: 1,
+        stage: 'final_in_review',
         rounds: [
-          round({ status: 'approved', reviewReason: null }),
-          round({ id: 'f1', phase: 'final', reviewReason: 'Tag the brand account' }),
+          round({ status: 'approved' }),
+          round({
+            id: 'f1',
+            phase: 'final',
+            status: 'submitted',
+            reviewDueAt: '2026-10-15T10:00:00.000Z',
+          }),
         ],
       }),
     );
-    expect(view).toMatchObject({
-      tone: 'warning',
-      title: 'The business asked for changes to the final delivery',
-      body: 'Tag the brand account',
-      revisionsLeft: 'No revisions left',
-      cta: 'Resend final delivery',
-      canSubmit: true,
-    });
-    expect(JSON.stringify(view)).not.toMatch(/coming soon/i);
+    expect(view).toMatchObject({ cta: null, canSubmit: false, revisionsLeft: null });
+    expect(view?.body).toBe(
+      "Waiting for the business to approve it. If it doesn't, it's approved automatically on 15 Oct, 2026.",
+    );
+  });
+
+  test('a final approved automatically says so', () => {
+    const view = deliveryStatusView(
+      delivery({
+        stage: 'delivered',
+        rounds: [
+          round({ status: 'approved' }),
+          round({ id: 'f1', phase: 'final', status: 'approved', autoApproved: true }),
+        ],
+      }),
+    );
+    expect(view?.body).toBe(
+      'Your final delivery was approved automatically. This campaign is complete.',
+    );
+    expect(JSON.stringify(view)).not.toMatch(/paid|payment/i);
   });
 
   test('delivered never mentions payment', () => {
@@ -241,7 +250,6 @@ describe('submitPhase', () => {
     expect(submitPhase('awaiting_draft')).toBe('draft');
     expect(submitPhase('draft_changes_requested')).toBe('draft');
     expect(submitPhase('awaiting_final')).toBe('final');
-    expect(submitPhase('final_changes_requested')).toBe('final');
     for (const stage of [
       'draft_in_review',
       'final_in_review',

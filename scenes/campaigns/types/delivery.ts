@@ -3,7 +3,9 @@ import { DeliverablePieceStatus } from './deliverables';
 
 // Campaign API group CI, delivery rounds (backend 18r1-18r3): an accepted
 // engagement's pieces are delivered together as one round and reviewed as a
-// whole - draft rounds until one is approved, then the final round. Mirrors
+// whole - draft rounds until one is approved, then the final round. Since the
+// backend fix of 2026-10-11 the final can't be sent back: the business
+// approves it, or the system does 72 hours after submission. Mirrors
 // EngagementDeliveryDto (GET /engagements/:id/delivery) and the round body
 // (POST /engagements/:id/delivery/rounds). See backend
 // docs/features/campaign/implementations/CI_DELIVERY_ROUNDS.md.
@@ -16,7 +18,6 @@ export type DeliveryStage =
   | 'draft_changes_requested'
   | 'awaiting_final'
   | 'final_in_review'
-  | 'final_changes_requested'
   | 'delivered'
   | 'escalated';
 
@@ -68,12 +69,15 @@ export interface DeliveryRound {
   converted: boolean;
   submittedAt: string;
   isLate: boolean;
+  /** For the final: submittedAt + 72 hours, when it's approved automatically. */
   reviewDueAt: string;
   reviewDecision: 'approved' | 'changes_requested' | null;
   /** The business's overall reason when it requested changes. */
   reviewReason: string | null;
   reviewedAt: string | null;
   reviewedByUserId: string | null;
+  /** The system approved this final because the business didn't in 72 hours. */
+  autoApproved: boolean;
   items: DeliveryRoundItem[];
 }
 
@@ -84,9 +88,6 @@ export interface EngagementDelivery {
   /** Draft budget: `max(0, 2 - draftChangeRequests)`, 2 -> 1 -> 0. */
   revisionsRemaining: number;
   draftChangeRequests: number;
-  /** Final budget: `max(0, 1 - finalChangeRequests)`, 1 -> 0. */
-  finalRevisionsRemaining: number;
-  finalChangeRequests: number;
   escalatedAt: string | null;
   /** Backend wording, not shown to the creator. */
   escalationReason: string | null;

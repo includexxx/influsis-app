@@ -78,6 +78,7 @@ function round(overrides: Partial<DeliveryRound> = {}): DeliveryRound {
     reviewReason: null,
     reviewedAt: null,
     reviewedByUserId: null,
+    autoApproved: false,
     items: [],
     ...overrides,
   };
@@ -89,8 +90,6 @@ function delivery(overrides: Partial<EngagementDelivery> = {}): EngagementDelive
     objective: 'ugc_content',
     revisionsRemaining: 2,
     draftChangeRequests: 0,
-    finalRevisionsRemaining: 1,
-    finalChangeRequests: 0,
     escalatedAt: null,
     escalationReason: null,
     pieces: [piece({ id: 'p1' })],
@@ -252,7 +251,12 @@ describe('<DeliverablesScreen />', () => {
         stage: 'final_in_review',
         rounds: [
           round({ status: 'approved' }),
-          round({ id: 'round-2', phase: 'final', submittedAt: '2026-10-12T10:00:00.000Z' }),
+          round({
+            id: 'round-2',
+            phase: 'final',
+            submittedAt: '2026-10-12T10:00:00.000Z',
+            reviewDueAt: '2026-10-15T10:00:00.000Z',
+          }),
         ],
       }),
     );
@@ -260,36 +264,12 @@ describe('<DeliverablesScreen />', () => {
 
     expect(await screen.findByText('Final delivery submitted')).toBeTruthy();
     expect(screen.getByText('Submitted 12 Oct, 2026')).toBeTruthy();
-    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
-  });
-
-  test('final changes show the reason, no revisions left and a resend', async () => {
-    // One final change request leaves none: the next one escalates.
-    answers(
-      delivery({
-        stage: 'final_changes_requested',
-        finalRevisionsRemaining: 0,
-        finalChangeRequests: 1,
-        rounds: [
-          round({ status: 'approved' }),
-          round({
-            id: 'round-2',
-            phase: 'final',
-            status: 'changes_requested',
-            reviewDecision: 'changes_requested',
-            reviewReason: 'The caption must tag the brand account',
-          }),
-        ],
-      }),
-    );
-    renderScreen();
-
     expect(
-      await screen.findByText('The business asked for changes to the final delivery'),
+      screen.getByText(
+        "Waiting for the business to approve it. If it doesn't, it's approved automatically on 15 Oct, 2026.",
+      ),
     ).toBeTruthy();
-    expect(screen.getByText('The caption must tag the brand account')).toBeTruthy();
-    expect(screen.getByText('No revisions left')).toBeTruthy();
-    expect(screen.getByText('Resend final delivery')).toBeTruthy();
+    expect(screen.queryByTestId('deliverables-submit')).toBeNull();
   });
 
   test('delivered says the campaign is complete, never paid', async () => {
@@ -304,15 +284,11 @@ describe('<DeliverablesScreen />', () => {
 
   test.each([
     [
-      { draftChangeRequests: 3, finalChangeRequests: 0 },
+      { draftChangeRequests: 3 },
       "The business requested changes to the draft 3 times. Disputes aren't available yet.",
     ],
     [
-      { draftChangeRequests: 1, finalChangeRequests: 2 },
-      "The business requested changes to the final delivery twice. Disputes aren't available yet.",
-    ],
-    [
-      { draftChangeRequests: 0, finalChangeRequests: 0 },
+      { draftChangeRequests: 0 },
       "This delivery was escalated to a dispute. Disputes aren't available yet.",
     ],
   ])('escalated shows "In dispute" with no actions (%o)', async (counts, copy) => {

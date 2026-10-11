@@ -89,6 +89,7 @@ function changesRequested(): DeliveryRound {
     reviewReason: 'Logo must show in the first 3 seconds',
     reviewedAt: '2026-10-09T10:00:00.000Z',
     reviewedByUserId: 'biz-user',
+    autoApproved: false,
     items: [
       {
         id: 'item-1',
@@ -124,8 +125,6 @@ function delivery(overrides: Partial<EngagementDelivery> = {}): EngagementDelive
     objective: 'ugc_content',
     revisionsRemaining: 2,
     draftChangeRequests: 0,
-    finalRevisionsRemaining: 1,
-    finalChangeRequests: 0,
     escalatedAt: null,
     escalationReason: null,
     pieces: twoPieces,
@@ -541,53 +540,6 @@ describe('<SubmitDeliveryScreen />', () => {
           { pieceId: 'p1', externalUrl: 'https://www.instagram.com/reel/abc' },
           { pieceId: 'p2', externalUrl: 'https://blog.example.com/p' },
         ],
-      });
-    });
-
-    test('final changes requested: the final reason, comments, no revisions left, Resend', async () => {
-      answers(
-        delivery({
-          stage: 'final_changes_requested',
-          objective: 'brand_awareness',
-          finalRevisionsRemaining: 0,
-          finalChangeRequests: 1,
-          pieces: [piece({ id: 'p1', finalKind: 'live_post' })],
-          rounds: [
-            approvedDraft([linkItem('item-1', 'p1', 'https://drive.test/draft')]),
-            {
-              ...changesRequested(),
-              id: 'round-f1',
-              phase: 'final',
-              reviewReason: 'The caption must tag the brand account',
-              items: [
-                {
-                  ...linkItem('item-f1', 'p1', 'https://www.instagram.com/reel/v1'),
-                  reviewComment: 'Tag @brand in the caption',
-                  status: 'changes_requested',
-                },
-              ],
-            },
-          ],
-        }),
-      );
-      renderScreen();
-
-      expect(
-        await screen.findByText('The business asked for changes to the final delivery'),
-      ).toBeTruthy();
-      expect(screen.getByText('The caption must tag the brand account')).toBeTruthy();
-      expect(screen.getByText('Tag @brand in the caption')).toBeTruthy();
-      expect(screen.getByText('No revisions left')).toBeTruthy();
-      expect(screen.getByText('Resend final delivery')).toBeTruthy();
-      // The final round's live post passes, so it's kept.
-      expect(screen.getByTestId('delivery-slot-0-keep').props.accessibilityState?.checked).toBe(
-        true,
-      );
-
-      fireEvent.changeText(screen.getByTestId('delivery-slot-0-caption'), 'Now tagging @brand');
-      await pressSubmit();
-      expect(posted()?.data).toEqual({
-        items: [{ pieceId: 'p1', reuseItemId: 'item-f1', caption: 'Now tagging @brand' }],
       });
     });
 

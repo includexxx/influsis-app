@@ -30,9 +30,10 @@ business approves it or requests changes with an overall reason and a comment
 per piece. Original + 2 revisions; the 3rd change request escalates the whole
 engagement to a dispute. After the draft is approved comes the **final round**:
 a link per piece — a link to the final files (UGC Content) or the live post on
-the piece's platform (Brand Awareness). The final can be sent back once; the
-2nd final change request escalates. Approving the final completes the
-engagement. **Nothing here says "paid"** — there is no escrow until backend
+the piece's platform (Brand Awareness). The final **can't be sent back**
+(backend fix 2026-10-11): the business approves it, or it's approved
+automatically 72 hours after submission (the round's `reviewDueAt`). Approving
+the final completes the engagement. **Nothing here says "paid"** — there is no escrow until backend
 item 19.
 
 ## User flow
@@ -44,9 +45,8 @@ Live Campaigns row / Home Active Campaigns card / Offer screen "Deliver work"
        ├─ draft_in_review         → "Draft submitted", no action
        ├─ draft_changes_requested → reason + revisions left → "Submit revised draft"
        ├─ awaiting_final          → "Draft approved"           → "Send final delivery"
-       ├─ final_in_review         → "Final delivery submitted", no action
-       ├─ final_changes_requested → reason + revisions left  → "Resend final delivery"
-       ├─ delivered               → "Delivered. This campaign is complete."
+       ├─ final_in_review         → "Final delivery submitted" + auto-approval date, no action
+       ├─ delivered               → "Delivered. This campaign is complete." (or "approved automatically")
        ├─ escalated               → "In dispute", no actions
        ├─ "View agreement" → read-only agreement sheet (feature 34)
        └─ tap a piece → Piece (read-only history)
@@ -59,7 +59,7 @@ Live Campaigns row / Home Active Campaigns card / Offer screen "Deliver work"
 | 1 | Header | Back + "Deliverables" |
 | 2 | Summary card | Gradient card: "CAMPAIGN" eyebrow, a stage chip (To deliver / In review / Changes requested / Final due / Completed / In dispute), title (route param `title`), "Content deadline · {date}" (or "No deadline set") from CB2 — left out when CB2 fails, e.g. `404` once the campaign isn't live — and "Approval progress": "{approved} of {n} approved" with a progress bar (cancelled pieces don't count) |
 | 3 | Actions | Two half-width pills: "View campaign" (`/campaign/[campaignId]`) and "View agreement" (the agreement sheet in `confirmed` mode) |
-| 4 | Status card | One card for the stage (`utils/delivery.ts` `deliveryStatusView`): title, body, "Submitted {date}" while a draft or the final is in review, "{n} revision(s) left" while changes are requested (draft: 2 → 0; final: 1 → 0), and the primary **Submit delivery** / **Submit revised draft** / **Send final delivery** / **Resend final delivery** button when the creator can submit. Escalated: "In dispute" with "The business requested changes to the draft {n} times." / "…to the final delivery twice." / "This delivery was escalated to a dispute.", then "Disputes aren't available yet." The backend's `escalationReason` wording is never shown |
+| 4 | Status card | One card for the stage (`utils/delivery.ts` `deliveryStatusView`): title, body, "Submitted {date}" while a draft or the final is in review, "{n} revision(s) left" while the draft's changes are requested (2 → 0), the final's auto-approval date while it's in review, and the primary **Submit delivery** / **Submit revised draft** / **Send final delivery** button when the creator can submit. Escalated: "In dispute" with "The business requested changes to the draft {n} times." / "This delivery was escalated to a dispute.", then "Disputes aren't available yet." The backend's `escalationReason` wording is never shown |
 | 5 | Pieces | "Your deliverables" + count chip, then one elevated card per piece: platform icon tile, "Instagram Reels · 2" (a custom piece shows its title), status badge, "Due {date}" (+ red "Overdue" and a red border while not approved or cancelled), chevron |
 
 Status badges: To deliver (`pending`), In progress, Awaiting review
@@ -78,7 +78,7 @@ deadline rows.
 ## Submit delivery screen
 
 The draft stages (`awaiting_draft`, `draft_changes_requested`) and the final
-stages (`awaiting_final`, `final_changes_requested`) can submit; any other
+stage (`awaiting_final`) can submit; any other
 stage shows "Nothing to submit right now." with **Back**.
 
 | # | Section | Content |
@@ -87,7 +87,7 @@ stage shows "Nothing to submit right now." with **Back**.
 | 2 | Intro card | Campaign title, one line of guidance, and — after changes were requested — an amber "The business asked for changes" notice with the round's reason plus "{n} revision(s) left". Hint: "Videos are shared as links. Images can be JPEG, PNG, GIF or WebP up to 5 MB." |
 | 3 | Slots | One card per non-cancelled piece: title, due date, the business's comment for that piece (amber, from the latest round), a pill **Keep previous** / **Link** / **Image** switch, the field for the chosen source, and an optional caption (≤2000). **Keep previous** is offered — and pre-selected — only when the latest round has an item for the piece; it shows the earlier link or "Uploaded image", and its caption field shows the old caption as the placeholder (left empty, the old caption is kept) |
 | 4 | Error banner | A `409` server message, a `422` form-level message, or a generic / network message |
-| 5 | Submit | **Submit delivery** / **Submit revised draft** (draft) or **Send final delivery** / **Resend final delivery** (final), disabled until every slot is ready (a full `http(s)` link ≤2048, a picked image, or a kept item; captions ≤2000) |
+| 5 | Submit | **Submit delivery** / **Submit revised draft** (draft) or **Send final delivery** (final), disabled until every slot is ready (a full `http(s)` link ≤2048, a picked image, or a kept item; captions ≤2000) |
 
 **Final mode.** A final item is always a link (`pieces[].finalKind`, set by
 the backend): there is no **Image** option, and **Keep previous** is offered
@@ -134,7 +134,7 @@ Data: CI1 (`GET /engagements/:id/deliverables`), read-only.
 |---|---|---|
 | Read the delivery | Deliverables, Submit delivery | `GET /engagements/:id/delivery` |
 | Upload an image | Submit, per image slot | `POST /media` (multipart `file`, 5 MB) → `id` |
-| Submit a round | `awaiting_draft` / `draft_changes_requested` (draft), `awaiting_final` / `final_changes_requested` (final — no `mediaId`) | `POST /engagements/:id/delivery/rounds` `{ items: [{ pieceId, externalUrl \| mediaId \| reuseItemId, caption? }] }` |
+| Submit a round | `awaiting_draft` / `draft_changes_requested` (draft), `awaiting_final` (final — no `mediaId`) | `POST /engagements/:id/delivery/rounds` `{ items: [{ pieceId, externalUrl \| mediaId \| reuseItemId, caption? }] }` |
 | Piece history | Piece | `GET /engagements/:id/deliverables` (CI1) |
 
 The per-piece `CI2` (submit), `CI3` (review) and `CI4` (record posted) were

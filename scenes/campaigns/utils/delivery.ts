@@ -16,6 +16,7 @@ import {
   validateSubmission,
 } from './deliverables';
 import { PLATFORM_LABELS } from './mapCampaignDetails';
+import { formatOfferDate } from './negotiation';
 
 // Delivery rounds (backend 18r1-18r3, delivery-round-rules.ts): every piece
 // is delivered together as one round. These helpers turn the delivery read
@@ -32,15 +33,11 @@ export function latestRound(delivery: Pick<EngagementDelivery, 'rounds'>): Deliv
 }
 
 // Why the delivery is in dispute, from the engagement's change-request
-// counts: the 2nd final or the 3rd draft change request escalates. Anything
-// else (e.g. a conversion of a per-piece escalation) gets the generic line.
-// The backend's `escalationReason` is internal wording and isn't shown.
-export function escalationCopy(
-  delivery: Pick<EngagementDelivery, 'draftChangeRequests' | 'finalChangeRequests'>,
-): string {
-  if (delivery.finalChangeRequests >= 2) {
-    return 'The business requested changes to the final delivery twice.';
-  }
+// count: the 3rd draft change request escalates (the final can't be sent
+// back). Anything else (e.g. a conversion of a per-piece escalation) gets the
+// generic line. The backend's `escalationReason` is internal wording and
+// isn't shown.
+export function escalationCopy(delivery: Pick<EngagementDelivery, 'draftChangeRequests'>): string {
   if (delivery.draftChangeRequests >= 3) {
     return `The business requested changes to the draft ${delivery.draftChangeRequests} times.`;
   }
@@ -48,10 +45,10 @@ export function escalationCopy(
 }
 
 // Which round the creator can send now: the phase follows the stage
-// (backend nextRoundPhase), and only these four stages accept a round.
+// (backend nextRoundPhase), and only these three stages accept a round.
 export function submitPhase(stage: DeliveryStage | null): DeliveryPhase | null {
   if (stage === 'awaiting_draft' || stage === 'draft_changes_requested') return 'draft';
-  if (stage === 'awaiting_final' || stage === 'final_changes_requested') return 'final';
+  if (stage === 'awaiting_final') return 'final';
   return null;
 }
 
@@ -105,9 +102,11 @@ export interface DeliveryStatusView {
 }
 
 // What the Deliverables screen shows for each stage: draft rounds, then the
-// final round (backend 18r1/18r2). Nothing says "paid" - there is no escrow
-// yet (backend item 19).
+// final round (backend 18r1/18r2). The final can't be sent back: the business
+// approves it, or it's approved automatically at its reviewDueAt (submittedAt
+// + 72 hours). Nothing says "paid" - there is no escrow yet (backend item 19).
 export function deliveryStatusView(delivery: EngagementDelivery): DeliveryStatusView | null {
+  const latest = latestRound(delivery);
   const base = {
     revisionsLeft: null,
     cta: null,
@@ -139,7 +138,7 @@ export function deliveryStatusView(delivery: EngagementDelivery): DeliveryStatus
         statusLabel: 'Changes requested',
         tone: 'warning',
         title: 'The business asked for changes',
-        body: latestRound(delivery)?.reviewReason ?? null,
+        body: latest?.reviewReason ?? null,
         revisionsLeft: formatRevisionsLeft(delivery.revisionsRemaining),
         cta: 'Submit revised draft',
       };
@@ -152,31 +151,27 @@ export function deliveryStatusView(delivery: EngagementDelivery): DeliveryStatus
         body: 'Now send the final delivery for every piece.',
         cta: 'Send final delivery',
       };
-    case 'final_in_review':
+    case 'final_in_review': {
+      const autoOn = latest?.phase === 'final' ? formatOfferDate(latest.reviewDueAt) : '';
       return {
         ...base,
         statusLabel: 'In review',
         tone: 'info',
         title: 'Final delivery submitted',
-        body: "Waiting for the business's review.",
+        body: autoOn
+          ? `Waiting for the business to approve it. If it doesn't, it's approved automatically on ${autoOn}.`
+          : 'Waiting for the business to approve it.',
       };
-    case 'final_changes_requested':
-      return {
-        ...base,
-        statusLabel: 'Changes requested',
-        tone: 'warning',
-        title: 'The business asked for changes to the final delivery',
-        body: latestRound(delivery)?.reviewReason ?? null,
-        revisionsLeft: formatRevisionsLeft(delivery.finalRevisionsRemaining),
-        cta: 'Resend final delivery',
-      };
+    }
     case 'delivered':
       return {
         ...base,
         statusLabel: 'Completed',
         tone: 'success',
         title: 'Delivered',
-        body: 'This campaign is complete.',
+        body: latest?.autoApproved
+          ? 'Your final delivery was approved automatically. This campaign is complete.'
+          : 'This campaign is complete.',
       };
     case 'escalated':
       return {

@@ -148,10 +148,11 @@ export default function SubmitDeliveryScreen() {
   }
 
   const isFinal = submitPhase(data.stage) === 'final';
-  const revising =
-    data.stage === 'draft_changes_requested' || data.stage === 'final_changes_requested';
+  // Only a draft can be sent back; the final is approve-only (backend fix
+  // 2026-10-11), so a revision budget only ever applies to the draft.
+  const revising = data.stage === 'draft_changes_requested';
   const reason = revising ? (latestRound(data)?.reviewReason ?? null) : null;
-  const revisionsLeft = isFinal ? data.finalRevisionsRemaining : data.revisionsRemaining;
+  const revisionsLeft = data.revisionsRemaining;
   const ready = slots.length > 0 && slots.every(isSlotReady);
 
   function updateSlot(index: number, patch: Partial<DeliverySlot>) {
@@ -257,9 +258,7 @@ export default function SubmitDeliveryScreen() {
             </Text>
             <Text style={[p.hintText, { color: colors.text.secondary }]}>
               {isFinal
-                ? revising
-                  ? 'Send a corrected final delivery. Keep the pieces the business was happy with.'
-                  : 'Send the final delivery. The business reviews it as one round.'
+                ? "Send the final delivery. The business approves it, or it's approved automatically 72 hours after you send it."
                 : revising
                   ? 'Send a revised draft. Keep the pieces the business was happy with.'
                   : 'Deliver every piece together. The business reviews them as one draft.'}
@@ -270,11 +269,7 @@ export default function SubmitDeliveryScreen() {
                   <Feather name="message-square" size={16} color={p.warningText.color} />
                 </View>
                 <View style={p.noticeBody}>
-                  <Text style={[p.noticeTitle, p.warningText]}>
-                    {isFinal
-                      ? 'The business asked for changes to the final delivery'
-                      : 'The business asked for changes'}
-                  </Text>
+                  <Text style={[p.noticeTitle, p.warningText]}>The business asked for changes</Text>
                   <Text style={[p.noticeText, p.warningText]}>{reason}</Text>
                 </View>
               </View>
@@ -317,9 +312,7 @@ export default function SubmitDeliveryScreen() {
           <Button
             title={
               isFinal
-                ? revising
-                  ? 'Resend final delivery'
-                  : 'Send final delivery'
+                ? 'Send final delivery'
                 : revising
                   ? 'Submit revised draft'
                   : 'Submit delivery'
