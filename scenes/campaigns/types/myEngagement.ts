@@ -21,7 +21,8 @@ export interface EngagementCampaignSummary {
   status: string;
   coverUrl: string | null;
   avatarUrl: string | null;
-  budgetAmountMinor: number | null;
+  budgetMinAmountMinor: number | null;
+  budgetMaxAmountMinor: number | null;
   currency: string;
   applicationDeadline: string | null;
   contentDeadline: string | null;

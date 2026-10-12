@@ -2,7 +2,7 @@ import { ImageSourcePropType } from 'react-native';
 import { CampaignCardProps } from '@/components/elements/CampaignCard';
 import { resolveMediaKeyOrUrl } from '@/utils/media';
 import { MyEngagementItem } from '../types/myEngagement';
-import { formatCampaignDueDate, formatCampaignPrice } from './mapCampaignFeedItem';
+import { formatCampaignDueDate, formatEngagementPrice } from './mapCampaignFeedItem';
 
 function toRemoteSource(keyOrUrl: string | null | undefined): ImageSourcePropType | null {
   const url = resolveMediaKeyOrUrl(keyOrUrl);
@@ -16,7 +16,7 @@ export type JoinedCampaignCardProps = Pick<
 
 // Maps one joined engagement (GET /me/engagements row) onto CampaignCard's
 // props. For work the creator has joined, the relevant money is the agreed
-// fee (falling back to the campaign budget before one is set) and the
+// fee (falling back to the campaign's budget range before one is set) and the
 // relevant date is when content is due (falling back to the application
 // deadline). The row's campaign summary has no business name, so the card
 // shows none.
@@ -26,10 +26,7 @@ export function mapJoinedCampaignToCard(engagement: MyEngagementItem): JoinedCam
     image: toRemoteSource(campaign?.coverUrl),
     businessAvatar: toRemoteSource(campaign?.avatarUrl),
     title: campaign?.title ?? 'Untitled campaign',
-    price: formatCampaignPrice(
-      engagement.agreedAmountMinor ?? campaign?.budgetAmountMinor ?? null,
-      engagement.currency,
-    ),
+    price: formatEngagementPrice(engagement.agreedAmountMinor, campaign, engagement.currency),
     dueDate: formatCampaignDueDate(
       campaign?.contentDeadline ?? campaign?.applicationDeadline ?? null,
     ),

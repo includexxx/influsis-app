@@ -66,7 +66,7 @@ export function BusinessRow({
   );
 }
 
-/** Brand-gradient card with the campaign budget and, for tier 2/3
+/** Brand-gradient card with the per-creator budget range and, for tier 2/3
  * campaigns, the licensing uplift the creator earns on top. */
 export function BudgetCard({
   budget,
@@ -86,7 +86,7 @@ export function BudgetCard({
       testID="campaign-details-budget">
       <View style={s.budgetGlow} />
       <View style={s.budgetGlowSmall} />
-      <Text style={s.budgetEyebrow}>CAMPAIGN BUDGET</Text>
+      <Text style={s.budgetEyebrow}>BUDGET PER CREATOR</Text>
       <Text style={s.budgetAmount} numberOfLines={1} adjustsFontSizeToFit>
         {budget}
       </Text>

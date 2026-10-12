@@ -1,9 +1,11 @@
 import { describe, expect, jest, test } from '@jest/globals';
 import { CampaignFeedItem } from '../types/campaignFeed';
 import {
+  formatCampaignBudget,
   formatCampaignDueDate,
   formatCampaignEngagementStatus,
   formatCampaignPrice,
+  formatEngagementPrice,
   mapCampaignFeedItemToCard,
 } from './mapCampaignFeedItem';
 
@@ -19,7 +21,8 @@ const baseCampaign: CampaignFeedItem = {
   status: 'live',
   coverUrl: 'https://cdn.influsis.test/campaign-1/cover.jpg',
   avatarUrl: 'https://cdn.influsis.test/campaign-1/avatar.jpg',
-  budgetAmountMinor: 50000,
+  budgetMinAmountMinor: 50000,
+  budgetMaxAmountMinor: 50000,
   currency: 'BDT',
   licensingTier: 1,
   applicationDeadline: '2026-10-01',
@@ -58,6 +61,37 @@ describe('formatCampaignPrice', () => {
 
   test('falls back to "Negotiable" when no budget is set', () => {
     expect(formatCampaignPrice(null, 'BDT')).toBe('Negotiable');
+  });
+});
+
+describe('formatCampaignBudget', () => {
+  test('formats a range as min - max', () => {
+    expect(formatCampaignBudget(600000, 1200000, 'BDT')).toBe('BDT 6,000 - 12,000');
+  });
+
+  test('formats a fixed price (min = max) as one amount', () => {
+    expect(formatCampaignBudget(750000, 750000, 'BDT')).toBe('BDT 7,500');
+  });
+
+  test('formats a zero min as "Up to" the max', () => {
+    expect(formatCampaignBudget(0, 200000, 'BDT')).toBe('Up to BDT 2,000');
+  });
+
+  test('returns Negotiable when no budget is set', () => {
+    expect(formatCampaignBudget(null, null, 'BDT')).toBe('Negotiable');
+  });
+});
+
+describe('formatEngagementPrice', () => {
+  const campaign = { budgetMinAmountMinor: 300000, budgetMaxAmountMinor: 600000 };
+
+  test("prefers the engagement's own amount", () => {
+    expect(formatEngagementPrice(450000, campaign, 'BDT')).toBe('BDT 4,500');
+  });
+
+  test("falls back to the campaign's budget range", () => {
+    expect(formatEngagementPrice(null, campaign, 'BDT')).toBe('BDT 3,000 - 6,000');
+    expect(formatEngagementPrice(undefined, null, 'BDT')).toBe('Negotiable');
   });
 });
 

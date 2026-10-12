@@ -17,7 +17,7 @@ import { ApiError } from '@/services/http';
 import { useApplyToCampaignMutation, useGetFeedCampaignQuery } from './api/campaignFeedApi';
 import { ApplyCampaignSkeleton, CampaignsEmptyState } from './components';
 import { CampaignFeedDetail } from './types/campaignFeed';
-import { formatCampaignEngagementStatus, formatCampaignPrice } from './utils/mapCampaignFeedItem';
+import { formatCampaignBudget, formatCampaignEngagementStatus } from './utils/mapCampaignFeedItem';
 import { applyDefaultValues, applySchema, ApplyValues, toApplyPayload } from './utils/applySchema';
 import { applyApplicationError } from './utils/applyErrors';
 import { ScopeItem } from './types/myEngagement';
@@ -190,7 +190,11 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
 
           <View style={recapFieldStyle}>
             <Text style={recapTextStyle}>
-              {`Budget: ${formatCampaignPrice(campaign.budgetAmountMinor, campaign.currency)}`}
+              {`Budget per creator: ${formatCampaignBudget(
+                campaign.budgetMinAmountMinor,
+                campaign.budgetMaxAmountMinor,
+                campaign.currency,
+              )}`}
             </Text>
           </View>
         </View>

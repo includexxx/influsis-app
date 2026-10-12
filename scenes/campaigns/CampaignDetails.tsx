@@ -23,9 +23,9 @@ import {
 import ApplyBar from './components/details/ApplyBar';
 import { licensingPercent } from './utils/agreement';
 import {
+  formatCampaignBudget,
   formatCampaignDueDate,
   formatCampaignEngagementStatus,
-  formatCampaignPrice,
 } from './utils/mapCampaignFeedItem';
 import {
   formatCampaignLocation,
@@ -99,7 +99,11 @@ function CampaignDetailsContent({ campaign: item }: { campaign: CampaignFeedDeta
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const budget = formatCampaignPrice(item.budgetAmountMinor, item.currency);
+  const budget = formatCampaignBudget(
+    item.budgetMinAmountMinor,
+    item.budgetMaxAmountMinor,
+    item.currency,
+  );
   const applyBy = formatCampaignDueDate(item.applicationDeadline);
   const countdown = getDeadlineCountdown(item.applicationDeadline);
   const engagementStatus = formatCampaignEngagementStatus(item.myEngagement);
@@ -217,7 +221,9 @@ function CampaignDetailsContent({ campaign: item }: { campaign: CampaignFeedDeta
 
       <ApplyBar
         budget={budget}
-        caption={item.applicationDeadline && !isClosed ? `Apply by ${applyBy}` : 'Campaign budget'}
+        caption={
+          item.applicationDeadline && !isClosed ? `Apply by ${applyBy}` : 'Budget per creator'
+        }
         label={applyLabel}
         disabled={!canApply}
         disabledIcon={isClosed && !engagementStatus ? 'lock' : 'check-circle'}

@@ -16,7 +16,8 @@ export interface CampaignFeedItem {
   status: string;
   coverUrl: string | null;
   avatarUrl: string | null;
-  budgetAmountMinor: number | null;
+  budgetMinAmountMinor: number | null;
+  budgetMaxAmountMinor: number | null;
   currency: string;
   licensingTier: 1 | 2 | 3;
   applicationDeadline: string | null;
@@ -41,7 +42,7 @@ export type CampaignFeedPlatform = 'facebook' | 'instagram' | 'tiktok' | 'youtub
 export type CampaignFeedSortColumn =
   | 'publishedAt'
   | 'applicationDeadline'
-  | 'budgetAmountMinor'
+  | 'budgetMaxAmountMinor'
   | 'createdAt';
 export type CampaignFeedSort = CampaignFeedSortColumn | `-${CampaignFeedSortColumn}`;
 
@@ -60,9 +61,10 @@ export interface CampaignFeedFilters {
   platform?: CampaignFeedPlatform;
   /** Case-insensitive exact match. */
   city?: string;
-  /** Integer minor units (poisha). Excludes campaigns with no budget set. */
+  /** Integer minor units (poisha). Matches campaigns whose budget range
+   * overlaps budgetMin..budgetMax; excludes campaigns with no budget set. */
   budgetMin?: number;
-  /** Integer minor units (poisha). Excludes campaigns with no budget set. */
+  /** Integer minor units (poisha). See `budgetMin`. */
   budgetMax?: number;
   /** `YYYY-MM-DD` - only campaigns whose application deadline is on or before it. */
   deadlineBefore?: string;
@@ -126,7 +128,8 @@ export interface CampaignFeedDetail {
   avatarUrl: string | null;
   preferredGender: 'any' | 'male' | 'female' | 'other';
   audienceLocation: string | null;
-  budgetAmountMinor: number | null;
+  budgetMinAmountMinor: number | null;
+  budgetMaxAmountMinor: number | null;
   currency: string;
   licensingTier: 1 | 2 | 3;
   appliedPromoCode: string | null;

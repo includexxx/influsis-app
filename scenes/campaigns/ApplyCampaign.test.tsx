@@ -75,7 +75,8 @@ const campaign: CampaignFeedDetail = {
   avatarUrl: null,
   preferredGender: 'any',
   audienceLocation: null,
-  budgetAmountMinor: 600000,
+  budgetMinAmountMinor: 600000,
+  budgetMaxAmountMinor: 600000,
   currency: 'BDT',
   licensingTier: 1,
   appliedPromoCode: null,
@@ -162,7 +163,7 @@ describe('<ApplyCampaign />', () => {
 
     expect(screen.getByTestId('apply-campaign-skeleton')).toBeTruthy();
     expect(await screen.findByText('New Shop Openning')).toBeTruthy();
-    expect(screen.getByText('Budget: BDT 6,000')).toBeTruthy();
+    expect(screen.getByText('Budget per creator: BDT 6,000')).toBeTruthy();
     expect(screen.getByTestId('apply-pitch')).toBeTruthy();
   });
 

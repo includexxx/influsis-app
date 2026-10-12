@@ -34,14 +34,54 @@ export function formatCampaignDueDate(date: string | null): string {
   return formatDisplayDate(year, month - 1, day);
 }
 
-export function formatCampaignPrice(budgetAmountMinor: number | null, currency: string): string {
-  if (budgetAmountMinor === null) return 'Negotiable';
-  const amount = budgetAmountMinor / 100;
-  const formattedAmount = new Intl.NumberFormat('en-US', {
+function formatMinorAmount(amountMinor: number): string {
+  const amount = amountMinor / 100;
+  return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(amount);
-  return `${currency} ${formattedAmount}`;
+}
+
+// One settled amount - an agreed fee, an offer, a proposal.
+export function formatCampaignPrice(amountMinor: number | null, currency: string): string {
+  if (amountMinor === null) return 'Negotiable';
+  return `${currency} ${formatMinorAmount(amountMinor)}`;
+}
+
+// The campaign's budget for one creator, a min-max range: `BDT 6,000 - 12,000`,
+// a single amount when both ends match (a fixed price), `Up to BDT 2,000` when
+// the min is 0, and 'Negotiable' when the business set no budget.
+export function formatCampaignBudget(
+  budgetMinAmountMinor: number | null,
+  budgetMaxAmountMinor: number | null,
+  currency: string,
+): string {
+  if (budgetMinAmountMinor === null || budgetMaxAmountMinor === null) return 'Negotiable';
+  if (budgetMinAmountMinor === budgetMaxAmountMinor) {
+    return formatCampaignPrice(budgetMaxAmountMinor, currency);
+  }
+  if (budgetMinAmountMinor === 0) {
+    return `Up to ${formatCampaignPrice(budgetMaxAmountMinor, currency)}`;
+  }
+  return `${currency} ${formatMinorAmount(budgetMinAmountMinor)} - ${formatMinorAmount(budgetMaxAmountMinor)}`;
+}
+
+// An engagement card's money: the engagement's own settled amount when there
+// is one, else the campaign's per-creator budget range.
+export function formatEngagementPrice(
+  amountMinor: number | null | undefined,
+  campaign:
+    | { budgetMinAmountMinor: number | null; budgetMaxAmountMinor: number | null }
+    | null
+    | undefined,
+  currency: string,
+): string {
+  if (amountMinor != null) return formatCampaignPrice(amountMinor, currency);
+  return formatCampaignBudget(
+    campaign?.budgetMinAmountMinor ?? null,
+    campaign?.budgetMaxAmountMinor ?? null,
+    currency,
+  );
 }
 
 // The status pill for a campaign this creator is already engaged with, so
@@ -89,7 +129,11 @@ export function mapCampaignFeedItemToCard(campaign: CampaignFeedItem): CampaignF
     businessAvatar: toRemoteSource(campaign.avatarUrl),
     businessName: campaign.businessName,
     title: campaign.title,
-    price: formatCampaignPrice(campaign.budgetAmountMinor, campaign.currency),
+    price: formatCampaignBudget(
+      campaign.budgetMinAmountMinor,
+      campaign.budgetMaxAmountMinor,
+      campaign.currency,
+    ),
     dueDate: formatCampaignDueDate(campaign.applicationDeadline),
     status: formatCampaignEngagementStatus(campaign.myEngagement),
   };

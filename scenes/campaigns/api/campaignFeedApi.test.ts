@@ -14,7 +14,8 @@ const campaign: CampaignFeedItem = {
   status: 'live',
   coverUrl: 'https://cdn.influsis.test/campaign-1/cover.jpg',
   avatarUrl: 'https://cdn.influsis.test/campaign-1/avatar.jpg',
-  budgetAmountMinor: 50000,
+  budgetMinAmountMinor: 50000,
+  budgetMaxAmountMinor: 50000,
   currency: 'BDT',
   licensingTier: 1,
   applicationDeadline: '2026-10-01',
@@ -130,7 +131,7 @@ describe('campaignFeedApi', () => {
           budgetMin: 10000,
           budgetMax: 500000,
           deadlineBefore: '2026-10-31',
-          sort: '-budgetAmountMinor',
+          sort: '-budgetMaxAmountMinor',
         }),
       )
       .unwrap();
@@ -146,7 +147,7 @@ describe('campaignFeedApi', () => {
       budgetMin: 10000,
       budgetMax: 500000,
       deadlineBefore: '2026-10-31',
-      sort: '-budgetAmountMinor',
+      sort: '-budgetMaxAmountMinor',
     });
     expect(httpClient.getUri(call)).toContain('category=food&category=lifestyle');
   });

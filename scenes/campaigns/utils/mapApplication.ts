@@ -3,7 +3,7 @@ import { CampaignCardProps } from '@/components/elements/CampaignCard';
 import { palette } from '@/theme';
 import { resolveMediaKeyOrUrl } from '@/utils/media';
 import { EngagementStatus, MyEngagementItem } from '../types/myEngagement';
-import { MONTH_LABELS, formatCampaignPrice, formatDisplayDate } from './mapCampaignFeedItem';
+import { MONTH_LABELS, formatDisplayDate, formatEngagementPrice } from './mapCampaignFeedItem';
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -55,19 +55,18 @@ export type AppliedCampaignCardProps = Pick<
 // Maps one of the creator's own applications (GET /me/engagements?origin=
 // requested row) onto CampaignCard's `applied` variant. The price is the
 // most settled amount on the thread: the agreed fee, else the newest offer,
-// else the creator's proposal, else the campaign budget.
+// else the creator's proposal, else the campaign's per-creator budget range.
 export function mapApplicationToCard(engagement: MyEngagementItem): AppliedCampaignCardProps {
   const campaign = engagement.campaign;
   const badge = STATUS_BADGES[engagement.status] ?? STATUS_BADGES.pending;
   return {
     image: toRemoteSource(campaign?.coverUrl),
     title: campaign?.title ?? 'Untitled campaign',
-    price: formatCampaignPrice(
+    price: formatEngagementPrice(
       engagement.agreedAmountMinor ??
         engagement.latestOfferAmountMinor ??
-        engagement.proposedAmountMinor ??
-        campaign?.budgetAmountMinor ??
-        null,
+        engagement.proposedAmountMinor,
+      campaign,
       engagement.currency,
     ),
     dueDate: formatAppliedDate(engagement.createdAt),
