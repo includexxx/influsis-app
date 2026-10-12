@@ -28,10 +28,11 @@ const STATUS_BADGES: Record<EngagementStatus, { label: string; color: string; te
   };
 
 // "Applied 10 Jul" from the engagement's ISO `createdAt`, read in local time.
-export function formatAppliedDate(createdAt: string): string {
+// `label` is "Invited" for a business invitation (the Completed tab mixes both).
+export function formatAppliedDate(createdAt: string, label = 'Applied'): string {
   const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) return 'Applied';
-  return `Applied ${date.getDate()} ${MONTH_LABELS[date.getMonth()]}`;
+  if (Number.isNaN(date.getTime())) return label;
+  return `${label} ${date.getDate()} ${MONTH_LABELS[date.getMonth()]}`;
 }
 
 // "Just now" / "5 min ago" / "3 h ago" / "2 d ago", then a plain date after a week.
@@ -69,7 +70,10 @@ export function mapApplicationToCard(engagement: MyEngagementItem): AppliedCampa
       campaign,
       engagement.currency,
     ),
-    dueDate: formatAppliedDate(engagement.createdAt),
+    dueDate: formatAppliedDate(
+      engagement.createdAt,
+      engagement.origin === 'invited' ? 'Invited' : 'Applied',
+    ),
     status: badge.label,
     statusColor: badge.color,
     statusTextColor: badge.textColor,

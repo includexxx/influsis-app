@@ -45,6 +45,11 @@ describe('<FeedCampaignCard />', () => {
     expect(screen.getByText('Applied')).not.toBeNull();
   });
 
+  test('shows a Completed badge when the creator already finished the campaign', () => {
+    render(<FeedCampaignCard campaign={campaign} isCompleted />);
+    expect(screen.getByText('Completed')).not.toBeNull();
+  });
+
   test('passes the campaign id to onPress', () => {
     const onPress = jest.fn();
     render(<FeedCampaignCard campaign={campaign} onPress={onPress} />);

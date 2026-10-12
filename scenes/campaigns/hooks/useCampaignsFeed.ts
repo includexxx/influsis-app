@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CAMPAIGNS_FEED_PAGE_SIZE,
+  COMPLETED_ENGAGEMENT_STATUSES,
   JOINED_ENGAGEMENT_STATUSES,
   PENDING_INVITATION_STATUSES,
   useGetCampaignsFeedPageQuery,
+  useGetMyCompletedCampaignIdsQuery,
   useGetMyEngagementsPageQuery,
 } from '../api/campaignFeedApi';
 import { CampaignFeedFilters, CampaignFeedItem, CampaignFeedPageArgs } from '../types/campaignFeed';
@@ -110,6 +112,8 @@ const REQUEST_FILTERS = {
   origin: 'invited' as const,
   engagementStatus: PENDING_INVITATION_STATUSES,
 };
+const COMPLETED_FILTERS = { engagementStatus: COMPLETED_ENGAGEMENT_STATUSES };
+const NO_COMPLETED_CAMPAIGNS: ReadonlySet<string> = new Set();
 
 // The full Campaigns screen - every live campaign with an open application
 // deadline (campaign API group CB1, GET /feed/campaigns), optionally narrowed
@@ -138,4 +142,19 @@ export function useMyApplications(): UseCampaignsFeedResult<MyEngagementItem> {
 // (GET /me/engagements?origin=invited&engagementStatus=pending&engagementStatus=countered).
 export function useCampaignRequests(): UseCampaignsFeedResult<MyEngagementItem> {
   return useCampaignFeedPages(useGetMyEngagementsPageQuery, REQUEST_FILTERS);
+}
+
+// The Applications screen's "Completed Campaigns" tab - every campaign the
+// creator finished, applied or invited
+// (GET /me/engagements?engagementStatus=completed).
+export function useCompletedCampaigns(): UseCampaignsFeedResult<MyEngagementItem> {
+  return useCampaignFeedPages(useGetMyEngagementsPageQuery, COMPLETED_FILTERS);
+}
+
+// The ids of the campaigns the creator finished, for marking them
+// "Completed" and closing Apply. Empty while loading or on error - the
+// backend accepts a second application either way, so this only guards the UI.
+export function useCompletedCampaignIds(): ReadonlySet<string> {
+  const { data } = useGetMyCompletedCampaignIdsQuery();
+  return useMemo(() => (data ? new Set(data) : NO_COMPLETED_CAMPAIGNS), [data]);
 }

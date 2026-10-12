@@ -1,5 +1,5 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-import { axiosBaseQuery } from '@/services/baseQuery';
+import { BaseQueryFn, createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery, BaseQueryArgs } from '@/services/baseQuery';
 import { ApiError } from '@/services/http';
 import {
   CampaignFeedDetail,
@@ -40,11 +40,15 @@ export const JOINED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['accepted'];
 // creator hasn't accepted or declined yet: still `pending`, or `countered`
 // (mid-negotiation), so a negotiation in progress stays reachable.
 export const PENDING_INVITATION_STATUSES: EngagementStatus[] = ['pending', 'countered'];
+// Finished work - the business approved the final delivery (or it was
+// auto-approved after 72 hours). The Applications screen's "Completed
+// Campaigns" tab, Home's "Total earned", and the "can't apply again" check.
+export const COMPLETED_ENGAGEMENT_STATUSES: EngagementStatus[] = ['completed'];
 
 // The backend's PaginationQueryDto caps `limit` at 50.
 const MAX_PAGE_SIZE = 50;
 // Stops a runaway loop if the backend ever ignores `page`.
-const MAX_EARNINGS_PAGES = 20;
+const MAX_COMPLETED_PAGES = 20;
 
 export interface CreatorEarnings {
   /** Sum of `agreedAmountMinor` across completed engagements (minor units). */
@@ -146,28 +150,31 @@ export const campaignFeedApi = createApi({
     // out. Assumes one currency (the first row's; BDT when there are none).
     getCreatorEarnings: builder.query<CreatorEarnings, void>({
       async queryFn(_arg, _api, _extraOptions, baseQuery) {
+        const result = await fetchAllCompletedEngagements(baseQuery);
+        if (result.error) return result;
+
         let totalMinor = 0;
-        let completedCount = 0;
         let currency: string | null = null;
-
-        for (let page = 1; page <= MAX_EARNINGS_PAGES; page++) {
-          const result = await baseQuery({
-            url: MY_ENGAGEMENTS_URL,
-            method: 'GET',
-            params: { page, limit: MAX_PAGE_SIZE, engagementStatus: ['completed'] },
-          });
-          if (result.error) return { error: result.error as ApiError };
-
-          const rows = result.data as MyEngagementItem[];
-          for (const row of rows) {
-            totalMinor += row.agreedAmountMinor ?? 0;
-            currency ??= row.currency;
-          }
-          completedCount += rows.length;
-          if (rows.length < MAX_PAGE_SIZE) break;
+        for (const row of result.data) {
+          totalMinor += row.agreedAmountMinor ?? 0;
+          currency ??= row.currency;
         }
-
-        return { data: { totalMinor, currency: currency ?? 'BDT', completedCount } };
+        return {
+          data: { totalMinor, currency: currency ?? 'BDT', completedCount: result.data.length },
+        };
+      },
+      providesTags: ['MyEngagements'],
+    }),
+    // The ids of every campaign the creator has finished. The backend lets a
+    // creator apply again once an engagement is `completed`, and the feed's
+    // `myEngagement` never reports one (it carries only pending/countered/
+    // accepted), so this list is what marks those campaigns "Completed" and
+    // keeps Apply closed on them.
+    getMyCompletedCampaignIds: builder.query<string[], void>({
+      async queryFn(_arg, _api, _extraOptions, baseQuery) {
+        const result = await fetchAllCompletedEngagements(baseQuery);
+        if (result.error) return result;
+        return { data: [...new Set(result.data.map(row => row.campaignId))] };
       },
       providesTags: ['MyEngagements'],
     }),
@@ -332,6 +339,27 @@ export const campaignFeedApi = createApi({
   }),
 });
 
+// Every completed engagement of the logged-in creator (GET /me/engagements?
+// engagementStatus=completed), paged at the backend's 50-row maximum.
+async function fetchAllCompletedEngagements(
+  baseQuery: (args: BaseQueryArgs) => ReturnType<BaseQueryFn<BaseQueryArgs, unknown, ApiError>>,
+): Promise<{ data: MyEngagementItem[]; error?: never } | { error: ApiError; data?: never }> {
+  const rows: MyEngagementItem[] = [];
+  for (let page = 1; page <= MAX_COMPLETED_PAGES; page++) {
+    const result = await baseQuery({
+      url: MY_ENGAGEMENTS_URL,
+      method: 'GET',
+      params: { page, limit: MAX_PAGE_SIZE, engagementStatus: COMPLETED_ENGAGEMENT_STATUSES },
+    });
+    if (result.error) return { error: result.error as ApiError };
+
+    const pageRows = result.data as MyEngagementItem[];
+    rows.push(...pageRows);
+    if (pageRows.length < MAX_PAGE_SIZE) break;
+  }
+  return { data: rows };
+}
+
 // Every negotiation mutation changes the engagement, its row in the CF2
 // lists, and the feed's "Applied" badge. Nothing is invalidated on error - the
 // Offer screen refetches explicitly after a 409.
@@ -354,6 +382,7 @@ export const {
   useGetTopJoinedCampaignsQuery,
   useGetMyEngagementsPageQuery,
   useGetCreatorEarningsQuery,
+  useGetMyCompletedCampaignIdsQuery,
   useApplyToCampaignMutation,
   useAcceptMyEngagementMutation,
   useDeclineMyEngagementMutation,

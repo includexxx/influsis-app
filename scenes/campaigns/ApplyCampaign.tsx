@@ -16,6 +16,7 @@ import OptionSheet from '@/components/elements/OptionSheet';
 import { ApiError } from '@/services/http';
 import { useApplyToCampaignMutation, useGetFeedCampaignQuery } from './api/campaignFeedApi';
 import { ApplyCampaignSkeleton, CampaignsEmptyState } from './components';
+import { useCompletedCampaignIds } from './hooks/useCampaignsFeed';
 import { CampaignFeedDetail } from './types/campaignFeed';
 import { formatCampaignBudget, formatCampaignEngagementStatus } from './utils/mapCampaignFeedItem';
 import { applyDefaultValues, applySchema, ApplyValues, toApplyPayload } from './utils/applySchema';
@@ -101,7 +102,11 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
   const { colors, palette } = useTheme();
   const [applyToCampaign] = useApplyToCampaignMutation();
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const engagementStatus = formatCampaignEngagementStatus(campaign.myEngagement);
+  const completedIds = useCompletedCampaignIds();
+  const engagementStatus = formatCampaignEngagementStatus(
+    campaign.myEngagement,
+    completedIds.has(campaign.id),
+  );
   const campaignScope = scopeFromList(campaign.deliverables ?? []);
   const objective = campaign.objective ?? null;
   // null = accept the campaign's deliverables (editor closed).
@@ -323,7 +328,8 @@ function ApplyForm({ campaign }: { campaign: CampaignFeedDetail }) {
           </Text>
         ) : null}
 
-        {/* Already applied or invited: the backend would 409 a second apply. */}
+        {/* Already applied or invited (the backend would 409 a second apply),
+            or already finished (a completed campaign can't be applied to again). */}
         <Button
           title={engagementStatus ?? 'Apply Now'}
           titleStyle={sharedButton.primaryTitle}

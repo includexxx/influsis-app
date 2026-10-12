@@ -302,6 +302,29 @@ describe('campaignFeedApi', () => {
     expect(data).toEqual({ totalMinor: 0, currency: 'BDT', completedCount: 0 });
   });
 
+  test('getMyCompletedCampaignIds returns each completed campaign once, across pages', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => {
+      const { page } = c.params as { page: number };
+      const rows =
+        page === 1
+          ? Array.from({ length: 50 }, (_, i) => ({ id: `e${i}`, campaignId: `c${i % 2}` }))
+          : [{ id: 'e50', campaignId: 'c2' }];
+      return ok(c, envelope(rows));
+    });
+
+    const data = await store
+      .dispatch(campaignFeedApi.endpoints.getMyCompletedCampaignIds.initiate())
+      .unwrap();
+
+    expect(data).toEqual(['c0', 'c1', 'c2']);
+    expect(adapter).toHaveBeenCalledTimes(2);
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/engagements');
+    expect(call.params).toEqual({ page: 1, limit: 50, engagementStatus: ['completed'] });
+  });
+
   test('a failed fetch surfaces as a result.error ApiError', async () => {
     await withToken();
     const store = makeStore();

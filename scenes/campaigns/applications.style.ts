@@ -2,7 +2,8 @@ import { StyleSheet } from 'react-native';
 import { spacing } from '@/theme';
 
 // Shared fragments for the Applications scene (scenes/campaigns/Applications.tsx,
-// Figma "List", nodes 6015:7090 "Applied" tab + 6475:6394 "Request" tab).
+// Figma "List", nodes 6015:7090 "Applied" tab + 6475:6394 "Request" tab; the
+// "Completed Campaigns" tab has no Figma frame and reuses the Applied layout).
 // Figma's own header-to-tabs gap differs slightly between the two tab
 // states (34px vs 16px, the same frame just measured twice) - `headerGap`
 // below picks a single consistent in-between value rather than switching
@@ -11,10 +12,14 @@ export const applicationsStyle = StyleSheet.create({
   headerGap: {
     marginBottom: spacing['2xl'],
   },
+  // Three chips overflow a narrow phone, so the row scrolls sideways.
+  tabScroll: {
+    flexGrow: 0,
+    marginBottom: spacing.xl,
+  },
   tabRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.xl,
   },
   // Vertical gap between "Applied" tab cards - confirmed from Figma's pixel
   // positions (cards 211px tall, 16px apart, node 6015:7090).

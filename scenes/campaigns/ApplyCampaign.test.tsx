@@ -54,9 +54,18 @@ const mockRequest = request as jest.MockedFunction<typeof request>;
 type RequestConfig = { url: string; method?: string; data?: unknown };
 
 // request() is generic over its resolved type; the mocks return plain values.
-function answerWith(handler: (cfg: RequestConfig) => unknown) {
-  mockRequest.mockImplementation((async (cfg: unknown) =>
-    handler(cfg as RequestConfig)) as typeof request);
+// The creator's completed engagements (GET /me/engagements) answer with
+// `completed` (none by default), so `handler` only sees the campaign calls.
+function answerWith(handler: (cfg: RequestConfig) => unknown, completed: unknown[] = []) {
+  mockRequest.mockImplementation((async (cfg: unknown) => {
+    const config = cfg as RequestConfig;
+    return config.url === '/me/engagements' ? completed : handler(config);
+  }) as typeof request);
+}
+
+// The requests the screen sent, minus the completed-engagements lookup.
+function campaignCalls() {
+  return mockRequest.mock.calls.filter(([cfg]) => (cfg as RequestConfig).url !== '/me/engagements');
 }
 
 const campaign: CampaignFeedDetail = {
@@ -178,7 +187,7 @@ describe('<ApplyCampaign />', () => {
 
     expect(screen.getByText('Tell the business why you are a good fit')).toBeTruthy();
     expect(screen.getByText('Enter your rate')).toBeTruthy();
-    expect(mockRequest).toHaveBeenCalledTimes(1);
+    expect(campaignCalls()).toHaveLength(1);
   });
 
   test('submits the application and shows the success sheet', async () => {
@@ -251,6 +260,18 @@ describe('<ApplyCampaign />', () => {
     expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
+  test('disables Apply when the creator already completed the campaign', async () => {
+    answerWith(
+      () => campaign,
+      [{ id: 'eng-done', campaignId: campaign.id, status: 'completed', campaign: null }],
+    );
+    renderScreen();
+
+    expect(await screen.findByText('Completed')).toBeTruthy();
+    const button = screen.getByTestId('apply-now-button');
+    expect(button.props.accessibilityState?.disabled).toBe(true);
+  });
+
   test('redirects home when the campaign is not found', async () => {
     answerWith(() => {
       throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' });
@@ -317,7 +338,7 @@ describe('<ApplyCampaign />', () => {
     await fillAndSubmit();
 
     expect(screen.getAllByText('Add at least one deliverable.').length).toBeGreaterThan(0);
-    expect(mockRequest).toHaveBeenCalledTimes(1);
+    expect(campaignCalls()).toHaveLength(1);
   });
 
   describe('objective and custom deliverables (backend 18q)', () => {

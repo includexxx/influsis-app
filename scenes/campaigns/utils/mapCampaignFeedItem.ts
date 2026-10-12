@@ -86,10 +86,13 @@ export function formatEngagementPrice(
 
 // The status pill for a campaign this creator is already engaged with, so
 // the feed shows "Applied"/"Invited" without opening the campaign. The feed
-// only returns live engagements (pending, countered, accepted); anything
-// else, or no engagement, shows no pill.
+// only returns live engagements (pending, countered, accepted); a finished
+// one never reaches it, so `isCompleted` (from useCompletedCampaignIds)
+// supplies "Completed" when there's no live engagement. Anything else shows
+// no pill. Any pill also means Apply stays closed.
 export function formatCampaignEngagementStatus(
   engagement: CampaignFeedEngagementSummary | null,
+  isCompleted = false,
 ): string | undefined {
   switch (engagement?.status) {
     case 'pending':
@@ -99,7 +102,7 @@ export function formatCampaignEngagementStatus(
     case 'accepted':
       return 'Accepted';
     default:
-      return undefined;
+      return isCompleted ? 'Completed' : undefined;
   }
 }
 
@@ -123,7 +126,10 @@ export type CampaignFeedItemCardProps = Pick<
 // facing feeds don't project), so they're left out rather than guessed.
 // The row's `avatarUrl` is the campaign's own avatar image; when it's missing
 // or broken, the card falls back to the business name's initial.
-export function mapCampaignFeedItemToCard(campaign: CampaignFeedItem): CampaignFeedItemCardProps {
+export function mapCampaignFeedItemToCard(
+  campaign: CampaignFeedItem,
+  isCompleted = false,
+): CampaignFeedItemCardProps {
   return {
     image: toRemoteSource(campaign.coverUrl),
     businessAvatar: toRemoteSource(campaign.avatarUrl),
@@ -135,6 +141,6 @@ export function mapCampaignFeedItemToCard(campaign: CampaignFeedItem): CampaignF
       campaign.currency,
     ),
     dueDate: formatCampaignDueDate(campaign.applicationDeadline),
-    status: formatCampaignEngagementStatus(campaign.myEngagement),
+    status: formatCampaignEngagementStatus(campaign.myEngagement, isCompleted),
   };
 }

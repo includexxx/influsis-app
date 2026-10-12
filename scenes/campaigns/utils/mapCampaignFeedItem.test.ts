@@ -160,4 +160,12 @@ describe('formatCampaignEngagementStatus', () => {
       formatCampaignEngagementStatus({ id: 'e1', origin: 'requested', status: 'withdrawn' }),
     ).toBeUndefined();
   });
+
+  test('labels a campaign the creator already completed', () => {
+    expect(formatCampaignEngagementStatus(null, true)).toBe('Completed');
+    // A live engagement still wins over an earlier completed one.
+    expect(
+      formatCampaignEngagementStatus({ id: 'e1', origin: 'requested', status: 'pending' }, true),
+    ).toBe('Applied');
+  });
 });

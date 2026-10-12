@@ -7,6 +7,8 @@ import { CampaignFeedItem } from '../types/campaignFeed';
 export interface FeedCampaignCardProps {
   campaign: CampaignFeedItem;
   variant?: Exclude<CampaignCardVariant, 'applied'>;
+  /** The creator already finished this campaign - shows a "Completed" pill. */
+  isCompleted?: boolean;
   onPress?: (id: string) => void;
   style?: StyleProp<ViewStyle>;
 }
@@ -16,11 +18,17 @@ export interface FeedCampaignCardProps {
 // feed screen (Home's two sections, Campaigns, Live Campaigns) renders a
 // campaign the same way instead of each spreading mapper output into the
 // generic card. Memoized since the full lists re-render on every page load.
-function FeedCampaignCard({ campaign, variant = 'list', onPress, style }: FeedCampaignCardProps) {
+function FeedCampaignCard({
+  campaign,
+  variant = 'list',
+  isCompleted = false,
+  onPress,
+  style,
+}: FeedCampaignCardProps) {
   return (
     <CampaignCard
       variant={variant}
-      {...mapCampaignFeedItemToCard(campaign)}
+      {...mapCampaignFeedItemToCard(campaign, isCompleted)}
       onPress={onPress ? () => onPress(campaign.id) : undefined}
       style={style}
       testID={`feed-campaign-${campaign.id}`}

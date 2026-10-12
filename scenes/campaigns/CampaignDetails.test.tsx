@@ -42,6 +42,13 @@ jest.mock('@/services/http', () => {
 
 const mockRequest = request as jest.MockedFunction<typeof request>;
 
+// Answers CB2 with `detail`, and the creator's completed engagements
+// (GET /me/engagements?engagementStatus=completed) with `completed`.
+function answerCampaign(detail: unknown, completed: unknown[] = []) {
+  mockRequest.mockImplementation((async (cfg: unknown) =>
+    (cfg as { url: string }).url === '/me/engagements' ? completed : detail) as typeof request);
+}
+
 const campaign: CampaignFeedDetail = {
   id: 'c37bd636-54fb-4469-9752-a3ce2cc2128c',
   businessId: '8ba43b43-fb06-4ee2-a25d-caa71f4189b5',
@@ -134,7 +141,7 @@ afterEach(() => {
 
 describe('<CampaignDetails />', () => {
   test('fetches the campaign by route id and renders its details', async () => {
-    mockRequest.mockResolvedValue(campaign);
+    answerCampaign(campaign);
     renderScreen();
 
     expect(screen.getByTestId('campaign-details-skeleton')).toBeTruthy();
@@ -165,7 +172,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('shows the campaign objective as a fact', async () => {
-    mockRequest.mockResolvedValue({ ...campaign, objective: 'brand_awareness' });
+    answerCampaign({ ...campaign, objective: 'brand_awareness' });
     renderScreen();
 
     expect(await screen.findByText('Brand Awareness')).toBeTruthy();
@@ -173,7 +180,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('hides the objective fact when the campaign predates objectives', async () => {
-    mockRequest.mockResolvedValue(campaign);
+    answerCampaign(campaign);
     renderScreen();
 
     await screen.findByText('New Shop Openning');
@@ -181,7 +188,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('renders a custom deliverable: escaped title and formatted description', async () => {
-    mockRequest.mockResolvedValue({
+    answerCampaign({
       ...campaign,
       objective: 'ugc_content',
       deliverables: [
@@ -209,7 +216,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('shows the engagement status instead of Apply when already applied', async () => {
-    mockRequest.mockResolvedValue({
+    answerCampaign({
       ...campaign,
       myEngagement: { id: 'e1', origin: 'requested', status: 'pending' },
     });
@@ -223,8 +230,27 @@ describe('<CampaignDetails />', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  test('shows Completed instead of Apply when the creator already finished it', async () => {
+    answerCampaign(campaign, [
+      { id: 'eng-done', campaignId: campaign.id, status: 'completed', campaign: null },
+    ]);
+    renderScreen();
+
+    // On the cover and in the apply bar, once the completed list arrives.
+    expect(await screen.findAllByText('Completed')).toHaveLength(2);
+    expect(screen.queryByText('Apply Now')).toBeNull();
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/me/engagements',
+        params: expect.objectContaining({ engagementStatus: ['completed'] }),
+      }),
+    );
+    fireEvent.press(screen.getByTestId('campaign-details-apply'));
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
   test('closes applications once the deadline has passed', async () => {
-    mockRequest.mockResolvedValue({ ...campaign, applicationDeadline: '2026-10-01' });
+    answerCampaign({ ...campaign, applicationDeadline: '2026-10-01' });
     renderScreen();
 
     expect(await screen.findByText('Applications closed')).toBeTruthy();
@@ -234,7 +260,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('renders brief sections by layout, licensing and audience', async () => {
-    mockRequest.mockResolvedValue({
+    answerCampaign({
       ...campaign,
       licensingTier: 2,
       ageRanges: ['18-24'],
@@ -270,7 +296,7 @@ describe('<CampaignDetails />', () => {
   });
 
   test('collapses a long description behind Read more', async () => {
-    mockRequest.mockResolvedValue({ ...campaign, description: 'Long story. '.repeat(40) });
+    answerCampaign({ ...campaign, description: 'Long story. '.repeat(40) });
     renderScreen();
 
     fireEvent.press(await screen.findByText('Read more'));

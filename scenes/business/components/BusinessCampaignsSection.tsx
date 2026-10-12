@@ -2,7 +2,10 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { businessDetailsStyle } from '../businessDetails.style';
-import { useCampaignsFeed } from '@/scenes/campaigns/hooks/useCampaignsFeed';
+import {
+  useCampaignsFeed,
+  useCompletedCampaignIds,
+} from '@/scenes/campaigns/hooks/useCampaignsFeed';
 import {
   CampaignCardSkeleton,
   CampaignsEmptyState,
@@ -52,6 +55,7 @@ function BusinessCampaignsSection({ businessId }: BusinessCampaignsSectionProps)
     loadMore,
     retry,
   } = useCampaignsFeed({ businessId });
+  const completedIds = useCompletedCampaignIds();
 
   return (
     <View testID="business-campaigns-section">
@@ -72,7 +76,12 @@ function BusinessCampaignsSection({ businessId }: BusinessCampaignsSectionProps)
       ) : (
         <View style={businessDetailsStyle.campaignListGap}>
           {campaigns.map(campaign => (
-            <FeedCampaignCard key={campaign.id} campaign={campaign} onPress={openCampaign} />
+            <FeedCampaignCard
+              key={campaign.id}
+              campaign={campaign}
+              isCompleted={completedIds.has(campaign.id)}
+              onPress={openCampaign}
+            />
           ))}
 
           {isLoadingMore ? (

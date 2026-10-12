@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, ListRenderItem, View } from 'react-native';
+import { Alert, FlatList, ListRenderItem, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -14,12 +14,23 @@ import {
   CampaignRequestCardSkeleton,
   CampaignsEmptyState,
 } from './components';
-import { useCampaignRequests, useMyApplications } from './hooks/useCampaignsFeed';
+import { CampaignsStatusVariant } from './components/CampaignsEmptyState';
+import {
+  useCampaignRequests,
+  useCompletedCampaigns,
+  useMyApplications,
+} from './hooks/useCampaignsFeed';
 import { useDeclineMyEngagementMutation } from './api/campaignFeedApi';
 import { mapApplicationToCard, mapCampaignRequestToRow } from './utils/mapApplication';
 import { MyEngagementItem } from './types/myEngagement';
 
-type ApplicationsTab = 'applied' | 'request';
+type ApplicationsTab = 'applied' | 'request' | 'completed';
+
+const TABS: { key: ApplicationsTab; label: string; empty: CampaignsStatusVariant }[] = [
+  { key: 'applied', label: 'Applied', empty: 'noApplications' },
+  { key: 'request', label: 'Request', empty: 'noRequests' },
+  { key: 'completed', label: 'Completed Campaigns', empty: 'noCompleted' },
+];
 
 const INITIAL_SKELETON_COUNT = 4;
 
@@ -52,6 +63,15 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
   />
 );
 
+const renderCompletedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
+  <CampaignCard
+    variant="applied"
+    {...mapApplicationToCard(item)}
+    onPress={() => openOffer(item)}
+    testID={`completed-campaign-${item.id}`}
+  />
+);
+
 // The Applications screen (Figma "List", node 6015:7090 "Applied" tab +
 // 6475:6394 "Request" tab) - a creator's sent applications and the
 // invitations they've received, opened from Profile's "My Applications"
@@ -68,6 +88,12 @@ const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
 // Agreement sheet up (`review=1`); Decline (CF5) answers in place, and the
 // declined invitation is hidden right away since only the current page
 // refetches on invalidation.
+//
+// "Completed Campaigns" is CF2 with `engagementStatus=completed`, applied or
+// invited alike - the campaigns the creator finished (the business approved
+// the final delivery). Its rows use the Applied card and open the same Offer
+// screen, which shows the closed agreement. A finished campaign can't be
+// applied to again (see useCompletedCampaignIds).
 export default function Applications() {
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<ApplicationsTab>('applied');
@@ -76,6 +102,7 @@ export default function Applications() {
 
   const applied = useMyApplications();
   const requests = useCampaignRequests();
+  const completed = useCompletedCampaigns();
   const [declineEngagement] = useDeclineMyEngagementMutation();
 
   const visibleRequests = useMemo(
@@ -120,28 +147,36 @@ export default function Applications() {
     [pendingId, decline],
   );
 
-  const isApplied = activeTab === 'applied';
-  const feed = isApplied ? applied : requests;
-  const Skeleton = isApplied ? AppliedSkeleton : CampaignRequestCardSkeleton;
+  // Applied and Completed share the card layout; Request has its own rows.
+  const isRequest = activeTab === 'request';
+  const feed = isRequest ? requests : activeTab === 'completed' ? completed : applied;
+  const Skeleton = isRequest ? CampaignRequestCardSkeleton : AppliedSkeleton;
+  const renderItem = isRequest
+    ? renderRequestItem
+    : activeTab === 'completed'
+      ? renderCompletedItem
+      : renderAppliedItem;
+  const emptyVariant = TABS.find(tab => tab.key === activeTab)?.empty ?? 'empty';
 
   const header = (
     <>
       <ScreenHeader title="List" onBack={() => router.back()} style={applicationsStyle.headerGap} />
 
-      <View style={applicationsStyle.tabRow}>
-        <CategoryChip
-          label="Applied"
-          selected={isApplied}
-          onPress={() => setActiveTab('applied')}
-          testID="applications-tab-applied"
-        />
-        <CategoryChip
-          label="Request"
-          selected={!isApplied}
-          onPress={() => setActiveTab('request')}
-          testID="applications-tab-request"
-        />
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={applicationsStyle.tabScroll}
+        contentContainerStyle={applicationsStyle.tabRow}>
+        {TABS.map(tab => (
+          <CategoryChip
+            key={tab.key}
+            label={tab.label}
+            selected={activeTab === tab.key}
+            onPress={() => setActiveTab(tab.key)}
+            testID={`applications-tab-${tab.key}`}
+          />
+        ))}
+      </ScrollView>
     </>
   );
 
@@ -151,7 +186,7 @@ export default function Applications() {
         <View style={[layoutStyle.screen, layoutStyle.scrollContent]}>
           {header}
           <View
-            style={isApplied ? applicationsStyle.appliedListGap : applicationsStyle.requestListGap}>
+            style={isRequest ? applicationsStyle.requestListGap : applicationsStyle.appliedListGap}>
             {Array.from({ length: INITIAL_SKELETON_COUNT }, (_, index) => (
               <Skeleton key={index} />
             ))}
@@ -160,13 +195,13 @@ export default function Applications() {
       ) : (
         <FlatList
           // Remount per tab so scroll position and end-reached state don't
-          // carry over between the two lists.
+          // carry over between the lists.
           key={activeTab}
-          data={isApplied ? applied.campaigns : visibleRequests}
+          data={isRequest ? visibleRequests : feed.campaigns}
           keyExtractor={item => item.id}
-          renderItem={isApplied ? renderAppliedItem : renderRequestItem}
+          renderItem={renderItem}
           extraData={pendingId}
-          ItemSeparatorComponent={isApplied ? AppliedSeparator : RequestSeparator}
+          ItemSeparatorComponent={isRequest ? RequestSeparator : AppliedSeparator}
           ListHeaderComponent={header}
           style={layoutStyle.screen}
           contentContainerStyle={layoutStyle.scrollContent}
@@ -177,7 +212,7 @@ export default function Applications() {
             feed.isInitialError ? (
               <CampaignsEmptyState variant="error" onRetry={feed.retry} />
             ) : (
-              <CampaignsEmptyState variant={isApplied ? 'noApplications' : 'noRequests'} />
+              <CampaignsEmptyState variant={emptyVariant} />
             )
           }
           ListFooterComponent={

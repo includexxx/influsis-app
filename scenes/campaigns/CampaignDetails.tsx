@@ -10,6 +10,7 @@ import { campaignDetailsStyle as s } from './campaignDetails.style';
 import { useGetFeedCampaignQuery } from './api/campaignFeedApi';
 import { CampaignFeedDetail } from './types/campaignFeed';
 import { CampaignDetailsSkeleton, CampaignsEmptyState } from './components';
+import { useCompletedCampaignIds } from './hooks/useCampaignsFeed';
 import CampaignCover, { GlassBackButton } from './components/details/CampaignCover';
 import { BudgetCard, BusinessRow, FactGrid, FactItem } from './components/details/CampaignSummary';
 import {
@@ -106,15 +107,20 @@ function CampaignDetailsContent({ campaign: item }: { campaign: CampaignFeedDeta
   );
   const applyBy = formatCampaignDueDate(item.applicationDeadline);
   const countdown = getDeadlineCountdown(item.applicationDeadline);
-  const engagementStatus = formatCampaignEngagementStatus(item.myEngagement);
+  const completedIds = useCompletedCampaignIds();
+  const engagementStatus = formatCampaignEngagementStatus(
+    item.myEngagement,
+    completedIds.has(item.id),
+  );
   const briefSections = getBriefSections(item.requirements);
   const audienceGroups = getAudienceGroups(item);
   // 18q - null for a campaign created before objectives existed.
   const objective = objectiveLabel(item.objective);
 
-  // Already applied or invited: show where it stands instead of a second
-  // Apply (the backend would 409 a duplicate). Past the deadline the
-  // backend 409s too, so say so up front.
+  // Already applied, invited, or finished: show where it stands instead of a
+  // second Apply (the backend would 409 a live duplicate; a finished
+  // campaign can't be applied to again). Past the deadline the backend 409s
+  // too, so say so up front.
   const isClosed = countdown?.state === 'closed';
   const canApply = !engagementStatus && !isClosed;
   const applyLabel = engagementStatus ?? (isClosed ? 'Applications closed' : 'Apply Now');

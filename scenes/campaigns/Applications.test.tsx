@@ -37,7 +37,11 @@ function answerWith(handler: (cfg: RequestConfig) => unknown) {
     handler(cfg as RequestConfig)) as typeof request);
 }
 
-type RequestConfig = { url: string; method?: string; params?: { origin?: string } };
+type RequestConfig = {
+  url: string;
+  method?: string;
+  params?: { origin?: string; engagementStatus?: string[] };
+};
 
 function engagement(overrides: Partial<MyEngagementItem>): MyEngagementItem {
   return {
@@ -77,10 +81,23 @@ const invitation = engagement({
   campaign: { ...application.campaign!, title: 'Pathao Summer Push' },
 });
 
-// Answers each GET /me/engagements by `origin`.
-function mockLists({ applied, invited }: { applied: unknown; invited: unknown }) {
+// Answers each GET /me/engagements by `origin`, or by `engagementStatus` for
+// the Completed tab.
+function mockLists({
+  applied,
+  invited,
+  completed = [],
+}: {
+  applied: unknown;
+  invited: unknown;
+  completed?: unknown;
+}) {
   answerWith(({ params }) => {
-    const result = params?.origin === 'invited' ? invited : applied;
+    const result = params?.engagementStatus?.includes('completed')
+      ? completed
+      : params?.origin === 'invited'
+        ? invited
+        : applied;
     if (result instanceof Error) throw result;
     return result;
   });
@@ -226,6 +243,48 @@ describe('<Applications />', () => {
       }),
     );
     expect(await screen.findByText('No campaign requests')).toBeTruthy();
+  });
+
+  test('the Completed Campaigns tab lists finished campaigns and opens their Offer screen', async () => {
+    const finished = engagement({
+      id: 'done-1',
+      origin: 'invited',
+      status: 'completed',
+      agreedAmountMinor: 500000,
+      campaign: { ...application.campaign!, title: 'Daraz Eid Sale' },
+    });
+    mockLists({ applied: [application], invited: [], completed: [finished] });
+    renderScreen();
+    await screen.findByText('Bkash Branding Campaign');
+
+    fireEvent.press(screen.getByTestId('applications-tab-completed'));
+
+    expect(await screen.findByText('Daraz Eid Sale')).toBeTruthy();
+    expect(screen.getByText('Completed')).toBeTruthy();
+    expect(screen.getByText('Invited 10 Jul')).toBeTruthy();
+    expect(screen.queryByText('Bkash Branding Campaign')).toBeNull();
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/me/engagements',
+        params: expect.objectContaining({ engagementStatus: ['completed'], page: 1 }),
+      }),
+    );
+
+    fireEvent.press(screen.getByTestId('completed-campaign-done-1'));
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: '/engagement/[id]',
+      params: { id: 'done-1', title: 'Daraz Eid Sale' },
+    });
+  });
+
+  test('shows an empty state on the Completed Campaigns tab when nothing is finished', async () => {
+    mockLists({ applied: [application], invited: [] });
+    renderScreen();
+    await screen.findByText('Bkash Branding Campaign');
+
+    fireEvent.press(screen.getByTestId('applications-tab-completed'));
+
+    expect(await screen.findByText('No completed campaigns yet')).toBeTruthy();
   });
 
   test('shows a retryable error state when the list fails to load', async () => {

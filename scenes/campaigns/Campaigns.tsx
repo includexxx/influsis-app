@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { FlatList, ListRenderItem, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -6,7 +7,7 @@ import { layoutStyle } from '@/styles';
 import { campaignsStyle } from './campaigns.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import { CampaignCardSkeleton, CampaignsEmptyState, FeedCampaignCard } from './components';
-import { useCampaignsFeed } from './hooks/useCampaignsFeed';
+import { useCampaignsFeed, useCompletedCampaignIds } from './hooks/useCampaignsFeed';
 import { CampaignFeedItem } from './types/campaignFeed';
 
 const INITIAL_SKELETON_COUNT = 4;
@@ -15,10 +16,6 @@ const INITIAL_SKELETON_COUNT = 4;
 function openCampaign(id: string) {
   router.push(`/campaign/${id}`);
 }
-
-const renderItem: ListRenderItem<CampaignFeedItem> = ({ item }) => (
-  <FeedCampaignCard campaign={item} onPress={openCampaign} />
-);
 
 // The Campaigns screen (Figma "All Campaigns", node 6010:17065), pushed from
 // the Home tab's "Campaigns" section "See all" link
@@ -41,6 +38,18 @@ export default function Campaigns() {
     loadMore,
     retry,
   } = useCampaignsFeed();
+  const completedIds = useCompletedCampaignIds();
+
+  const renderItem: ListRenderItem<CampaignFeedItem> = useCallback(
+    ({ item }) => (
+      <FeedCampaignCard
+        campaign={item}
+        isCompleted={completedIds.has(item.id)}
+        onPress={openCampaign}
+      />
+    ),
+    [completedIds],
+  );
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -64,6 +73,7 @@ export default function Campaigns() {
             data={campaigns}
             keyExtractor={item => item.id}
             renderItem={renderItem}
+            extraData={completedIds}
             style={layoutStyle.screen}
             contentContainerStyle={campaignsStyle.listGap}
             showsVerticalScrollIndicator={false}

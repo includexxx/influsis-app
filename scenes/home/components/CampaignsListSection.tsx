@@ -10,6 +10,7 @@ import {
   CampaignsEmptyState,
   FeedCampaignCard,
 } from '@/scenes/campaigns/components';
+import { useCompletedCampaignIds } from '@/scenes/campaigns/hooks/useCampaignsFeed';
 import { CampaignFeedFilters } from '@/scenes/campaigns/types/campaignFeed';
 
 export interface CampaignsListSectionProps {
@@ -38,6 +39,7 @@ function CampaignsListSection({
   // shows skeletons instead of the previous filter's campaigns.
   const isLoading = isFetching && !currentData;
   const campaigns = currentData ?? [];
+  const completedIds = useCompletedCampaignIds();
 
   return (
     <View>
@@ -58,7 +60,12 @@ function CampaignsListSection({
                 <CampaignCardSkeleton key={index} variant="list" />
               ))
             : campaigns.map(item => (
-                <FeedCampaignCard key={item.id} campaign={item} onPress={onCampaignPress} />
+                <FeedCampaignCard
+                  key={item.id}
+                  campaign={item}
+                  isCompleted={completedIds.has(item.id)}
+                  onPress={onCampaignPress}
+                />
               ))}
         </View>
       )}

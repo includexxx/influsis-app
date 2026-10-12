@@ -10,6 +10,7 @@ export type CampaignsStatusVariant =
   | 'noBusinessCampaigns'
   | 'noApplications'
   | 'noRequests'
+  | 'noCompleted'
   | 'error';
 
 export interface CampaignsEmptyStateProps {
@@ -39,6 +40,10 @@ const COPY: Record<CampaignsStatusVariant, { title: string; description: string 
   noRequests: {
     title: 'No campaign requests',
     description: 'When a business invites you to join a campaign, it will show up here.',
+  },
+  noCompleted: {
+    title: 'No completed campaigns yet',
+    description: 'Campaigns show up here once the business approves your final delivery.',
   },
   error: {
     title: 'Something went wrong',
