@@ -7,6 +7,7 @@ import {
   CreatorReviewsPageArgs,
   ProfileReview,
 } from '../types/creatorDirectory';
+import { PublicPortfolioEntry } from '@/scenes/campaigns/types/portfolio';
 
 // Home's "Top Rated Creator" row preview (TopRatedCreatorsSection).
 export const CREATORS_PREVIEW_LIMIT = 6;
@@ -22,7 +23,7 @@ export const CREATORS_PAGE_SIZE = 10;
 export const creatorDirectoryApi = createApi({
   reducerPath: 'creatorDirectoryApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CreatorDirectory', 'CreatorProfile', 'CreatorReviews'],
+  tagTypes: ['CreatorDirectory', 'CreatorProfile', 'CreatorReviews', 'CreatorCampaignPortfolio'],
   endpoints: builder => ({
     getTopCreators: builder.query<CreatorDirectoryItem[], { limit: number }>({
       query: ({ limit }) => ({
@@ -64,6 +65,20 @@ export const creatorDirectoryApi = createApi({
       }),
       providesTags: (_result, _error, { userId }) => [{ type: 'CreatorReviews', id: userId }],
     }),
+    // Campaign API CK5 (backend 23c) - another creator's public Campaign
+    // work: completed campaigns they haven't hidden, newest first. Public,
+    // and 404s exactly when E4 does.
+    getCreatorCampaignPortfolioPage: builder.query<PublicPortfolioEntry[], CreatorReviewsPageArgs>({
+      query: ({ userId, page, limit }) => ({
+        url: `/creator-profiles/${encodeURIComponent(userId)}/campaign-portfolio`,
+        method: 'GET',
+        params: { page, limit },
+        skipAuth: true,
+      }),
+      providesTags: (_result, _error, { userId }) => [
+        { type: 'CreatorCampaignPortfolio', id: userId },
+      ],
+    }),
   }),
 });
 
@@ -72,4 +87,5 @@ export const {
   useGetCreatorsDirectoryPageQuery,
   useGetCreatorProfileQuery,
   useGetCreatorReviewsPageQuery,
+  useGetCreatorCampaignPortfolioPageQuery,
 } = creatorDirectoryApi;

@@ -1,4 +1,5 @@
 import { View, Text, ScrollView } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -7,7 +8,12 @@ import { businessDetailsStyle } from './businessDetails.style';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Image from '@/components/elements/Image';
 import FallbackImage from '@/components/elements/FallbackImage';
-import { useGetBusinessProfileQuery } from './api/businessDirectoryApi';
+import {
+  useGetBusinessProfileQuery,
+  useGetBusinessReviewsPageQuery,
+} from './api/businessDirectoryApi';
+import ReviewsList from '@/scenes/profile/components/ReviewsList';
+import { businessRatingSummary } from './utils/businessReputation';
 import {
   BusinessAvatar,
   BusinessCampaignsSection,
@@ -31,7 +37,10 @@ const globeIcon = require('@/assets/images/business-details/globe.png');
 // endpoint doesn't project the business's campaigns, so the "Ongoing
 // Campaign" section below it loads them separately from the creator feed
 // narrowed to this business (GET /feed/campaigns?businessId=) - see
-// components/BusinessCampaignsSection.tsx.
+// components/BusinessCampaignsSection.tsx. Backend 23b adds the rating
+// summary under the description (E2 `reputation`) and "Reviews from
+// creators" (CK4) after the campaigns, so a creator can judge a business
+// before applying.
 export default function BusinessDetails() {
   const { colors, palette } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -111,7 +120,27 @@ export default function BusinessDetails() {
                 </Text>
               )}
 
+              {business.reputation ? (
+                <View style={businessDetailsStyle.ratingRow} testID="business-rating-summary">
+                  <Feather name="star" size={16} color={palette.warning[500]} />
+                  <Text style={[businessDetailsStyle.ratingText, { color: colors.text.primary }]}>
+                    {businessRatingSummary(business.reputation)}
+                  </Text>
+                </View>
+              ) : null}
+
               <BusinessCampaignsSection businessId={id} />
+
+              <Text style={[businessDetailsStyle.sectionTitle, { color: colors.text.primary }]}>
+                Reviews from creators
+              </Text>
+              <ReviewsList
+                useQuery={useGetBusinessReviewsPageQuery}
+                args={{ userId: id }}
+                reviewer="creator"
+                emptyText="No reviews from creators yet."
+                testIDPrefix="business"
+              />
             </View>
           </>
         )}

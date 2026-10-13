@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks';
 import { getShadowStyle, palette, radius } from '@/theme';
 import type { ViewMode } from '@/components/elements/ViewModeToggle';
 import { formatCategory, visibleCategories } from '@/utils/categories';
+import { reputationBrief } from '@/scenes/profile/utils/reputation';
 import { formatMemberSince } from '@/scenes/home/utils/earningsCard';
 import { CreatorDirectoryItem } from '../types/creatorDirectory';
 import { formatCreatorLocation } from '../utils/creatorLocation';
@@ -110,7 +111,21 @@ function CreatorDirectoryCard({
     </View>
   ) : null;
 
-  const label = [creator.displayName, verified ? 'verified' : null, location]
+  // Backend 23b: the directory row's rating brief, when the backend sends it.
+  const brief = creator.reputation ? reputationBrief(creator.reputation) : null;
+  const ratingRow = brief ? (
+    <View style={styles.metaRow} testID={`creator-card-rating-${creator.userId}`}>
+      <Feather name="star" size={12} color={palette.warning[500]} />
+      <Text style={[styles.meta, { color: colors.text.secondary }]}>{brief.text}</Text>
+    </View>
+  ) : null;
+
+  const label = [
+    creator.displayName,
+    verified ? 'verified' : null,
+    location,
+    brief?.accessibilityLabel,
+  ]
     .filter(Boolean)
     .join(', ');
 
@@ -132,6 +147,7 @@ function CreatorDirectoryCard({
           {avatar}
           {name}
           {locationRow}
+          {ratingRow}
           {creator.categories[0] ? (
             <View style={styles.chip}>
               <Text style={styles.chipText} numberOfLines={1}>
@@ -141,7 +157,17 @@ function CreatorDirectoryCard({
           ) : null}
         </>
       ) : (
-        <StackBody creator={creator} avatar={avatar} name={name} locationRow={locationRow} />
+        <StackBody
+          creator={creator}
+          avatar={avatar}
+          name={name}
+          metaRows={
+            <>
+              {locationRow}
+              {ratingRow}
+            </>
+          }
+        />
       )}
     </Pressable>
   );
@@ -151,12 +177,13 @@ function StackBody({
   creator,
   avatar,
   name,
-  locationRow,
+  metaRows,
 }: {
   creator: CreatorDirectoryItem;
   avatar: ReactNode;
   name: ReactNode;
-  locationRow: ReactNode;
+  /** Location and rating lines under the name. */
+  metaRows: ReactNode;
 }) {
   const { colors } = useTheme();
   const { shown, extra } = visibleCategories(creator.categories, 3);
@@ -168,7 +195,7 @@ function StackBody({
         {avatar}
         <View style={styles.stackBody}>
           {name}
-          {locationRow}
+          {metaRows}
           {since ? (
             <View style={styles.metaRow}>
               <Feather name="calendar" size={12} color={colors.text.secondary} />

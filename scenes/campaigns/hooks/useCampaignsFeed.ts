@@ -22,7 +22,7 @@ export interface UseCampaignsFeedResult<T = CampaignFeedItem> {
   retry: () => void;
 }
 
-type UseFeedPageQuery<T, F extends object> = (args: CampaignFeedPageArgs & F) => {
+export type UseFeedPageQuery<T, F extends object> = (args: CampaignFeedPageArgs & F) => {
   currentData?: T[];
   isFetching: boolean;
   isError: boolean;

@@ -5,6 +5,7 @@ import {
   BusinessDirectoryPageArgs,
   BusinessProfilePublic,
 } from '../types/businessDirectory';
+import { CreatorReviewsPageArgs, ProfileReview } from '@/scenes/creator/types/creatorDirectory';
 
 // Home's "Business" logo row preview (BusinessLogosSection).
 export const BUSINESSES_PREVIEW_LIMIT = 6;
@@ -20,7 +21,7 @@ export const BUSINESSES_PAGE_SIZE = 12;
 export const businessDirectoryApi = createApi({
   reducerPath: 'businessDirectoryApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['BusinessDirectory', 'BusinessProfile'],
+  tagTypes: ['BusinessDirectory', 'BusinessProfile', 'BusinessReviews'],
   endpoints: builder => ({
     getTopBusinesses: builder.query<BusinessDirectoryItem[], { limit: number }>({
       query: ({ limit }) => ({
@@ -50,6 +51,18 @@ export const businessDirectoryApi = createApi({
       }),
       providesTags: (_result, _error, { userId }) => [{ type: 'BusinessProfile', id: userId }],
     }),
+    // Campaign API CK4 (backend 23b) - reviews creators wrote about the
+    // business, visible and not hidden, newest first. Public; 404 for an
+    // unknown id or a non-business.
+    getBusinessReviewsPage: builder.query<ProfileReview[], CreatorReviewsPageArgs>({
+      query: ({ userId, page, limit }) => ({
+        url: `/business-profiles/${encodeURIComponent(userId)}/reviews`,
+        method: 'GET',
+        params: { page, limit },
+        skipAuth: true,
+      }),
+      providesTags: (_result, _error, { userId }) => [{ type: 'BusinessReviews', id: userId }],
+    }),
   }),
 });
 
@@ -57,4 +70,5 @@ export const {
   useGetTopBusinessesQuery,
   useGetBusinessesDirectoryPageQuery,
   useGetBusinessProfileQuery,
+  useGetBusinessReviewsPageQuery,
 } = businessDirectoryApi;

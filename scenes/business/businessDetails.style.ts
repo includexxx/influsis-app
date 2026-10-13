@@ -68,6 +68,19 @@ export const businessDetailsStyle = StyleSheet.create({
     lineHeight: 24,
     marginTop: 12,
   },
+  // Backend 23b rating summary under the description.
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  ratingText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '500',
+  },
   sectionTitle: {
     fontSize: 16,
     lineHeight: 30,

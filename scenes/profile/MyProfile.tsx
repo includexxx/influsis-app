@@ -7,7 +7,11 @@ import { creatorProfileStyle } from '@/scenes/creator/creatorProfile.style';
 import { myProfileStyle } from './myProfile.style';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { useAuthSlice } from '@/slices/auth.slice';
-import { useGetCreatorProfileQuery } from '@/scenes/creator/api/creatorDirectoryApi';
+import {
+  useGetCreatorProfileQuery,
+  useGetCreatorReviewsPageQuery,
+} from '@/scenes/creator/api/creatorDirectoryApi';
+import { useGetMyCampaignPortfolioPageQuery } from '@/scenes/campaigns/api/campaignFeedApi';
 import { isCreatorProfileResponse } from '@/types';
 import { profileSubmitErrorMessage } from '@/utils/profileErrors';
 import { CONTENT_CATEGORY_OPTIONS, SUBCATEGORIES_BY_CATEGORY } from '@/data/contentCategories';
@@ -30,11 +34,15 @@ import {
 } from './components/ProfileSections';
 import { capitalize } from './utils/profileDisplay';
 import { profileStats } from './utils/reputation';
-import MyReviewsSection from './components/MyReviewsSection';
-import CampaignWorkSection from './components/CampaignWorkSection';
+import ReviewsList from './components/ReviewsList';
+import CampaignWorkList from './components/CampaignWorkList';
 import { ProfileNote } from './components/ProfileNote';
 
 const avatarImage = require('@/assets/images/account/avatar.png');
+
+// CK6 takes no arguments beyond the page; a stable object keeps its paging
+// from restarting on every render.
+const NO_ARGS = {};
 
 // Every subcategory value across every category, flattened once for lookup —
 // a stored value doesn't carry which category it came from.
@@ -261,7 +269,14 @@ export default function MyProfile() {
 
           <Section icon="message-square" label="Reviews">
             {showsReputation ? (
-              <MyReviewsSection userId={userId} />
+              <ReviewsList
+                useQuery={useGetCreatorReviewsPageQuery}
+                args={{ userId }}
+                reviewer="business"
+                emptyText="No reviews yet. Reviews appear once a business's review of you is visible."
+                errorText="Couldn't load your reviews."
+                testIDPrefix="my-profile"
+              />
             ) : (
               <ProfileNote
                 icon="eye-off"
@@ -272,7 +287,13 @@ export default function MyProfile() {
           </Section>
 
           <Section icon="briefcase" label="Campaign work">
-            <CampaignWorkSection />
+            <CampaignWorkList
+              useQuery={useGetMyCampaignPortfolioPageQuery}
+              args={NO_ARGS}
+              editable
+              emptyText="Your completed campaigns will show up here."
+              errorText="Couldn't load your campaign work."
+            />
           </Section>
 
           <LocationCard rows={locationRows} />

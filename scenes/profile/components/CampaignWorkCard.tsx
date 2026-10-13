@@ -8,7 +8,7 @@ import Image from '@/components/elements/Image';
 import StarRating from '@/components/elements/StarRating';
 import Toggle from '@/components/elements/Toggle';
 import { useSetPortfolioEntryHiddenMutation } from '@/scenes/campaigns/api/campaignFeedApi';
-import { PortfolioEntry } from '@/scenes/campaigns/types/portfolio';
+import { PortfolioEntry, PublicPortfolioEntry } from '@/scenes/campaigns/types/portfolio';
 import { formatOfferDate } from '@/scenes/campaigns/utils/negotiation';
 import { myProfileStyle as s } from '../myProfile.style';
 import { portfolioPieceView } from '../utils/campaignWork';
@@ -17,39 +17,31 @@ const starIcon = require('@/assets/images/profile/star-rating.png');
 
 const GENERIC = 'Something went wrong. Please try again.';
 
-// One "Campaign work" entry on My Profile (backend 23c CK6): a completed
-// campaign with what was delivered and the business's review once visible.
-// The toggle hides it from the public profile (CK7) - the change shows at
-// once and is undone, with the server's reason, if the request fails. A UGC
+// One "Campaign work" entry (backend 23c): a completed campaign with what was
+// delivered and the business's review once visible. In the owner's view
+// (`editable`, My Profile, CK6) the toggle hides it from the public profile
+// (CK7) - the change shows at once and is undone, with the server's reason,
+// if the request fails. Another creator's entries (CK5) are read-only. A UGC
 // file link is never returned, so those pieces say the files were delivered
 // privately. Text is plain; only http(s) live-post links open.
-function CampaignWorkCard({ entry }: { entry: PortfolioEntry }) {
+function CampaignWorkCard({
+  entry,
+  editable,
+}: {
+  entry: PortfolioEntry | PublicPortfolioEntry;
+  editable: boolean;
+}) {
   const { colors, palette } = useTheme();
-  const [setHidden] = useSetPortfolioEntryHiddenMutation();
-  const [pending, setPending] = useState(false);
   const cover = resolveMediaUrl(entry.campaign.coverUrl);
   const testID = `campaign-work-${entry.engagementId}`;
-
-  async function toggle() {
-    setPending(true);
-    try {
-      await setHidden({ engagementId: entry.engagementId, hidden: !entry.hidden }).unwrap();
-    } catch (err) {
-      Alert.alert(
-        "Couldn't update",
-        err instanceof ApiError && err.message ? err.message : GENERIC,
-      );
-    } finally {
-      setPending(false);
-    }
-  }
+  const hidden = editable && 'hidden' in entry && entry.hidden;
 
   return (
     <View
       style={[
         s.workCard,
         { backgroundColor: colors.card, borderColor: colors.border },
-        entry.hidden && s.workCardHidden,
+        hidden && s.workCardHidden,
       ]}
       testID={testID}>
       {cover ? (
@@ -95,7 +87,7 @@ function CampaignWorkCard({ entry }: { entry: PortfolioEntry }) {
               icon={starIcon}
               starSize={16}
               label={`${entry.review.rating}/5`}
-              accessibilityLabel={`${entry.business.displayName} rated you ${entry.review.rating} out of 5 stars`}
+              accessibilityLabel={`${entry.business.displayName} rated this work ${entry.review.rating} out of 5 stars`}
             />
             <Text style={[s.workPieceLabel, { color: colors.text.primary }]}>
               {entry.review.message}
@@ -103,23 +95,59 @@ function CampaignWorkCard({ entry }: { entry: PortfolioEntry }) {
           </View>
         ) : null}
 
-        <View style={s.workToggleRow}>
-          <Text
-            style={[
-              entry.hidden ? s.workHiddenNote : s.workMeta,
-              { color: colors.text.secondary },
-            ]}>
-            {entry.hidden ? 'Hidden from your public profile' : 'Show on public profile'}
-          </Text>
-          <Toggle
-            value={!entry.hidden}
-            onPress={toggle}
-            disabled={pending}
-            accessibilityLabel="Show on public profile"
+        {editable ? (
+          <VisibilityToggle
+            engagementId={entry.engagementId}
+            hidden={hidden}
             testID={`${testID}-toggle`}
           />
-        </View>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+// The owner's Hide/Show switch (CK7). Only My Profile renders it, so the
+// read-only card never needs the campaign API.
+function VisibilityToggle({
+  engagementId,
+  hidden,
+  testID,
+}: {
+  engagementId: string;
+  hidden: boolean;
+  testID: string;
+}) {
+  const { colors } = useTheme();
+  const [setHidden] = useSetPortfolioEntryHiddenMutation();
+  const [pending, setPending] = useState(false);
+
+  async function toggle() {
+    setPending(true);
+    try {
+      await setHidden({ engagementId, hidden: !hidden }).unwrap();
+    } catch (err) {
+      Alert.alert(
+        "Couldn't update",
+        err instanceof ApiError && err.message ? err.message : GENERIC,
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <View style={s.workToggleRow}>
+      <Text style={[hidden ? s.workHiddenNote : s.workMeta, { color: colors.text.secondary }]}>
+        {hidden ? 'Hidden from your public profile' : 'Show on public profile'}
+      </Text>
+      <Toggle
+        value={!hidden}
+        onPress={toggle}
+        disabled={pending}
+        accessibilityLabel="Show on public profile"
+        testID={testID}
+      />
     </View>
   );
 }

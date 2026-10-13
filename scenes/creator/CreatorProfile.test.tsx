@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import { ReactNode } from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { ApiError, request } from '@/services/http';
 import { creatorDirectoryApi } from './api/creatorDirectoryApi';
@@ -10,7 +10,7 @@ import { CreatorProfilePublic } from './types/creatorDirectory';
 import CreatorProfile from './CreatorProfile';
 
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), back: jest.fn() },
+  router: { push: (...args: unknown[]) => mockPush(...args), back: jest.fn() },
   useLocalSearchParams: () => ({ id: '09fb1827-642a-4a17-99a3-1aa6765d8d07' }),
   Redirect: ({ href }: { href: string }) => {
     const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -32,6 +32,7 @@ jest.mock('@/services/http', () => {
 });
 
 const mockRequest = request as jest.MockedFunction<typeof request>;
+const mockPush = jest.fn();
 
 const creator: CreatorProfilePublic = {
   userId: '09fb1827-642a-4a17-99a3-1aa6765d8d07',
@@ -51,6 +52,36 @@ const creator: CreatorProfilePublic = {
   verificationStatus: 'verified',
   handle: 'ayesha',
   createdAt: '2026-08-13T12:00:00.000Z',
+};
+
+const PROFILE_URL = `/creator-profiles/${creator.userId}`;
+
+// Answers E4 with `profile`, CK3 with `reviews` and CK5 with `work`.
+function answer(profile: unknown, reviews: unknown[] = [], work: unknown[] = []) {
+  mockRequest.mockImplementation((async (cfg: unknown) => {
+    const { url } = cfg as { url: string };
+    if (url === `${PROFILE_URL}/reviews`) return reviews;
+    if (url === `${PROFILE_URL}/campaign-portfolio`) return work;
+    return profile;
+  }) as typeof request);
+}
+
+const review = {
+  id: 'r1',
+  rating: 5,
+  message: 'Delivered ahead of schedule.',
+  submittedAt: '2026-10-15T10:00:00.000Z',
+  reviewer: { userId: 'b1', displayName: 'Bkash Ltd.', handle: 'bkash', avatarUrl: null },
+  campaign: { id: 'c1', title: 'Bkash Eid Campaign' },
+};
+
+const workEntry = {
+  engagementId: 'e1',
+  completedAt: '2026-10-14T09:05:00.000Z',
+  campaign: { id: 'c1', title: 'Pathao Summer Push', objective: null, coverUrl: null },
+  business: { userId: 'b2', displayName: 'Pathao Ltd.', handle: 'pathao', avatarUrl: null },
+  pieces: [],
+  review: null,
 };
 
 let store: ReturnType<typeof makeStore>;
@@ -73,6 +104,7 @@ function renderScreen() {
 beforeEach(() => {
   jest.useFakeTimers();
   mockRequest.mockReset();
+  mockPush.mockReset();
 });
 
 afterEach(() => {
@@ -83,7 +115,7 @@ afterEach(() => {
 
 describe('<CreatorProfile />', () => {
   test('shows a skeleton, then the full public profile', async () => {
-    mockRequest.mockResolvedValue(creator);
+    answer(creator);
     renderScreen();
 
     expect(screen.getByTestId('creator-profile-skeleton')).toBeTruthy();
@@ -106,7 +138,7 @@ describe('<CreatorProfile />', () => {
   });
 
   test('hides sections the creator has left empty', async () => {
-    mockRequest.mockResolvedValue({
+    answer({
       ...creator,
       subcategories: [],
       languages: [],
@@ -142,5 +174,75 @@ describe('<CreatorProfile />', () => {
     renderScreen();
 
     expect(await screen.findByText('redirect:/home')).toBeTruthy();
+  });
+
+  describe('reputation, reviews and campaign work (37c)', () => {
+    test('shows the rating and completed projects from reputation', async () => {
+      answer({
+        ...creator,
+        reputation: { averageRating: 4.5, reviewCount: 12, completedEngagements: 14 },
+      });
+      renderScreen();
+
+      expect(await screen.findByText('4.5')).toBeTruthy();
+      expect(screen.getByText('14')).toBeTruthy();
+    });
+
+    test('says "New" with no ratings yet', async () => {
+      answer({
+        ...creator,
+        reputation: { averageRating: null, reviewCount: 0, completedEngagements: 2 },
+      });
+      renderScreen();
+
+      expect(await screen.findByText('New')).toBeTruthy();
+      expect(screen.getByText('No ratings yet')).toBeTruthy();
+    });
+
+    test('lists reviews; a business reviewer opens their page', async () => {
+      answer(creator, [review]);
+      renderScreen();
+
+      fireEvent.press(await screen.findByTestId('creator-profile-reviewer-r1'));
+      expect(mockPush).toHaveBeenCalledWith('/business/b1');
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ url: `${PROFILE_URL}/reviews`, params: { page: 1, limit: 10 } }),
+      );
+    });
+
+    test('a "Former Influsis member" reviewer is not tappable', async () => {
+      answer(creator, [
+        {
+          ...review,
+          reviewer: {
+            userId: 'gone',
+            displayName: 'Former Influsis member',
+            handle: null,
+            avatarUrl: null,
+          },
+        },
+      ]);
+      renderScreen();
+
+      expect(await screen.findByText('Former Influsis member')).toBeTruthy();
+      expect(screen.queryByTestId('creator-profile-reviewer-r1')).toBeNull();
+    });
+
+    test('lists campaign work without a hide toggle', async () => {
+      answer(creator, [], [workEntry]);
+      renderScreen();
+
+      expect(await screen.findByTestId('campaign-work-e1')).toBeTruthy();
+      expect(screen.getByText('Pathao Summer Push')).toBeTruthy();
+      expect(screen.queryByTestId('campaign-work-e1-toggle')).toBeNull();
+    });
+
+    test('shows the empty states', async () => {
+      answer(creator);
+      renderScreen();
+
+      expect(await screen.findByText('No reviews yet.')).toBeTruthy();
+      expect(screen.getByText('No campaign work to show yet.')).toBeTruthy();
+    });
   });
 });

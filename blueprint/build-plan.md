@@ -431,7 +431,7 @@ creator can hide entries; UGC file links are never shown. Design and contract:
 app's part). Backend 23a-23c are planned, not built. The business side is
 `web` item 47.
 
-- [ ] 37. **Reviews, testimonials and campaign portfolio (backend 23 `CK1`-`CK8`)** -
+- [x] 37. **Reviews, testimonials and campaign portfolio (backend 23 `CK1`-`CK8`)** -
       the creator rates the business after a campaign completes, manages their
       campaign portfolio, and sees real ratings and reviews on profiles
       instead of mock data. Validated 2026-10-12 against the shipped backend
@@ -478,7 +478,7 @@ app's part). Backend 23a-23c are planned, not built. The business side is
         discoverability. `CK7` sends `{ hidden }`; repeating the current value
         is a no-op, `404` means not this creator's engagement and `409`
         "Only completed campaigns are in your portfolio." reverts the toggle.
-  - [ ] 37c. **Reviews on other creators and on businesses (backend 23b
+  - [x] 37c. **Reviews on other creators and on businesses (backend 23b
         `CK3`, `CK4`; 23c `CK5`, E1/E3 `reputation`)** - `CreatorProfile`
         replaces the `'New'` rating placeholder in its `CredStrip` with E4
         `reputation` (and "Projects" with `completedEngagements`), lists

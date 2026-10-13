@@ -1,3 +1,5 @@
+import { CreatorReputation, ReputationBrief } from '@/scenes/creator/types/creatorDirectory';
+
 export type BusinessVerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
 export interface BusinessSocialLink {
@@ -24,6 +26,8 @@ export interface BusinessDirectoryItem {
   verificationStatus: BusinessVerificationStatus;
   createdAt: string;
   updatedAt: string;
+  /** Backend 23b - the rating brief every directory row carries. */
+  reputation?: ReputationBrief;
 }
 
 // Mirrors the backend's BusinessProfilePublicDto (RBAC API group §E2, GET
@@ -49,6 +53,9 @@ export interface BusinessProfilePublic {
   verificationStatus: BusinessVerificationStatus;
   handle: string | null;
   createdAt: string;
+  /** Backend 23b - from the reviews creators wrote about this business;
+   * `completedEngagements` counts completed engagements across its campaigns. */
+  reputation?: CreatorReputation;
 }
 
 export interface BusinessDirectoryPageArgs {

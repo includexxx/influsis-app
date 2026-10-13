@@ -21,8 +21,15 @@ import {
   TagRow,
 } from '@/scenes/profile/components/ProfileSections';
 import { capitalize, formatMonthYear } from '@/scenes/profile/utils/profileDisplay';
+import { profileStats } from '@/scenes/profile/utils/reputation';
+import ReviewsList from '@/scenes/profile/components/ReviewsList';
+import CampaignWorkList from '@/scenes/profile/components/CampaignWorkList';
 import { creatorProfileStyle } from './creatorProfile.style';
-import { useGetCreatorProfileQuery } from './api/creatorDirectoryApi';
+import {
+  useGetCreatorCampaignPortfolioPageQuery,
+  useGetCreatorProfileQuery,
+  useGetCreatorReviewsPageQuery,
+} from './api/creatorDirectoryApi';
 import { CreatorAvatar, CreatorProfileSkeleton, CreatorsEmptyState } from './components';
 import { CreatorProfilePublic } from './types/creatorDirectory';
 
@@ -96,6 +103,7 @@ function CreatorProfileContent({ creator }: { creator: CreatorProfilePublic }) {
   const avatarUri = resolveMediaUrl(creator.avatarUrl);
   const isVerified = creator.verificationStatus === 'verified';
 
+  const stats = profileStats({ discoverable: true, reputation: creator.reputation });
   const locationRows: { label: string; value: string }[] = [];
   if (creator.city) locationRows.push({ label: 'City', value: creator.city });
   if (creator.state)
@@ -153,14 +161,14 @@ function CreatorProfileContent({ creator }: { creator: CreatorProfilePublic }) {
           <Text style={[myProfileStyle.bio, { color: themePalette.gray[300] }]}>{creator.bio}</Text>
         ) : null}
 
-        {/* Rating isn't something the backend tracks yet - same honest
-            placeholder as My Profile. Portfolio entries stand in for
-            projects, and the account's age replaces My Profile's
-            "Response time", which has no data behind it. */}
+        {/* Rating and Projects come from `reputation` (backend 23b); a
+            public profile exists only while the creator is discoverable.
+            The account's age replaces My Profile's "Response time", which
+            has no data behind it. */}
         <CredStrip
           columns={[
-            { icon: 'star', value: 'New', label: 'Rating' },
-            { icon: 'briefcase', value: String(creator.portfolio.length), label: 'Projects' },
+            { icon: 'star', value: stats.rating, label: stats.ratingLabel },
+            { icon: 'briefcase', value: stats.projects, label: 'Projects' },
             { icon: 'calendar', value: formatMonthYear(creator.createdAt), label: 'Member since' },
           ]}
         />
@@ -196,6 +204,25 @@ function CreatorProfileContent({ creator }: { creator: CreatorProfilePublic }) {
             <SocialPlatformRow platforms={creator.platforms} />
           </Section>
         ) : null}
+
+        <Section icon="message-square" label="Reviews">
+          <ReviewsList
+            useQuery={useGetCreatorReviewsPageQuery}
+            args={{ userId: creator.userId }}
+            reviewer="business"
+            emptyText="No reviews yet."
+            testIDPrefix="creator-profile"
+          />
+        </Section>
+
+        <Section icon="briefcase" label="Campaign work">
+          <CampaignWorkList
+            useQuery={useGetCreatorCampaignPortfolioPageQuery}
+            args={{ userId: creator.userId }}
+            editable={false}
+            emptyText="No campaign work to show yet."
+          />
+        </Section>
 
         <LocationCard rows={locationRows} />
 

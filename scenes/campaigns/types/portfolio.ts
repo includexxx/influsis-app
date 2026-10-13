@@ -36,6 +36,10 @@ export interface PortfolioEntry {
   review: { rating: number; message: string; submittedAt: string } | null;
 }
 
+// Campaign API CK5, GET /creator-profiles/:userId/campaign-portfolio - another
+// creator's public Campaign work: the non-hidden entries, without `hidden`.
+export type PublicPortfolioEntry = Omit<PortfolioEntry, 'hidden'>;
+
 // Campaign API CK7, PATCH /me/campaign-portfolio/:engagementId.
 export interface SetPortfolioHiddenArgs {
   engagementId: string;

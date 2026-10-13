@@ -16,6 +16,14 @@ export interface CreatorDirectoryItem {
   verificationStatus: CreatorVerificationStatus;
   createdAt: string;
   updatedAt: string;
+  /** Backend 23b - the rating brief every directory row carries. */
+  reputation?: ReputationBrief;
+}
+
+// Backend 23b `reputation` on a directory row (E1/E3): no completed count.
+export interface ReputationBrief {
+  averageRating: number | null;
+  reviewCount: number;
 }
 
 export interface CreatorPublicPlatform {
@@ -64,9 +72,7 @@ export interface CreatorProfilePublic {
 // 0-5 to one decimal, or null with no visible reviews ("New", never 0
 // stars). `completedEngagements` counts every completed engagement,
 // reviewed or not, hidden from the portfolio or not.
-export interface CreatorReputation {
-  averageRating: number | null;
-  reviewCount: number;
+export interface CreatorReputation extends ReputationBrief {
   completedEngagements: number;
 }
 
@@ -88,6 +94,7 @@ export interface ProfileReview {
   campaign: { id: string; title: string };
 }
 
+// CK3/CK4 (reviews), CK5 (public Campaign work) - one page of a profile's list.
 export interface CreatorReviewsPageArgs {
   userId: string;
   page: number;

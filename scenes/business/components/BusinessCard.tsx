@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks';
 import { getShadowStyle, palette, radius } from '@/theme';
 import type { ViewMode } from '@/components/elements/ViewModeToggle';
 import { formatCategory, visibleCategories } from '@/utils/categories';
+import { reputationBrief } from '@/scenes/profile/utils/reputation';
 import { BusinessDirectoryItem } from '../types/businessDirectory';
 import { formatBusinessLocation } from '../utils/businessCard';
 import BusinessAvatar from './BusinessAvatar';
@@ -105,7 +106,21 @@ function BusinessCard({ business, variant = 'stack', onPress, style }: BusinessC
     </View>
   ) : null;
 
-  const label = [business.businessName, verified ? 'verified' : null, location]
+  // Backend 23b: the directory row's rating brief, when the backend sends it.
+  const brief = business.reputation ? reputationBrief(business.reputation) : null;
+  const ratingRow = brief ? (
+    <View style={styles.metaRow} testID={`business-card-rating-${business.userId}`}>
+      <Feather name="star" size={12} color={palette.warning[500]} />
+      <Text style={[styles.meta, { color: colors.text.secondary }]}>{brief.text}</Text>
+    </View>
+  ) : null;
+
+  const label = [
+    business.businessName,
+    verified ? 'verified' : null,
+    location,
+    brief?.accessibilityLabel,
+  ]
     .filter(Boolean)
     .join(', ');
 
@@ -127,6 +142,7 @@ function BusinessCard({ business, variant = 'stack', onPress, style }: BusinessC
           {avatar}
           {name}
           {locationRow}
+          {ratingRow}
           {business.categories[0] ? (
             <View style={styles.chip}>
               <Text style={styles.chipText} numberOfLines={1}>
@@ -136,7 +152,17 @@ function BusinessCard({ business, variant = 'stack', onPress, style }: BusinessC
           ) : null}
         </>
       ) : (
-        <StackBody business={business} avatar={avatar} name={name} locationRow={locationRow} />
+        <StackBody
+          business={business}
+          avatar={avatar}
+          name={name}
+          metaRows={
+            <>
+              {locationRow}
+              {ratingRow}
+            </>
+          }
+        />
       )}
     </Pressable>
   );
@@ -146,12 +172,13 @@ function StackBody({
   business,
   avatar,
   name,
-  locationRow,
+  metaRows,
 }: {
   business: BusinessDirectoryItem;
   avatar: React.ReactNode;
   name: React.ReactNode;
-  locationRow: React.ReactNode;
+  /** Location and rating lines under the name. */
+  metaRows: React.ReactNode;
 }) {
   const { colors } = useTheme();
   const { shown, extra } = visibleCategories(business.categories, 2);
@@ -163,7 +190,7 @@ function StackBody({
         {avatar}
         <View style={styles.stackBody}>
           {name}
-          {locationRow}
+          {metaRows}
         </View>
         <Feather name="chevron-right" size={20} color={colors.text.secondary} />
       </View>

@@ -171,6 +171,28 @@ describe('creatorDirectoryApi', () => {
     expect(call.headers.Authorization).toBeUndefined();
   });
 
+  test('getCreatorCampaignPortfolioPage GETs CK5 with page/limit and no bearer token (23c)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    await store
+      .dispatch(
+        creatorDirectoryApi.endpoints.getCreatorCampaignPortfolioPage.initiate({
+          userId: 'creator-1',
+          page: 1,
+          limit: 10,
+        }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/creator-profiles/creator-1/campaign-portfolio');
+    expect(call.method).toBe('get');
+    expect(call.params).toEqual({ page: 1, limit: 10 });
+    expect(call.headers.Authorization).toBeUndefined();
+  });
+
   test('a failed fetch surfaces as a result.error ApiError', async () => {
     await withToken();
     const store = makeStore();

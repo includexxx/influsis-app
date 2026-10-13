@@ -136,6 +136,28 @@ describe('businessDirectoryApi', () => {
     expect(call.params).toEqual({ page: 2, limit: 12 });
   });
 
+  test('getBusinessReviewsPage GETs CK4 with page/limit and no bearer token (23b)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    await store
+      .dispatch(
+        businessDirectoryApi.endpoints.getBusinessReviewsPage.initiate({
+          userId: 'business-1',
+          page: 1,
+          limit: 10,
+        }),
+      )
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/business-profiles/business-1/reviews');
+    expect(call.method).toBe('get');
+    expect(call.params).toEqual({ page: 1, limit: 10 });
+    expect(call.headers.Authorization).toBeUndefined();
+  });
+
   test('getBusinessProfile GETs /business-profiles/:userId without a bearer token', async () => {
     await withToken();
     const store = makeStore();
