@@ -242,4 +242,110 @@ export const myProfileStyle = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+
+  // --- Reviews and Campaign work (backend 23b/23c) ---------------------
+  listGap: {
+    gap: spacing.md,
+  },
+  reviewCaption: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: spacing.xs,
+  },
+  // "Turn on discoverability…", empty and error notes.
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  noteText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  noteAction: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+    color: palette.primary[400],
+  },
+  showMore: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  showMoreLabel: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '600',
+    color: palette.primary[400],
+  },
+  workCard: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  workCardHidden: {
+    opacity: 0.55,
+  },
+  workCover: {
+    width: '100%',
+    height: 120,
+  },
+  workCoverPlaceholder: {
+    width: '100%',
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.primary[50],
+  },
+  workBody: {
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  workTitle: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+  },
+  workMeta: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  workPiece: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  workPieceLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  workLink: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '600',
+    color: palette.primary[400],
+  },
+  workReview: {
+    gap: spacing.xs,
+    paddingTop: spacing.sm,
+  },
+  workToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingTop: spacing.sm,
+  },
+  workHiddenNote: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
 });

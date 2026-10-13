@@ -41,7 +41,7 @@ type UseFeedPageQuery<T, F extends object> = (args: CampaignFeedPageArgs & F) =>
 // read because `data` keeps returning the previous args' result while the
 // next page or a new filter set loads. Changing `filters` starts over from
 // page 1.
-function useCampaignFeedPages<T, F extends object>(
+export function useCampaignFeedPages<T, F extends object>(
   useFeedPageQuery: UseFeedPageQuery<T, F>,
   filters: F,
 ): UseCampaignsFeedResult<T> {

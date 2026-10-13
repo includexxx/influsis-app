@@ -4,6 +4,8 @@ import {
   CreatorDirectoryItem,
   CreatorDirectoryPageArgs,
   CreatorProfilePublic,
+  CreatorReviewsPageArgs,
+  ProfileReview,
 } from '../types/creatorDirectory';
 
 // Home's "Top Rated Creator" row preview (TopRatedCreatorsSection).
@@ -20,7 +22,7 @@ export const CREATORS_PAGE_SIZE = 10;
 export const creatorDirectoryApi = createApi({
   reducerPath: 'creatorDirectoryApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CreatorDirectory', 'CreatorProfile'],
+  tagTypes: ['CreatorDirectory', 'CreatorProfile', 'CreatorReviews'],
   endpoints: builder => ({
     getTopCreators: builder.query<CreatorDirectoryItem[], { limit: number }>({
       query: ({ limit }) => ({
@@ -50,6 +52,18 @@ export const creatorDirectoryApi = createApi({
       }),
       providesTags: (_result, _error, { userId }) => [{ type: 'CreatorProfile', id: userId }],
     }),
+    // Campaign API CK3 (backend 23b) - reviews businesses wrote about the
+    // creator, visible and not hidden, newest first. Public like E4, and
+    // 404s exactly when E4 does (unknown id or not discoverable).
+    getCreatorReviewsPage: builder.query<ProfileReview[], CreatorReviewsPageArgs>({
+      query: ({ userId, page, limit }) => ({
+        url: `/creator-profiles/${encodeURIComponent(userId)}/reviews`,
+        method: 'GET',
+        params: { page, limit },
+        skipAuth: true,
+      }),
+      providesTags: (_result, _error, { userId }) => [{ type: 'CreatorReviews', id: userId }],
+    }),
   }),
 });
 
@@ -57,4 +71,5 @@ export const {
   useGetTopCreatorsQuery,
   useGetCreatorsDirectoryPageQuery,
   useGetCreatorProfileQuery,
+  useGetCreatorReviewsPageQuery,
 } = creatorDirectoryApi;

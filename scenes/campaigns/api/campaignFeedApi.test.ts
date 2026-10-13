@@ -792,4 +792,91 @@ describe('campaignFeedApi', () => {
     expect(call.params).toEqual({ page: 1, limit: 3 });
     expect(result).toEqual([]);
   });
+
+  describe('campaign portfolio (23c)', () => {
+    const entry = (engagementId: string, hidden = false) => ({
+      engagementId,
+      completedAt: '2026-10-14T09:05:00.000Z',
+      hidden,
+      campaign: { id: 'c1', title: 'Bkash Eid Campaign', objective: null, coverUrl: null },
+      business: { userId: 'b1', displayName: 'Bkash Ltd.', handle: null, avatarUrl: null },
+      pieces: [],
+      review: null,
+    });
+    const page = { page: 1, limit: 10 };
+    const cached = (store: ReturnType<typeof makeStore>) =>
+      campaignFeedApi.endpoints.getMyCampaignPortfolioPage.select(page)(store.getState() as never)
+        .data;
+
+    test('getMyCampaignPortfolioPage GETs CK6 with page/limit', async () => {
+      await withToken();
+      const store = makeStore();
+      adapter.mockImplementation(c => ok(c, envelope([entry('e1')])));
+
+      const data = await store
+        .dispatch(campaignFeedApi.endpoints.getMyCampaignPortfolioPage.initiate(page))
+        .unwrap();
+
+      const call = adapter.mock.calls[0][0];
+      expect(call.url).toBe('/me/campaign-portfolio');
+      expect(call.params).toEqual({ page: 1, limit: 10 });
+      expect(data[0].engagementId).toBe('e1');
+    });
+
+    test('setPortfolioEntryHidden PATCHes CK7 and flips the cached entry at once', async () => {
+      await withToken();
+      const store = makeStore();
+      let resolvePatch: () => void = () => {};
+      adapter.mockImplementation(c => {
+        if (c.method === 'patch') {
+          return new Promise(resolve => {
+            resolvePatch = () => resolve(ok(c, envelope(entry('e1', true))));
+          });
+        }
+        return ok(c, envelope([entry('e1'), entry('e2')]));
+      });
+      store.dispatch(campaignFeedApi.endpoints.getMyCampaignPortfolioPage.initiate(page));
+      await jest.runOnlyPendingTimersAsync();
+
+      const pending = store.dispatch(
+        campaignFeedApi.endpoints.setPortfolioEntryHidden.initiate({
+          engagementId: 'e1',
+          hidden: true,
+        }),
+      );
+      await jest.advanceTimersByTimeAsync(0);
+      expect(cached(store)?.map(item => item.hidden)).toEqual([true, false]);
+
+      resolvePatch();
+      await pending.unwrap();
+      const patch = adapter.mock.calls.map(([c]) => c).find(c => c.method === 'patch');
+      expect(patch?.url).toBe('/me/campaign-portfolio/e1');
+      expect(JSON.parse(patch?.data as string)).toEqual({ hidden: true });
+      expect(cached(store)?.map(item => item.hidden)).toEqual([true, false]);
+    });
+
+    test('a failed setPortfolioEntryHidden restores the cached entry', async () => {
+      await withToken();
+      const store = makeStore();
+      adapter.mockImplementation(c =>
+        c.method === 'patch'
+          ? ok(c, errorBody('CONFLICT', 409), 409)
+          : ok(c, envelope([entry('e1')])),
+      );
+      store.dispatch(campaignFeedApi.endpoints.getMyCampaignPortfolioPage.initiate(page));
+      await jest.runOnlyPendingTimersAsync();
+
+      await expect(
+        store
+          .dispatch(
+            campaignFeedApi.endpoints.setPortfolioEntryHidden.initiate({
+              engagementId: 'e1',
+              hidden: true,
+            }),
+          )
+          .unwrap(),
+      ).rejects.toBeInstanceOf(ApiError);
+      expect(cached(store)?.[0].hidden).toBe(false);
+    });
+  });
 });

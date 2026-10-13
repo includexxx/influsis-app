@@ -6,6 +6,8 @@ import { layoutStyle } from '@/styles';
 import { creatorProfileStyle } from '@/scenes/creator/creatorProfile.style';
 import { myProfileStyle } from './myProfile.style';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
+import { useAuthSlice } from '@/slices/auth.slice';
+import { useGetCreatorProfileQuery } from '@/scenes/creator/api/creatorDirectoryApi';
 import { isCreatorProfileResponse } from '@/types';
 import { profileSubmitErrorMessage } from '@/utils/profileErrors';
 import { CONTENT_CATEGORY_OPTIONS, SUBCATEGORIES_BY_CATEGORY } from '@/data/contentCategories';
@@ -27,6 +29,10 @@ import {
   TagRow,
 } from './components/ProfileSections';
 import { capitalize } from './utils/profileDisplay';
+import { profileStats } from './utils/reputation';
+import MyReviewsSection from './components/MyReviewsSection';
+import CampaignWorkSection from './components/CampaignWorkSection';
+import { ProfileNote } from './components/ProfileNote';
 
 const avatarImage = require('@/assets/images/account/avatar.png');
 
@@ -50,6 +56,15 @@ const ALL_SUBCATEGORY_OPTIONS = Object.values(SUBCATEGORIES_BY_CATEGORY).flat();
 export default function MyProfile() {
   const { colors, palette: themePalette, isDark } = useTheme();
   const { data, isLoading, isError, error, refetch } = useGetMyProfileQuery();
+  // Backend 23b: the own-profile read carries no `reputation`, so it comes
+  // from the creator's public E4 profile - which 404s while they aren't
+  // discoverable, so it isn't requested then.
+  const { account } = useAuthSlice();
+  const userId = account?.id ?? '';
+  const discoverable = !!data && isCreatorProfileResponse(data) && data.profile.isDiscoverable;
+  const publicProfile = useGetCreatorProfileQuery({ userId }, { skip: !userId || !discoverable });
+  const publicNotFound = publicProfile.error?.code === 'NOT_FOUND';
+  const showsReputation = discoverable && !!userId && !publicNotFound;
 
   if (isLoading && !data) {
     return (
@@ -125,13 +140,12 @@ export default function MyProfile() {
     .filter(Boolean)
     .join(', ');
 
-  // `rating`/completed-project count/response time aren't fields the backend
-  // returns on `CreatorProfile` yet (see types/profile.ts) — this strip is
-  // built to spec but shows honest placeholders rather than invented
-  // numbers until those land. Portfolio entries are the closest real proxy
-  // this profile has for "projects" today.
-  const ratingDisplay = 'New';
-  const projectsDisplay = String(profile.portfolio.length);
+  // Rating and Projects come from `reputation` (backend 23b); response time
+  // isn't a field the backend returns yet, so it stays an honest "—".
+  const stats = profileStats({
+    discoverable: showsReputation,
+    reputation: publicProfile.data?.reputation,
+  });
   const responseDisplay = '—';
 
   return (
@@ -205,8 +219,8 @@ export default function MyProfile() {
 
           <CredStrip
             columns={[
-              { icon: 'star', value: ratingDisplay, label: 'Rating' },
-              { icon: 'briefcase', value: projectsDisplay, label: 'Projects' },
+              { icon: 'star', value: stats.rating, label: stats.ratingLabel },
+              { icon: 'briefcase', value: stats.projects, label: 'Projects' },
               { icon: 'clock', value: responseDisplay, label: 'Response time' },
             ]}
           />
@@ -244,6 +258,22 @@ export default function MyProfile() {
               <SocialPlatformRow platforms={profile.platforms} />
             </Section>
           ) : null}
+
+          <Section icon="message-square" label="Reviews">
+            {showsReputation ? (
+              <MyReviewsSection userId={userId} />
+            ) : (
+              <ProfileNote
+                icon="eye-off"
+                text="Turn on discoverability to show your rating and reviews."
+                testID="my-profile-discoverability-note"
+              />
+            )}
+          </Section>
+
+          <Section icon="briefcase" label="Campaign work">
+            <CampaignWorkSection />
+          </Section>
 
           <LocationCard rows={locationRows} />
 

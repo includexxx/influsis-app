@@ -56,6 +56,42 @@ export interface CreatorProfilePublic {
   verificationStatus: CreatorVerificationStatus;
   handle: string | null;
   createdAt: string;
+  /** Backend 23b - computed on read from visible, non-hidden reviews. */
+  reputation?: CreatorReputation;
+}
+
+// Backend 23b `reputation` on a single profile read (E4). `averageRating` is
+// 0-5 to one decimal, or null with no visible reviews ("New", never 0
+// stars). `completedEngagements` counts every completed engagement,
+// reviewed or not, hidden from the portfolio or not.
+export interface CreatorReputation {
+  averageRating: number | null;
+  reviewCount: number;
+  completedEngagements: number;
+}
+
+// One row of campaign API CK3, GET /creator-profiles/:userId/reviews - a
+// visible, non-hidden review a business wrote about the creator. `message`
+// is plain text. A gone reviewer reads as "Former Influsis member" with
+// `handle`/`avatarUrl` null.
+export interface ProfileReview {
+  id: string;
+  rating: number;
+  message: string;
+  submittedAt: string;
+  reviewer: {
+    userId: string;
+    displayName: string;
+    handle: string | null;
+    avatarUrl: string | null;
+  };
+  campaign: { id: string; title: string };
+}
+
+export interface CreatorReviewsPageArgs {
+  userId: string;
+  page: number;
+  limit: number;
 }
 
 export interface CreatorDirectoryPageArgs {

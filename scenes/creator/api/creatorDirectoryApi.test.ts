@@ -148,6 +148,29 @@ describe('creatorDirectoryApi', () => {
     expect(call.headers.Authorization).toBeUndefined();
   });
 
+  test('getCreatorReviewsPage GETs CK3 with page/limit and no bearer token (23b)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    const data = await store
+      .dispatch(
+        creatorDirectoryApi.endpoints.getCreatorReviewsPage.initiate({
+          userId: 'creator-1',
+          page: 2,
+          limit: 10,
+        }),
+      )
+      .unwrap();
+
+    expect(data).toEqual([]);
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/creator-profiles/creator-1/reviews');
+    expect(call.method).toBe('get');
+    expect(call.params).toEqual({ page: 2, limit: 10 });
+    expect(call.headers.Authorization).toBeUndefined();
+  });
+
   test('a failed fetch surfaces as a result.error ApiError', async () => {
     await withToken();
     const store = makeStore();

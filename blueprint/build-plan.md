@@ -460,7 +460,7 @@ app's part). Backend 23a-23c are planned, not built. The business side is
         `revealAt` / both reviews); Home shows a "Reviews to write" banner
         (hidden when empty) and the Deliverables screen's delivered stage a
         "Rate {business}" button.
-  - [ ] 37b. **My campaign portfolio and reviews (backend 23b `CK3`,
+  - [x] 37b. **My campaign portfolio and reviews (backend 23b `CK3`,
         `reputation`; 23c `CK6`, `CK7`)** - `MyProfile`: the stat strip
         replaces its `ratingDisplay = 'New'` placeholder with
         `reputation.averageRating` (or "New - no ratings yet") and "Projects"

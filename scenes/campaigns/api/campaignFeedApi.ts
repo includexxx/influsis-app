@@ -25,6 +25,7 @@ import {
   PendingReview,
   SubmitReviewArgs,
 } from '../types/review';
+import { PortfolioEntry, SetPortfolioHiddenArgs } from '../types/portfolio';
 
 // Shared by every "3 on Home, all on its own screen" campaign list: Home's
 // "Campaigns" and "Active Campaigns" previews (CampaignsListSection,
@@ -38,6 +39,7 @@ const RECOMMENDED_FEED_URL = '/feed/campaigns/recommended';
 const MY_ENGAGEMENTS_URL = '/me/engagements';
 const ENGAGEMENTS_URL = '/engagements';
 const MY_PENDING_REVIEWS_URL = '/me/reviews/pending';
+const MY_CAMPAIGN_PORTFOLIO_URL = '/me/campaign-portfolio';
 
 // "Joined" = the business and creator agreed terms and the work is on
 // (engagement status `accepted`). Pending applications, invitations, and
@@ -100,6 +102,7 @@ export const campaignFeedApi = createApi({
     'Delivery',
     'EngagementReviews',
     'PendingReviews',
+    'CampaignPortfolio',
   ],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
@@ -392,6 +395,50 @@ export const campaignFeedApi = createApi({
       }),
       providesTags: ['PendingReviews'],
     }),
+    // Campaign API CK6 (backend 23c) - the creator's own "Campaign work",
+    // hidden entries included, newest first. One page at a time (the paging
+    // hook accumulates them). Not affected by discoverability.
+    getMyCampaignPortfolioPage: builder.query<PortfolioEntry[], CampaignFeedPageArgs>({
+      query: ({ page, limit }) => ({
+        url: MY_CAMPAIGN_PORTFOLIO_URL,
+        method: 'GET',
+        params: { page, limit },
+      }),
+      providesTags: ['CampaignPortfolio'],
+    }),
+    // Campaign API CK7 - hide or show one entry on the public profile.
+    // Optimistic: every cached CK6 page holding the entry flips at once and
+    // flips back if the request fails (404 not this creator's, 409 not
+    // completed). The server's echo matches, so nothing is refetched.
+    setPortfolioEntryHidden: builder.mutation<PortfolioEntry, SetPortfolioHiddenArgs>({
+      query: ({ engagementId, hidden }) => ({
+        url: `${MY_CAMPAIGN_PORTFOLIO_URL}/${encodeURIComponent(engagementId)}`,
+        method: 'PATCH',
+        data: { hidden },
+      }),
+      async onQueryStarted({ engagementId, hidden }, { dispatch, getState, queryFulfilled }) {
+        const patches = campaignFeedApi.util
+          .selectInvalidatedBy(getState(), ['CampaignPortfolio'])
+          .filter(({ endpointName }) => endpointName === 'getMyCampaignPortfolioPage')
+          .map(({ originalArgs }) =>
+            dispatch(
+              campaignFeedApi.util.updateQueryData(
+                'getMyCampaignPortfolioPage',
+                originalArgs as CampaignFeedPageArgs,
+                entries => {
+                  const entry = entries.find(item => item.engagementId === engagementId);
+                  if (entry) entry.hidden = hidden;
+                },
+              ),
+            ),
+          );
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach(patch => patch.undo());
+        }
+      },
+    }),
   }),
 });
 
@@ -453,4 +500,6 @@ export const {
   useGetEngagementReviewsQuery,
   useSubmitEngagementReviewMutation,
   useGetPendingReviewsQuery,
+  useGetMyCampaignPortfolioPageQuery,
+  useSetPortfolioEntryHiddenMutation,
 } = campaignFeedApi;
