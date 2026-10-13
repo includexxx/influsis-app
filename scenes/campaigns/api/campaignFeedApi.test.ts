@@ -693,4 +693,103 @@ describe('campaignFeedApi', () => {
     await jest.runOnlyPendingTimersAsync();
     expect(deliveryReads).toBe(1);
   });
+
+  test('getEngagementReviews reads CK1 for the engagement (23a)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c =>
+      ok(c, envelope({ engagementStatus: 'completed', canReview: true, mine: null })),
+    );
+
+    const result = await store
+      .dispatch(campaignFeedApi.endpoints.getEngagementReviews.initiate({ engagementId: 'eng-1' }))
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/engagements/eng-1/reviews');
+    expect(call.method).toBe('get');
+    expect(result.canReview).toBe(true);
+  });
+
+  test('submitEngagementReview POSTs the review and refetches CK1 (23a)', async () => {
+    await withToken();
+    const store = makeStore();
+    let reviewReads = 0;
+    adapter.mockImplementation(c => {
+      if (c.method === 'get') {
+        reviewReads += 1;
+        return ok(c, envelope({ engagementStatus: 'completed', canReview: true, mine: null }));
+      }
+      return ok(c, envelope({ id: 'review-1', rating: 4.5 }), 201);
+    });
+    store.dispatch(
+      campaignFeedApi.endpoints.getEngagementReviews.initiate({ engagementId: 'eng-1' }),
+    );
+    await jest.runOnlyPendingTimersAsync();
+
+    await store
+      .dispatch(
+        campaignFeedApi.endpoints.submitEngagementReview.initiate({
+          engagementId: 'eng-1',
+          rating: 4.5,
+          message: 'Clear brief and quick feedback.',
+        }),
+      )
+      .unwrap();
+    await jest.runOnlyPendingTimersAsync();
+
+    const post = adapter.mock.calls.map(([c]) => c).find(c => c.method === 'post');
+    expect(post?.url).toBe('/engagements/eng-1/reviews');
+    expect(JSON.parse(post?.data as string)).toEqual({
+      rating: 4.5,
+      message: 'Clear brief and quick feedback.',
+    });
+    expect(reviewReads).toBe(2);
+  });
+
+  test('a failed submitEngagementReview refetches nothing', async () => {
+    await withToken();
+    const store = makeStore();
+    let reviewReads = 0;
+    adapter.mockImplementation(c => {
+      if (c.method === 'get') {
+        reviewReads += 1;
+        return ok(c, envelope({ engagementStatus: 'completed', canReview: true, mine: null }));
+      }
+      return ok(c, errorBody('ALREADY_EXISTS', 409), 409);
+    });
+    store.dispatch(
+      campaignFeedApi.endpoints.getEngagementReviews.initiate({ engagementId: 'eng-1' }),
+    );
+    await jest.runOnlyPendingTimersAsync();
+
+    await expect(
+      store
+        .dispatch(
+          campaignFeedApi.endpoints.submitEngagementReview.initiate({
+            engagementId: 'eng-1',
+            rating: 3,
+            message: 'Fine to work with.',
+          }),
+        )
+        .unwrap(),
+    ).rejects.toBeInstanceOf(ApiError);
+    await jest.runOnlyPendingTimersAsync();
+    expect(reviewReads).toBe(1);
+  });
+
+  test('getPendingReviews reads CK8 with page and limit (23b)', async () => {
+    await withToken();
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([])));
+
+    const result = await store
+      .dispatch(campaignFeedApi.endpoints.getPendingReviews.initiate({ page: 1, limit: 3 }))
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/me/reviews/pending');
+    expect(call.params).toEqual({ page: 1, limit: 3 });
+    expect(result).toEqual([]);
+  });
 });

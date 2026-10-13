@@ -12,6 +12,7 @@ import {
   EarningsSection,
   HomeGreeting,
   QuickActions,
+  ReviewsToWriteSection,
   TopRatedCreatorsSection,
 } from './components';
 import { QuickAction, QUICK_ACTION_TINTS } from './components/QuickActions';
@@ -19,6 +20,7 @@ import { useHomeRefresh } from './hooks/useHomeRefresh';
 import { greetingName } from './utils/greeting';
 import { homeStyle } from './home.style';
 import { openDeliverables } from '@/scenes/campaigns/utils/openDeliverables';
+import { openReview } from '@/scenes/campaigns/utils/openReview';
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
@@ -90,6 +92,16 @@ export default function Home() {
           onSeeAllPress={() => router.push('/live-campaign')}
           onCampaignPress={engagement =>
             openDeliverables({ id: engagement.id, title: engagement.campaign?.title })
+          }
+        />
+
+        <ReviewsToWriteSection
+          onReviewPress={review =>
+            openReview({
+              id: review.engagementId,
+              title: review.campaign.title,
+              business: review.counterparty.displayName,
+            })
           }
         />
 

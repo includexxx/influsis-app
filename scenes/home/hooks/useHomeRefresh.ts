@@ -3,6 +3,7 @@ import { useGetMyProfileQuery } from '@/services/profilesApi';
 import {
   CAMPAIGNS_PREVIEW_LIMIT,
   useGetCreatorEarningsQuery,
+  useGetPendingReviewsQuery,
   useGetTopCampaignsQuery,
   useGetTopJoinedCampaignsQuery,
 } from '@/scenes/campaigns/api/campaignFeedApi';
@@ -25,6 +26,7 @@ export function useHomeRefresh() {
   const profile = useGetMyProfileQuery();
   const earnings = useGetCreatorEarningsQuery();
   const joined = useGetTopJoinedCampaignsQuery({ limit: CAMPAIGNS_PREVIEW_LIMIT });
+  const pendingReviews = useGetPendingReviewsQuery({ page: 1, limit: CAMPAIGNS_PREVIEW_LIMIT });
   const campaigns = useGetTopCampaignsQuery({ limit: CAMPAIGNS_PREVIEW_LIMIT });
   const businesses = useGetTopBusinessesQuery({ limit: BUSINESSES_PREVIEW_LIMIT });
   const creators = useGetTopCreatorsQuery({ limit: CREATORS_PREVIEW_LIMIT });
@@ -32,6 +34,7 @@ export function useHomeRefresh() {
   const { refetch: refetchProfile } = profile;
   const { refetch: refetchEarnings } = earnings;
   const { refetch: refetchJoined } = joined;
+  const { refetch: refetchPendingReviews } = pendingReviews;
   const { refetch: refetchCampaigns } = campaigns;
   const { refetch: refetchBusinesses } = businesses;
   const { refetch: refetchCreators } = creators;
@@ -43,6 +46,7 @@ export function useHomeRefresh() {
         refetchProfile(),
         refetchEarnings(),
         refetchJoined(),
+        refetchPendingReviews(),
         refetchCampaigns(),
         refetchBusinesses(),
         refetchCreators(),
@@ -54,6 +58,7 @@ export function useHomeRefresh() {
     refetchProfile,
     refetchEarnings,
     refetchJoined,
+    refetchPendingReviews,
     refetchCampaigns,
     refetchBusinesses,
     refetchCreators,

@@ -21,6 +21,7 @@ import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from
 import {
   useAcceptOfferMutation,
   useDeclineMyEngagementMutation,
+  useGetEngagementReviewsQuery,
   useGetFeedCampaignQuery,
   useGetMyEngagementQuery,
   useSendCounterOfferMutation,
@@ -58,6 +59,8 @@ import {
 } from './utils/scope';
 import { isCustomItem } from './utils/objectives';
 import { openDeliverables } from './utils/openDeliverables';
+import { openReview } from './utils/openReview';
+import EngagementReviewCard from './components/EngagementReviewCard';
 import { FeatherName } from './utils/platformIcon';
 
 type Action = 'accept' | 'counter' | 'withdrawOffer' | 'decline' | 'withdrawApplication';
@@ -164,10 +167,20 @@ export default function OfferScreen() {
   // and the deliverables editor offers only the campaign objective's options
   // (18q; CF3 carries no objective). Fetched only while the sheet or the
   // editor is open; 404 for a campaign that isn't live.
+  // Also read for a completed engagement, whose review section names the
+  // business (37a).
+  const isCompleted = data?.status === 'completed';
   const campaign = useGetFeedCampaignQuery(
     { id: data?.campaignId ?? '' },
-    { skip: !data?.campaignId || (!sheet && scopeRows === null) },
+    { skip: !data?.campaignId || (!sheet && scopeRows === null && !isCompleted) },
   );
+  // CK1 (backend 23a) - only a completed engagement can be reviewed. An error
+  // just leaves the review section out.
+  const reviews = useGetEngagementReviewsQuery(
+    { engagementId },
+    { skip: !engagementId || !isCompleted },
+  );
+  const businessName = campaign.data?.business?.businessName ?? null;
   const objective = campaign.data?.objective ?? null;
   const liveAgreement = useMemo(
     () => (data && sheet ? buildCreatorAgreement(data, campaign.data ?? null, sheet, title) : null),
@@ -468,6 +481,14 @@ export default function OfferScreen() {
               onPress={() => openDeliverables({ id: engagementId, title })}
               accessibilityLabel="Deliver work"
               testID="offer-deliver-work"
+            />
+          ) : null}
+
+          {isCompleted && reviews.data ? (
+            <EngagementReviewCard
+              state={reviews.data}
+              business={businessName}
+              onOpen={() => openReview({ id: engagementId, title, business: businessName })}
             />
           ) : null}
 

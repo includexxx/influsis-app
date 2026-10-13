@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 055a518e0d6ae211d4ef8395a9ce343ae5cfc893e3ce8264326c9b232b684495 -->
+<!-- blueprint:source-hash ddc01c87b1ecd3212c9878f2465ac9748bfcd84db5c4d7f3fd133db6b5d9a43b -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -94,14 +94,11 @@ propose a different list (`CF1` `scope`). 25: an accepted engagement's pieces
 request, and recording the live post URL (`CI4`); a completed engagement
 never says "paid".
 
-**Item 34 (review the agreement before accepting) is complete.** Accept on
-the Offer screen and Request-tab invitation cards opens an agreement sheet
-(business, campaign, `scope`, content deadline, "You'll receive ৳X" = pending
-offer + the tier's licensing markup, or `agreedAmountMinor` +
-`licensingMarkupMinor` once accepted); confirming sends `CF4`. The creator
-never sees the platform fee, VAT, processing fee or the business's total
-(F-2: creator receives 100% of the deal; F-6: licensing tiers raise it).
-Accepted engagements get a read-only "View agreement". Items 26-33 are the
+**Item 34 (review the agreement before accepting) is complete.** Accept opens
+an agreement sheet ("You'll receive ৳X" = pending offer + the tier's licensing
+markup, or `agreedAmountMinor` + `licensingMarkupMinor` once accepted);
+confirming sends `CF4`. The creator never sees the platform fee, VAT,
+processing fee or the business's total (F-2, F-6). Items 26-33 are the
 backend-19 escrow items on `feat/escrow`, not in this checklist.
 
 **Campaign objective & bundle delivery (backend 18q/18r).** Product decision
@@ -117,42 +114,77 @@ Contracts: `../backend/docs/features/campaign/implementations/CA_OBJECTIVE_AND_C
 items 44-46.
 
 35. **Campaign objective and custom deliverables (backend 18q, complete)** -
-    cards and details show the objective and list custom deliverables (plain
-    `title`, `description` rendered through a sanitizing HTML renderer limited
-    to paragraphs, bold/italic/underline/strike, lists, h3/h4, quote, http(s)
-    links). The deliverables editor on Apply and Counter offers only the
-    objective's options, labelled per objective; custom items can be
-    re-counted or removed. No-objective (pre-18q) campaigns keep the full
-    catalogue minus retired `ugc` options; a retired item already in scope
-    stays listed. The deliverables screen names custom pieces by `title`;
-    `422` errors (`scope[i]`, `scope[i].title|description`) show per row.
+    cards and details show the objective and custom deliverables (plain
+    `title`, `description` through a sanitizing HTML renderer). Apply and
+    Counter offer only the objective's options; custom items can be
+    re-counted or removed. Pre-18q campaigns keep the catalogue minus retired
+    `ugc` options; `422` `scope[i]` errors show per row.
 36. **Deliver all content together, then the final delivery (backend 18r,
-    shipped as 18r1-18r3)** - replaces item 25's per-piece submit and "record
-    posted" flow; the backend already `404`s `CI2`/`CI3`/`CI4` and 18r3 removed
-    the per-piece counters from `CI1`, so both parts must merge before the
-    next release.
-    - **36a. Submit the draft as one delivery (next up)** - the Deliverables
-      screen reads `GET /engagements/:id/delivery`. "Submit delivery" has a
-      slot per piece (a link, or an image via `POST /media` -> `mediaId`, plus
-      a caption), Submit disabled until every slot is filled. After a change
-      request it shows the overall reason and per-piece comments, carries
-      unchanged pieces over (`reuseItemId`) and shows revisions left (2 -> 0).
-      Escalated = "In dispute", no actions; final stages read-only until 36b.
+    complete)** - replaces item 25's per-piece submit and "record posted"
+    flow (the backend `404`s `CI2`/`CI3`/`CI4`).
+    - **36a. Submit the draft as one delivery** - the Deliverables screen
+      reads `GET /engagements/:id/delivery`. "Submit delivery" has a slot per
+      piece (a link, or an image via `POST /media` -> `mediaId`, plus a
+      caption), Submit disabled until every slot is filled. After a change
+      request it shows the reason and per-piece comments, carries unchanged
+      pieces over (`reuseItemId`) and shows revisions left (2 -> 0).
+      Escalated = "In dispute", no actions.
     - **36b. Make the final delivery** - a link per piece by `finalKind`:
       a file link (UGC) or the live post URL on the piece's platform (Brand
-      Awareness). No uploads; final revisions 1 -> 0; approval completes the
-      engagement ("Delivered", never "paid"). Drops `CI4`.
+      Awareness). No uploads; approval completes the engagement
+      ("Delivered", never "paid"). Drops `CI4`.
+
+**Reviews, testimonials & campaign portfolio (backend 23).** Product decision
+2026-10-12: once an engagement completes (final approved, or auto-approved
+after 72 hours), creator and business review each other - 0-5 stars in half
+steps plus a required 10-2000 character message. Reviews stay blind until both
+submit or 7 days pass, can't be edited, and have no deadline; they then show as
+testimonials on the reviewee's profile. Every completed engagement joins the
+creator's "Campaign work" portfolio automatically; the creator can hide
+entries, and UGC file links are never shown. Contract:
+`../backend/docs/features/campaign/implementations/CK_REVIEWS_AND_PORTFOLIO.md`
+(design: `REVIEWS_AND_PORTFOLIO.md` §11). Business side: `web` item 47.
+
+37. **Reviews, testimonials and campaign portfolio (`CK1`-`CK8`, next up)**
+    - **37a. Rate the business after completion (`CK1`, `CK2`, `CK8`)** -
+      `campaignFeedApi` gains `getEngagementReviews`, `submitEngagementReview`,
+      `getPendingReviews`. New `StarRatingInput` element (half-star taps,
+      `accessibilityRole="adjustable"`, 0.5 steps) and half-star `StarRating`.
+      Route `(details)/engagement/[id]/review` -> `ReviewBusinessScreen`
+      (rating, message with counter, "can't be edited" note; `422` on fields,
+      `409 ALREADY_EXISTS` refetches to the submitted state, `409 CONFLICT`
+      refetches `CK1`). `meta.revealed` shows both reviews at once; an
+      admin-hidden review shows "Hidden by Influsis", never as deleted. The
+      engagement screen gets a `CK1`-driven review card; Home a "Reviews to
+      write" banner (hidden when empty); the delivered stage a "Rate
+      {business}" button.
+    - **37b. My campaign portfolio and reviews (`CK3`, `CK6`, `CK7`,
+      `reputation`)** - `MyProfile` stats use `reputation.averageRating` (or
+      "New - no ratings yet") and `completedEngagements`, read from E4
+      `GET /creator-profiles/:ownUserId`, reviews from `CK3`. Both `404` while
+      the creator isn't discoverable: show "Turn on discoverability to show
+      your rating and reviews". "Campaign work" lists completed campaigns with
+      an optimistic Hide/Show toggle (`CK7 { hidden }`; `409` reverts; hidden
+      cards dimmed; UGC entries say files were delivered privately). `CK6`
+      ignores discoverability.
+    - **37c. Reviews on other creators and businesses (`CK3`-`CK5`, E1/E3
+      `reputation`)** - `CreatorProfile` `CredStrip` uses E4 `reputation` and
+      `completedEngagements`, lists `CK3` reviews and "Campaign work" (`CK5`);
+      `BusinessDetails` shows the rating summary and "Reviews from creators"
+      (`CK4`); `CreatorDirectoryCard` and `BusinessCard` show
+      `reputation { averageRating, reviewCount }`. A "Former Influsis member"
+      reviewer isn't tappable; live-post links open http(s) only.
 
 Other product screens (orders, gigs, messaging, balance) still run on
 `data/*.ts` mock fixtures.
 
 ## Data model
 
-No backend exists yet - today's screens run on typed mock fixtures
-(`data/*.ts` + `types/*.ts`) with UI-specific fields (pre-formatted price/date
-strings, local image assets). The models below are the logical shape those
-screens imply for the real API; field names follow the existing
-mock types where they'll carry over directly.
+Auth, onboarding, campaigns, engagements and delivery are wired to the backend;
+the other screens still run on typed mock fixtures (`data/*.ts` +
+`types/*.ts`) with UI-specific fields (pre-formatted price/date strings, local
+image assets). The models below are the logical shape those screens imply for
+the real API; field names follow the existing types where they carry over.
 
 ### User
 
@@ -170,8 +202,11 @@ mock types where they'll carry over directly.
 
 - `id`, `name`, `image`, `verified`, `topRated`, `location`, `tags[]`,
   `followers`, `engagement`, `bio`, `categories[]`, `customerRating`
-- has many `Review` (id, rating, comment, author, timeAgo)
+- has many `Review` (mock today: id, rating, comment, author, timeAgo; real
+  shape under EngagementReview, item 37)
 - has many `Gig` (via `activeGigIds`)
+- `reputation` (E1/E3/E4, item 37): `averageRating` (0-5 | null),
+  `reviewCount`, `completedEngagements`; absent on the own-profile read
 
 ### Campaign
 
@@ -213,6 +248,25 @@ mock types where they'll carry over directly.
   review reason, `reviewDueAt`, `autoApproved`, `items[]` with link or
   `mediaId`, caption, `reviewComment`); replaces item 25's per-piece
   submissions and counters
+
+### EngagementReview (item 37, backend 23)
+
+- One per side per completed engagement (`CK1` list, `CK2` submit):
+  reviewer side (creator | business), `rating` (0-5, 0.5 steps), `message`
+  (10-2000 chars), `revealAt`, `hidden` (admin-hidden, backend 23d)
+- Immutable once submitted; blind until both sides submit or 7 days pass
+  (`meta.revealed`)
+- Reviewer summary: `displayName`, `handle`/`avatarUrl` (null for "Former
+  Influsis member")
+- `PendingReview` (`CK8`): `engagementId`, `completedAt`, `theirsSubmitted`,
+  `campaign { id, title }`, `counterparty { userId, displayName, avatarUrl }`
+
+### PortfolioEntry ("Campaign work", item 37)
+
+- One per completed engagement, added automatically; `hidden` (bool,
+  creator-toggled via `CK7`); own list `CK6`, public list `CK5`
+- UGC entries never expose file links; Brand Awareness entries carry live-post
+  links (http(s) only)
 
 ### Order
 
@@ -300,6 +354,7 @@ Main routes (`app/`, Expo Router groups):
   detail/sub-flows
 - `(details)/engagement/[id]` - Offer screen: negotiation, agreement,
   deliverables (items 23-25, 34)
+- `(details)/engagement/[id]/review` - rate the business (item 37a)
 
 ## Deployment
 
@@ -321,6 +376,12 @@ Main routes (`app/`, Expo Router groups):
   rich-text input), or only keep/adjust the business's?
 - Item 36 (decided in backend 18r and its 2026-10-11 fix): the final round
   can't be sent back; video drafts are linked (today's media limit is 5 MB).
+  `build-plan.md` item 36 still says "a final can be sent back once".
+- Item 37: the section intro says backend 23a-23c are "planned, not built",
+  while the item says every endpoint is built (validated 2026-10-12 against
+  23a-23d).
+- Item 37b: no own-reviews read exists for a non-discoverable creator (backend
+  not planned yet).
 - `feat/escrow` item 28 (per-piece money and decline reasons) assumes
   per-piece review and must be re-scoped to delivery rounds.
 - Exact commission structure. F-2 (creator receives 100% of the deal) implies

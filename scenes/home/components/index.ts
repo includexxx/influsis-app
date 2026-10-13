@@ -9,3 +9,4 @@ export { default as TopRatedCreatorsSection } from './TopRatedCreatorsSection';
 export { default as HomeGreeting } from './HomeGreeting';
 export { default as QuickActions } from './QuickActions';
 export { default as AvatarTile } from './AvatarTile';
+export { default as ReviewsToWriteSection } from './ReviewsToWriteSection';

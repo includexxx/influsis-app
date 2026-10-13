@@ -416,3 +416,77 @@ and `../platform-context/api-contracts/campaigns.md`. Numbered from 35 because
         draft links can be carried over. Final revisions 1 -> 0; approving the
         final completes the engagement ("Delivered", never "paid"). Drops
         `CI4` "record posted".
+
+## Reviews, testimonials & campaign portfolio (backend 23)
+
+Product decision 2026-10-12: once an engagement is completed (the business
+approves the final delivery, or the backend auto-approves it after 72 hours),
+the creator and the business review each other with a 0-5 rating in half-star
+steps and a required message (10-2000 characters). Reviews stay blind until
+both sides submit or 7 days pass, cannot be edited, and have no deadline. They
+then show as testimonials on the reviewee's profile. Every completed
+engagement joins the creator's "Campaign work" portfolio automatically, and the
+creator can hide entries; UGC file links are never shown. Design and contract:
+`../backend/docs/features/campaign/REVIEWS_AND_PORTFOLIO.md` (§11 is this
+app's part). Backend 23a-23c are planned, not built. The business side is
+`web` item 47.
+
+- [ ] 37. **Reviews, testimonials and campaign portfolio (backend 23 `CK1`-`CK8`)** -
+      the creator rates the business after a campaign completes, manages their
+      campaign portfolio, and sees real ratings and reviews on profiles
+      instead of mock data. Validated 2026-10-12 against the shipped backend
+      (`feat/review-ratings`, 23a-23d; contract:
+      `../backend/docs/features/campaign/implementations/CK_REVIEWS_AND_PORTFOLIO.md`).
+      Every endpoint this item needs is built. Split into:
+  - [x] 37a. **Rate the business after the campaign completes (backend 23a
+        `CK1`, `CK2`; 23b `CK8`)** - `campaignFeedApi` gains
+        `getEngagementReviews`, `submitEngagementReview` and
+        `getPendingReviews`. A new `StarRatingInput` element (tap the half of a
+        star, `accessibilityRole="adjustable"` with 0.5 increments) and
+        half-star rendering in `StarRating`. New route
+        `app/(details)/engagement/[id]/review.tsx` ->
+        `scenes/campaigns/ReviewBusinessScreen.tsx` (rating, message with a
+        10-2000 counter, "reviews can't be edited" note; `422` errors on the
+        fields, `409 ALREADY_EXISTS` refetches and shows the submitted state,
+        `409 CONFLICT` "Reviews open once the engagement is completed." refetches
+        `CK1`). `CK2` returns `meta.revealed`: when true, show both reviews at
+        once. A review an admin hid (backend 23d) still comes back in `CK1`
+        with `hidden: true`: show it with a "Hidden by Influsis" note, never as
+        deleted. `CK8` rows are `{ engagementId, completedAt, theirsSubmitted,
+        campaign { id, title }, counterparty { userId, displayName,
+        avatarUrl } }`.
+        The engagement screen shows a review card driven by `CK1` (write /
+        "they reviewed you, write yours to see it" / submitted, visible on
+        `revealAt` / both reviews); Home shows a "Reviews to write" banner
+        (hidden when empty) and the Deliverables screen's delivered stage a
+        "Rate {business}" button.
+  - [ ] 37b. **My campaign portfolio and reviews (backend 23b `CK3`,
+        `reputation`; 23c `CK6`, `CK7`)** - `MyProfile`: the stat strip
+        replaces its `ratingDisplay = 'New'` placeholder with
+        `reputation.averageRating` (or "New - no ratings yet") and "Projects"
+        with `completedEngagements`. The own-profile read carries no
+        `reputation`, so read it from E4 `GET /creator-profiles/:ownUserId`
+        and the reviews from `CK3`. **Both 404 while the creator is not
+        discoverable**: show "Turn on discoverability to show your rating
+        and reviews" there instead of an error, until a backend own-reviews
+        read exists (not planned yet);
+        a new "Campaign work" section lists completed campaigns with a
+        Hide/Show toggle (optimistic, reverted on error; hidden cards dimmed
+        with "Hidden from your public profile"; UGC entries say the files were
+        delivered privately instead of showing links); a read-only "Reviews"
+        section lists what businesses wrote. `CK6` is not affected by
+        discoverability. `CK7` sends `{ hidden }`; repeating the current value
+        is a no-op, `404` means not this creator's engagement and `409`
+        "Only completed campaigns are in your portfolio." reverts the toggle.
+  - [ ] 37c. **Reviews on other creators and on businesses (backend 23b
+        `CK3`, `CK4`; 23c `CK5`, E1/E3 `reputation`)** - `CreatorProfile`
+        replaces the `'New'` rating placeholder in its `CredStrip` with E4
+        `reputation` (and "Projects" with `completedEngagements`), lists
+        `CK3` reviews, and adds "Campaign work" (`CK5`); `BusinessDetails` shows
+        the business's rating summary and "Reviews from creators" (`CK4`) so a
+        creator can judge a business before applying. The directory cards
+        show the `reputation { averageRating, reviewCount }` brief that E3/E1
+        rows now carry: `CreatorDirectoryCard` (Top Creators) and
+        `BusinessCard` (Businesses). A reviewer of "Former Influsis member"
+        has `handle`/`avatarUrl` null, so it isn't tappable. Live-post links open
+        with `Linking.openURL`, http(s) only.

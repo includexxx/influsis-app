@@ -14,10 +14,13 @@ import { deliverablesStyle as s } from './deliverables.style';
 import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
   useGetEngagementDeliveryQuery,
+  useGetEngagementReviewsQuery,
   useGetFeedCampaignQuery,
   useGetMyEngagementQuery,
 } from './api/campaignFeedApi';
 import { DeliveryPiece } from './types/delivery';
+import { openReview } from './utils/openReview';
+import { businessLabel } from './utils/review';
 import { buildCreatorAgreement } from './utils/agreement';
 import { formatCampaignDueDate } from './utils/mapCampaignFeedItem';
 import { formatOfferDate } from './utils/negotiation';
@@ -84,6 +87,12 @@ export default function DeliverablesScreen() {
     { id: engagement.data?.campaignId ?? '' },
     { skip: !engagement.data?.campaignId },
   );
+  // CK1 (backend 23a) - once delivered, "Rate {business}" while the creator
+  // can still review. An error just leaves the button out.
+  const reviews = useGetEngagementReviewsQuery(
+    { engagementId },
+    { skip: !engagementId || delivery.data?.stage !== 'delivered' },
+  );
 
   const header = (
     <ScreenHeader title="Deliverables" onBack={() => router.back()} style={s.headerGap} />
@@ -125,6 +134,8 @@ export default function DeliverablesScreen() {
   const list = delivery.data.pieces;
   const view = deliveryStatusView(delivery.data);
   const completed = delivery.data.stage === 'delivered';
+  const businessName = campaign.data?.business?.businessName ?? null;
+  const rateLabel = `Rate ${businessLabel(businessName)}`;
   const submittedAt = view?.inReview ? latestRound(delivery.data)?.submittedAt : null;
   const now = new Date();
   const agreement = engagement.data
@@ -293,6 +304,16 @@ export default function DeliverablesScreen() {
                   onPress={openSubmit}
                   accessibilityLabel={view.cta}
                   testID="deliverables-submit"
+                />
+              ) : null}
+              {completed && reviews.data?.canReview ? (
+                <Button
+                  title={rateLabel}
+                  style={s.primaryButton}
+                  titleStyle={s.primaryTitle}
+                  onPress={() => openReview({ id: engagementId, title, business: businessName })}
+                  accessibilityLabel={rateLabel}
+                  testID="deliverables-rate"
                 />
               ) : null}
             </View>

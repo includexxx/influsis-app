@@ -19,6 +19,12 @@ import {
   MyEngagementItem,
   MyEngagementsPageArgs,
 } from '../types/myEngagement';
+import {
+  EngagementReview,
+  EngagementReviewState,
+  PendingReview,
+  SubmitReviewArgs,
+} from '../types/review';
 
 // Shared by every "3 on Home, all on its own screen" campaign list: Home's
 // "Campaigns" and "Active Campaigns" previews (CampaignsListSection,
@@ -31,6 +37,7 @@ const CAMPAIGNS_FEED_URL = '/feed/campaigns';
 const RECOMMENDED_FEED_URL = '/feed/campaigns/recommended';
 const MY_ENGAGEMENTS_URL = '/me/engagements';
 const ENGAGEMENTS_URL = '/engagements';
+const MY_PENDING_REVIEWS_URL = '/me/reviews/pending';
 
 // "Joined" = the business and creator agreed terms and the work is on
 // (engagement status `accepted`). Pending applications, invitations, and
@@ -85,7 +92,15 @@ function toFeedParams({ q, city, category, ...rest }: CampaignFeedFilteredPageAr
 export const campaignFeedApi = createApi({
   reducerPath: 'campaignFeedApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['CampaignFeed', 'MyEngagements', 'MyEngagement', 'Deliverables', 'Delivery'],
+  tagTypes: [
+    'CampaignFeed',
+    'MyEngagements',
+    'MyEngagement',
+    'Deliverables',
+    'Delivery',
+    'EngagementReviews',
+    'PendingReviews',
+  ],
   endpoints: builder => ({
     getTopCampaigns: builder.query<CampaignFeedItem[], { limit: number } & CampaignFeedFilters>({
       query: args => ({
@@ -336,6 +351,47 @@ export const campaignFeedApi = createApi({
               { type: 'MyEngagement' as const, id: engagementId },
             ],
     }),
+    // Campaign API CK1 (backend 23a) - both sides' reviews of one engagement
+    // under the blind reveal. Any engagement status; not a party -> 404.
+    getEngagementReviews: builder.query<EngagementReviewState, { engagementId: string }>({
+      query: ({ engagementId }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/reviews`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { engagementId }) => [
+        { type: 'EngagementReviews', id: engagementId },
+      ],
+    }),
+    // Campaign API CK2 - the creator reviews the business, once. The
+    // response's `meta.revealed` is dropped by request(); the CK1 refetch
+    // the tags trigger returns `theirs` when both sides have now reviewed.
+    // 409 CONFLICT before completion, 409 ALREADY_EXISTS on a repeat (no
+    // idempotency key) - the screen refetches CK1 for both.
+    submitEngagementReview: builder.mutation<EngagementReview, SubmitReviewArgs>({
+      query: ({ engagementId, rating, message }) => ({
+        url: `${ENGAGEMENTS_URL}/${encodeURIComponent(engagementId)}/reviews`,
+        method: 'POST',
+        data: { rating, message },
+      }),
+      invalidatesTags: (_result, error, { engagementId }) =>
+        error
+          ? []
+          : [
+              { type: 'EngagementReviews' as const, id: engagementId },
+              { type: 'MyEngagement' as const, id: engagementId },
+              'PendingReviews' as const,
+            ],
+    }),
+    // Campaign API CK8 (backend 23b) - completed engagements the creator
+    // hasn't reviewed yet, newest first. Home's "Reviews to write".
+    getPendingReviews: builder.query<PendingReview[], { page: number; limit: number }>({
+      query: ({ page, limit }) => ({
+        url: MY_PENDING_REVIEWS_URL,
+        method: 'GET',
+        params: { page, limit },
+      }),
+      providesTags: ['PendingReviews'],
+    }),
   }),
 });
 
@@ -394,4 +450,7 @@ export const {
   useGetEngagementDeliverablesQuery,
   useGetEngagementDeliveryQuery,
   useSubmitDeliveryRoundMutation,
+  useGetEngagementReviewsQuery,
+  useSubmitEngagementReviewMutation,
+  useGetPendingReviewsQuery,
 } = campaignFeedApi;

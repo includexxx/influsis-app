@@ -648,4 +648,117 @@ describe('<OfferScreen />', () => {
     expect(await screen.findByTestId('offer-counter')).toBeTruthy();
     expect(screen.queryByTestId('offer-deliver-work')).toBeNull();
   });
+
+  describe('review section (37a)', () => {
+    const completed = engagement({
+      status: 'completed',
+      agreedAmountMinor: 2_000_000,
+      offers: [offer(1, 'business', 'accepted', 2_000_000)],
+    });
+    const mine = {
+      id: 'review-1',
+      direction: 'creator_to_business',
+      rating: 4.5,
+      message: 'Clear brief and quick feedback.',
+      submittedAt: '2026-10-14T11:00:00.000Z',
+      visibleAt: '2026-10-21T09:05:00.000Z',
+      isVisible: false,
+      hidden: false,
+    };
+    function reviewState(overrides: Record<string, unknown> = {}) {
+      return {
+        engagementStatus: 'completed',
+        completedAt: '2026-10-14T09:05:00.000Z',
+        revealAt: '2026-10-21T09:05:00.000Z',
+        canReview: true,
+        mine: null,
+        theirs: null,
+        theirsSubmitted: false,
+        ...overrides,
+      };
+    }
+    function answerCompleted(reviews: unknown) {
+      answerWith(cfg => {
+        if (cfg.url === '/engagements/eng-1/reviews') return reviews;
+        if (isCampaignRequest(cfg)) return feedCampaign;
+        return completed;
+      });
+    }
+
+    test('asks to write a review and opens the Review screen with the business', async () => {
+      answerCompleted(reviewState());
+      renderScreen();
+
+      expect(await screen.findByText('How was working with Pathao Ltd.?')).toBeTruthy();
+      fireEvent.press(screen.getByTestId('offer-review-open'));
+      expect(mockPush).toHaveBeenLastCalledWith({
+        pathname: '/engagement/[id]/review',
+        params: { id: 'eng-1', title: 'Pathao Summer Push', business: 'Pathao Ltd.' },
+      });
+    });
+
+    test('says theirs is in and still blind', async () => {
+      answerCompleted(reviewState({ theirsSubmitted: true }));
+      renderScreen();
+
+      expect(await screen.findByText('Pathao Ltd. reviewed you')).toBeTruthy();
+      expect(screen.getByText('Write yours to see it.')).toBeTruthy();
+    });
+
+    test('shows where a submitted review stands', async () => {
+      answerCompleted(reviewState({ canReview: false, mine }));
+      renderScreen();
+
+      expect(await screen.findByText('Review submitted')).toBeTruthy();
+      expect(screen.getByTestId('offer-review-body').props.children).toMatch(
+        /^Pathao Ltd\. can see it on .+, or sooner if they review you$/,
+      );
+    });
+
+    test('shows both ratings once revealed', async () => {
+      answerCompleted(
+        reviewState({
+          canReview: false,
+          mine: { ...mine, isVisible: true },
+          theirs: { ...mine, id: 'review-2', direction: 'business_to_creator', rating: 5 },
+          theirsSubmitted: true,
+        }),
+      );
+      renderScreen();
+
+      expect(await screen.findByText('Read reviews')).toBeTruthy();
+      expect(screen.getByText('4.5/5')).toBeTruthy();
+      expect(screen.getByText('5/5')).toBeTruthy();
+    });
+
+    test('says "the business" when the campaign is no longer live', async () => {
+      answerWith(cfg => {
+        if (cfg.url === '/engagements/eng-1/reviews') return reviewState();
+        if (isCampaignRequest(cfg)) {
+          throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' });
+        }
+        return completed;
+      });
+      renderScreen();
+
+      expect(await screen.findByText('How was working with the business?')).toBeTruthy();
+    });
+
+    test('reads no reviews for an engagement that is not completed', async () => {
+      answerWith(() =>
+        engagement({
+          status: 'accepted',
+          agreedAmountMinor: 2_000_000,
+          offers: [offer(1, 'business', 'accepted', 2_000_000)],
+        }),
+      );
+      renderScreen();
+
+      expect(await screen.findByTestId('offer-deliver-work')).toBeTruthy();
+      expect(screen.queryByTestId('offer-review')).toBeNull();
+      expect(mockRequest).not.toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/engagements/eng-1/reviews' }),
+      );
+    });
+  });
 });

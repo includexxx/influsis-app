@@ -110,14 +110,21 @@ const engagement = {
   currency: 'BDT',
 };
 
-function answers(read: EngagementDelivery | Error) {
+function answers(read: EngagementDelivery | Error, reviews?: unknown, campaign?: unknown) {
   answerWith(({ url }) => {
     if (url === '/me/engagements/eng-1') return engagement;
     // CB2 404s once the campaign isn't live.
-    if (url === '/feed/campaigns/campaign-1') throw new Error('not found');
+    if (url === '/feed/campaigns/campaign-1') {
+      if (campaign) return campaign;
+      throw new Error('not found');
+    }
     if (url === '/engagements/eng-1/delivery') {
       if (read instanceof Error) throw read;
       return read;
+    }
+    if (url === '/engagements/eng-1/reviews') {
+      if (!reviews) throw new Error('no reviews');
+      return reviews;
     }
     throw new Error(`unexpected ${url}`);
   });
@@ -280,6 +287,59 @@ describe('<DeliverablesScreen />', () => {
     expect(screen.getAllByText('Completed').length).toBeGreaterThan(0);
     expect(screen.queryByText(/paid|payment/i)).toBeNull();
     expect(screen.queryByTestId('deliverables-submit')).toBeNull();
+    expect(screen.queryByTestId('deliverables-rate')).toBeNull();
+  });
+
+  describe('Rate the business (37a)', () => {
+    const delivered = delivery({ stage: 'delivered', pieces: [piece({ status: 'approved' })] });
+    const reviewState = (canReview: boolean) => ({
+      engagementStatus: 'completed',
+      completedAt: '2026-10-14T09:05:00.000Z',
+      revealAt: '2026-10-21T09:05:00.000Z',
+      canReview,
+      mine: null,
+      theirs: null,
+      theirsSubmitted: false,
+    });
+
+    test('offers "Rate {business}" once delivered and opens the Review screen', async () => {
+      answers(delivered, reviewState(true), {
+        id: 'campaign-1',
+        business: { businessName: 'Pathao Ltd.' },
+      });
+      renderScreen();
+
+      fireEvent.press(await screen.findByText('Rate Pathao Ltd.'));
+      expect(mockPush).toHaveBeenLastCalledWith({
+        pathname: '/engagement/[id]/review',
+        params: { id: 'eng-1', title: 'Pathao Summer Push', business: 'Pathao Ltd.' },
+      });
+    });
+
+    test('says "the business" when the campaign is no longer live', async () => {
+      answers(delivered, reviewState(true));
+      renderScreen();
+
+      expect(await screen.findByText('Rate the business')).toBeTruthy();
+    });
+
+    test('no button once the creator has reviewed', async () => {
+      answers(delivered, reviewState(false));
+      renderScreen();
+
+      expect(await screen.findByText('This campaign is complete.')).toBeTruthy();
+      expect(screen.queryByTestId('deliverables-rate')).toBeNull();
+    });
+
+    test('reads no reviews before delivery', async () => {
+      answers(delivery({ stage: 'awaiting_draft' }), reviewState(true));
+      renderScreen();
+
+      expect(await screen.findByTestId('deliverables-submit')).toBeTruthy();
+      expect(mockRequest).not.toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/engagements/eng-1/reviews' }),
+      );
+    });
   });
 
   test.each([
