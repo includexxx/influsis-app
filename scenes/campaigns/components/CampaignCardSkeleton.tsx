@@ -1,9 +1,8 @@
 import { Animated, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks';
-import { radius } from '@/theme';
 import { useSkeletonPulse } from '../hooks/useSkeletonPulse';
 
-export type CampaignCardSkeletonVariant = 'hero' | 'list' | 'applied';
+export type CampaignCardSkeletonVariant = 'hero' | 'list';
 
 export interface CampaignCardSkeletonProps {
   variant?: CampaignCardSkeletonVariant;
@@ -38,26 +37,10 @@ const styles = StyleSheet.create({
   subBlock: { width: '45%', height: 10, borderRadius: 5 },
   chips: { flexDirection: 'row', gap: 8 },
   chip: { width: 92, height: 30, borderRadius: 15 },
-  // Same footprint as CampaignCard's applied row: 84 thumbnail, then the
-  // date/status line, title and price.
-  applied: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-  },
-  thumb: { width: 84, height: 84, borderRadius: radius.lg },
-  appliedBody: { flex: 1, justifyContent: 'space-between' },
-  appliedTop: { flexDirection: 'row', justifyContent: 'space-between' },
-  appliedDateBlock: { width: 80, height: 12, borderRadius: 6 },
-  statusBlock: { width: 64, height: 22, borderRadius: 11 },
-  appliedTitleBlock: { width: '85%', height: 15, borderRadius: 6 },
-  appliedPriceBlock: { width: 72, height: 15, borderRadius: 6 },
 });
 
 // Loading placeholder shaped like CampaignCard (components/elements/
-// CampaignCard) in the same `hero`/`list`/`applied` variants, so a preview
+// CampaignCard) in the same `hero`/`list` variants, so a preview
 // section and its full-list screen don't jump in size once real data
 // replaces it. A single shared opacity pulse (useSkeletonPulse) drives every
 // block.
@@ -71,24 +54,6 @@ function CampaignCardSkeleton({ variant = 'list', style }: CampaignCardSkeletonP
         key={key}
         style={[blockStyle, { backgroundColor: palette.gray[50], opacity }]}
       />
-    );
-  }
-
-  const frame = { backgroundColor: colors.card, borderColor: colors.border };
-
-  if (variant === 'applied') {
-    return (
-      <View style={[styles.applied, frame, style]} testID="campaign-card-skeleton">
-        {block(styles.thumb, 'thumb')}
-        <View style={styles.appliedBody}>
-          <View style={styles.appliedTop}>
-            {block(styles.appliedDateBlock, 'date')}
-            {block(styles.statusBlock, 'status')}
-          </View>
-          {block(styles.appliedTitleBlock, 'title')}
-          {block(styles.appliedPriceBlock, 'price')}
-        </View>
-      </View>
     );
   }
 

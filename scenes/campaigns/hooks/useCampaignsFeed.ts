@@ -20,13 +20,15 @@ export interface UseCampaignsFeedResult<T = CampaignFeedItem> {
   hasMore: boolean;
   loadMore: () => void;
   retry: () => void;
+  /** Refetches the current page; resolves once it settles (pull-to-refresh). */
+  refresh: () => Promise<void>;
 }
 
 export type UseFeedPageQuery<T, F extends object> = (args: CampaignFeedPageArgs & F) => {
   currentData?: T[];
   isFetching: boolean;
   isError: boolean;
-  refetch: () => void;
+  refetch: () => unknown;
 };
 
 // Accumulates pages of a campaign feed into one flat list for a virtualized
@@ -76,6 +78,11 @@ export function useCampaignFeedPages<T, F extends object>(
 
   const campaigns = useMemo(() => pages.flat(), [pages]);
 
+  // RTK Query's refetch() returns a thenable that settles with the request.
+  const refresh = useCallback(async () => {
+    await Promise.resolve(refetch()).catch(() => {});
+  }, [refetch]);
+
   const loadMore = useCallback(() => {
     if (isFetching || !hasMore || isError) return;
     setPage(prev => prev + 1);
@@ -102,6 +109,7 @@ export function useCampaignFeedPages<T, F extends object>(
     hasMore,
     loadMore,
     retry: refetch,
+    refresh,
   };
 }
 

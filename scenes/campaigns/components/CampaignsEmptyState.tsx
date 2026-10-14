@@ -4,14 +4,7 @@ import EmptyState from '@/components/elements/EmptyState';
 import SearchIllustration from '@/components/elements/SearchIllustration';
 import Button from '@/components/elements/Button';
 
-export type CampaignsStatusVariant =
-  | 'empty'
-  | 'noJoined'
-  | 'noBusinessCampaigns'
-  | 'noApplications'
-  | 'noRequests'
-  | 'noCompleted'
-  | 'error';
+export type CampaignsStatusVariant = 'empty' | 'noJoined' | 'noBusinessCampaigns' | 'error';
 
 export interface CampaignsEmptyStateProps {
   variant?: CampaignsStatusVariant;
@@ -32,18 +25,6 @@ const COPY: Record<CampaignsStatusVariant, { title: string; description: string 
   noBusinessCampaigns: {
     title: 'No ongoing campaigns',
     description: "This business doesn't have any live campaigns right now. Check back later.",
-  },
-  noApplications: {
-    title: "You haven't applied to any campaigns",
-    description: 'Campaigns you apply to will show up here so you can track their status.',
-  },
-  noRequests: {
-    title: 'No campaign requests',
-    description: 'When a business invites you to join a campaign, it will show up here.',
-  },
-  noCompleted: {
-    title: 'No completed campaigns yet',
-    description: 'Campaigns show up here once the business approves your final delivery.',
   },
   error: {
     title: 'Something went wrong',

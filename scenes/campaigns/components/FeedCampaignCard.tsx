@@ -6,7 +6,7 @@ import { CampaignFeedItem } from '../types/campaignFeed';
 
 export interface FeedCampaignCardProps {
   campaign: CampaignFeedItem;
-  variant?: Exclude<CampaignCardVariant, 'applied'>;
+  variant?: CampaignCardVariant;
   /** The creator already finished this campaign - shows a "Completed" pill. */
   isCompleted?: boolean;
   onPress?: (id: string) => void;

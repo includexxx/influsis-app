@@ -1,11 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { palette } from '@/theme';
 import { MyEngagementItem } from '../types/myEngagement';
-import {
-  formatRelativeTime,
-  mapApplicationToCard,
-  mapCampaignRequestToRow,
-} from './mapApplication';
+import { formatRelativeTime, mapApplicationToCard, mapInvitationToCard } from './mapApplication';
 
 const engagement: MyEngagementItem = {
   id: 'eng-1',
@@ -36,22 +31,21 @@ const engagement: MyEngagementItem = {
 };
 
 describe('mapApplicationToCard', () => {
-  test('maps a pending application to an "Applied" card', () => {
+  test('maps a pending application, labelling the proposal as the creator’s rate', () => {
     expect(mapApplicationToCard(engagement)).toEqual({
       image: { uri: 'https://cdn.influsis.test/cover.jpg' },
       title: 'Bkash Branding Campaign',
-      price: 'BDT 4,500',
-      dueDate: 'Applied 10 Jul',
-      status: 'Applied',
-      statusColor: palette.primary[400],
-      statusTextColor: palette.white,
+      date: 'Applied 10 Jul',
+      amountLabel: 'Your rate',
+      amount: 'BDT 4,500',
     });
   });
 
   test('prefers the agreed fee, then the latest offer, over the proposal', () => {
-    expect(mapApplicationToCard({ ...engagement, latestOfferAmountMinor: 500000 }).price).toBe(
-      'BDT 5,000',
-    );
+    expect(mapApplicationToCard({ ...engagement, latestOfferAmountMinor: 500000 })).toMatchObject({
+      amountLabel: 'Latest offer',
+      amount: 'BDT 5,000',
+    });
     expect(
       mapApplicationToCard({
         ...engagement,
@@ -59,30 +53,55 @@ describe('mapApplicationToCard', () => {
         latestOfferAmountMinor: 500000,
         agreedAmountMinor: 520000,
       }),
-    ).toMatchObject({ price: 'BDT 5,200', status: 'Accepted' });
+    ).toMatchObject({ amountLabel: 'Agreed fee', amount: 'BDT 5,200' });
   });
 
-  test('labels closed applications by status', () => {
-    expect(mapApplicationToCard({ ...engagement, status: 'declined' }).status).toBe('Declined');
-    expect(mapApplicationToCard({ ...engagement, status: 'withdrawn' }).status).toBe('Withdrawn');
+  test('dates an invitation as "Invited"', () => {
+    expect(mapApplicationToCard({ ...engagement, origin: 'invited' }).date).toBe('Invited 10 Jul');
   });
 
   test('falls back when the campaign summary is missing', () => {
     expect(
       mapApplicationToCard({ ...engagement, proposedAmountMinor: null, campaign: null }),
-    ).toMatchObject({ image: null, title: 'Untitled campaign', price: 'Negotiable' });
+    ).toMatchObject({
+      image: null,
+      title: 'Untitled campaign',
+      amountLabel: 'Budget',
+      amount: 'Negotiable',
+    });
   });
 });
 
-describe('mapCampaignRequestToRow', () => {
-  test('names the campaign since the row has no business name', () => {
-    const now = new Date('2026-07-10T09:05:00.000Z').getTime();
-    expect(mapCampaignRequestToRow({ ...engagement, origin: 'invited' }, now)).toEqual({
+describe('mapInvitationToCard', () => {
+  const now = new Date('2026-07-10T09:05:00.000Z').getTime();
+
+  test('leads with the campaign, its budget and application deadline', () => {
+    expect(mapInvitationToCard({ ...engagement, origin: 'invited' }, now)).toEqual({
       avatar: { uri: 'https://cdn.influsis.test/avatar.jpg' },
-      name: 'Bkash Branding Campaign',
-      message: "You're invited to join Bkash Branding Campaign",
+      title: 'Bkash Branding Campaign',
+      amountLabel: 'Budget',
+      amount: 'BDT 6,000',
+      deadline: '01 Oct, 2026',
       time: '5 min ago',
     });
+  });
+
+  test("shows the business's offer when there is one", () => {
+    expect(
+      mapInvitationToCard(
+        { ...engagement, origin: 'invited', latestOfferAmountMinor: 550000 },
+        now,
+      ),
+    ).toMatchObject({ amountLabel: 'Offer', amount: 'BDT 5,500' });
+  });
+
+  test('has no deadline when the campaign has none', () => {
+    expect(
+      mapInvitationToCard(
+        { ...engagement, campaign: { ...engagement.campaign!, applicationDeadline: null } },
+        now,
+      ).deadline,
+    ).toBeNull();
   });
 });
 

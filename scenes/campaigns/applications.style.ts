@@ -1,45 +1,61 @@
 import { StyleSheet } from 'react-native';
 import { spacing } from '@/theme';
 
-// Shared fragments for the Applications scene (scenes/campaigns/Applications.tsx,
-// Figma "List", nodes 6015:7090 "Applied" tab + 6475:6394 "Request" tab; the
-// "Completed Campaigns" tab has no Figma frame and reuses the Applied layout).
-// Figma's own header-to-tabs gap differs slightly between the two tab
-// states (34px vs 16px, the same frame just measured twice) - `headerGap`
-// below picks a single consistent in-between value rather than switching
-// the whole screen's spacing when the tab changes.
+// Layout for the Applications tab (scenes/campaigns/Applications.tsx): a
+// fixed header (title row + segmented control) over the scrolling list. The
+// cards themselves are styled in components/applications/.
 export const applicationsStyle = StyleSheet.create({
-  headerGap: {
-    marginBottom: spacing['2xl'],
+  screen: {
+    flex: 1,
   },
-  // Three chips overflow a narrow phone, so the row scrolls sideways.
-  tabScroll: {
-    flexGrow: 0,
-    marginBottom: spacing.xl,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  // Vertical gap between "Applied" tab cards - confirmed from Figma's pixel
-  // positions (cards 211px tall, 16px apart, node 6015:7090).
-  appliedListGap: {
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     gap: spacing.lg,
   },
-  // Vertical gap between "Request" tab rows - confirmed from Figma's pixel
-  // positions (rows 114px tall, 10px apart, node 6475:6394).
-  requestListGap: {
-    gap: 10,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
-  // The same two gaps as FlatList separators (a FlatList's
-  // contentContainerStyle `gap` would also space out its header).
-  appliedSeparator: {
-    height: spacing.lg,
+  titleBlock: {
+    flex: 1,
+    gap: 2,
   },
-  requestSeparator: {
-    height: 10,
+  title: {
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: 0.2,
+  },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  headerAction: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  listContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing['3xl'],
+  },
+  separator: {
+    height: spacing.md,
+  },
+  skeletonGap: {
+    marginTop: spacing.md,
   },
   footer: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
 });

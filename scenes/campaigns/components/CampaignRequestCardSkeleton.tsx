@@ -45,8 +45,9 @@ const styles = StyleSheet.create({
   },
 });
 
-// Loading placeholder shaped like CampaignRequestCard (components/elements/
-// CampaignRequestCard) - the Applications screen's "Request" tab rows.
+// Generic loading row (square thumbnail, two text lines, a button pair) -
+// originally shaped like the old Applications invitation row, now the
+// placeholder for the Offer, Deliverables, Delivery and Review screens.
 function CampaignRequestCardSkeleton({ style }: CampaignRequestCardSkeletonProps) {
   const { colors, palette } = useTheme();
   const opacity = useSkeletonPulse();

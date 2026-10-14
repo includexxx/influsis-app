@@ -6,7 +6,7 @@ import { MyEngagementItem } from '../types/myEngagement';
 
 export interface JoinedCampaignCardProps {
   engagement: MyEngagementItem;
-  variant?: Exclude<CampaignCardVariant, 'applied'>;
+  variant?: CampaignCardVariant;
   /** Called with the joined engagement (item 25: rows open its deliverables). */
   onPress?: (engagement: MyEngagementItem) => void;
   style?: StyleProp<ViewStyle>;

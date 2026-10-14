@@ -1,38 +1,46 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, ListRenderItem, ScrollView, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  ListRenderItem,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
-import { layoutStyle } from '@/styles';
-import { applicationsStyle } from './applications.style';
-import ScreenHeader from '@/components/elements/ScreenHeader';
-import CategoryChip from '@/components/elements/CategoryChip';
-import CampaignCard from '@/components/elements/CampaignCard';
-import CampaignRequestCard from '@/components/elements/CampaignRequestCard';
+import ConfirmDialog from '@/components/elements/ConfirmDialog';
+import { applicationsStyle as s } from './applications.style';
 import {
-  CampaignCardSkeleton,
-  CampaignRequestCardSkeleton,
-  CampaignsEmptyState,
-} from './components';
-import { CampaignsStatusVariant } from './components/CampaignsEmptyState';
+  ApplicationCard,
+  ApplicationsEmptyState,
+  ApplicationsSkeleton,
+  ApplicationsTabs,
+  InvitationCard,
+} from './components/applications';
+import { ApplicationsEmptyVariant } from './components/applications/ApplicationsEmptyState';
 import {
+  UseCampaignsFeedResult,
   useCampaignRequests,
   useCompletedCampaigns,
   useMyApplications,
 } from './hooks/useCampaignsFeed';
 import { useDeclineMyEngagementMutation } from './api/campaignFeedApi';
-import { mapApplicationToCard, mapCampaignRequestToRow } from './utils/mapApplication';
+import { mapApplicationToCard, mapInvitationToCard } from './utils/mapApplication';
 import { MyEngagementItem } from './types/myEngagement';
 
-type ApplicationsTab = 'applied' | 'request' | 'completed';
+type ApplicationsTab = 'applied' | 'invited' | 'completed';
 
-const TABS: { key: ApplicationsTab; label: string; empty: CampaignsStatusVariant }[] = [
-  { key: 'applied', label: 'Applied', empty: 'noApplications' },
-  { key: 'request', label: 'Invited', empty: 'noRequests' },
-  { key: 'completed', label: 'Ended', empty: 'noCompleted' },
+const TABS: { key: ApplicationsTab; label: string }[] = [
+  { key: 'applied', label: 'Applied' },
+  { key: 'invited', label: 'Invited' },
+  { key: 'completed', label: 'Completed' },
 ];
 
-const INITIAL_SKELETON_COUNT = 4;
+const INITIAL_SKELETON_COUNT = 3;
 
 // Module-level so FlatList rows get a stable `renderItem`/`onPress`. Opens the
 // Offer screen for the engagement; the campaign title rides along because the
@@ -46,72 +54,69 @@ function openOffer(item: MyEngagementItem, review?: boolean) {
   });
 }
 
-function AppliedSeparator() {
-  return <View style={applicationsStyle.appliedSeparator} />;
+function browseCampaigns() {
+  router.push('/campaigns');
 }
 
-function RequestSeparator() {
-  return <View style={applicationsStyle.requestSeparator} />;
+function Separator() {
+  return <View style={s.separator} />;
 }
 
-const renderAppliedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
-  <CampaignCard
-    variant="applied"
+// "3", or "10+" while more pages exist; nothing while loading or empty.
+function countLabel(feed: UseCampaignsFeedResult<MyEngagementItem>, count: number) {
+  if (feed.isInitialLoading || count === 0) return undefined;
+  return `${count}${feed.hasMore ? '+' : ''}`;
+}
+
+const renderApplication: ListRenderItem<MyEngagementItem> = ({ item }) => (
+  <ApplicationCard
     {...mapApplicationToCard(item)}
+    status={item.status}
     onPress={() => openOffer(item)}
-    testID={`application-${item.id}`}
+    testID={
+      item.status === 'completed' ? `completed-campaign-${item.id}` : `application-${item.id}`
+    }
   />
 );
 
-const renderCompletedItem: ListRenderItem<MyEngagementItem> = ({ item }) => (
-  <CampaignCard
-    variant="applied"
-    {...mapApplicationToCard(item)}
-    onPress={() => openOffer(item)}
-    testID={`completed-campaign-${item.id}`}
-  />
-);
-
-// The Applications screen (Figma "List", node 6015:7090 "Applied" tab +
-// 6475:6394 "Request" tab) - a creator's sent applications and the
-// invitations they've received, opened from Profile's "My Applications"
-// link (scenes/profile/Profile.tsx). Registered in the app/(details)/ route
-// group (no tab bar), the same reasoning as every other (details) screen -
-// see docs/screen/apply-campaign/campaign-list.md.
+// The Applications tab - the creator's campaign pipeline in one place.
 //
-// Both tabs read campaign API group CF2 (GET /me/engagements): "Applied" is
-// `origin=requested` in any status, "Request" is `origin=invited` still
-// `pending` or `countered` (mid-negotiation). Tapping either row opens its
-// Offer screen (/engagement/:id), where the creator negotiates. Quick
-// Accept/Decline show only on `pending` invitations - a `countered` one is
-// answered on its Offer screen. Accept opens the Offer screen with its
-// Agreement sheet up (`review=1`); Decline (CF5) answers in place, and the
-// declined invitation is hidden right away since only the current page
-// refetches on invalidation.
+// - Applied: every campaign they asked to join, in any status
+//   (GET /me/engagements?origin=requested).
+// - Invited: business invitations still `pending` or mid-negotiation
+//   (`countered`) (origin=invited). A pending one gets quick Decline /
+//   Accept: Accept opens the Offer screen with its Agreement sheet up
+//   (`review=1`); Decline (CF5) asks for confirmation, then answers in place
+//   and hides the row right away, since only the current page refetches on
+//   invalidation. A countered one is answered on its Offer screen.
+// - Completed: engagements the business signed off (engagementStatus=
+//   completed), applied or invited alike.
 //
-// "Completed Campaigns" is CF2 with `engagementStatus=completed`, applied or
-// invited alike - the campaigns the creator finished (the business approved
-// the final delivery). Its rows use the Applied card and open the same Offer
-// screen, which shows the closed agreement. A finished campaign can't be
-// applied to again (see useCompletedCampaignIds).
+// A fixed header (title, a shortcut to browse campaigns, and a segmented
+// control with live counts) sits over the selected list, which pages in on
+// scroll and refreshes on pull. Every card opens its Offer screen
+// (/engagement/:id).
 export default function Applications() {
-  const { colors } = useTheme();
+  const { colors, palette, typography } = useTheme();
   const [activeTab, setActiveTab] = useState<ApplicationsTab>('applied');
   const [answeredIds, setAnsweredIds] = useState<ReadonlySet<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [confirmDecline, setConfirmDecline] = useState<MyEngagementItem | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const applied = useMyApplications();
-  const requests = useCampaignRequests();
+  const invited = useCampaignRequests();
   const completed = useCompletedCampaigns();
   const [declineEngagement] = useDeclineMyEngagementMutation();
 
-  const visibleRequests = useMemo(
-    () => requests.campaigns.filter(item => !answeredIds.has(item.id)),
-    [requests.campaigns, answeredIds],
+  const visibleInvitations = useMemo(
+    () => invited.campaigns.filter(item => !answeredIds.has(item.id)),
+    [invited.campaigns, answeredIds],
   );
 
   const decline = useCallback(
     async (item: MyEngagementItem) => {
+      setConfirmDecline(null);
       setPendingId(item.id);
       try {
         await declineEngagement({ engagementId: item.id }).unwrap();
@@ -126,116 +131,150 @@ export default function Applications() {
     [declineEngagement],
   );
 
-  const renderRequestItem: ListRenderItem<MyEngagementItem> = useCallback(
-    ({ item }) => {
-      const row = mapCampaignRequestToRow(item);
-      return (
-        <CampaignRequestCard
-          avatar={row.avatar}
-          businessName={row.name}
-          message={row.message}
-          time={row.time}
-          disabled={pendingId !== null}
-          showActions={item.status === 'pending'}
-          onAccept={() => openOffer(item, true)}
-          onDecline={() => decline(item)}
-          onPress={() => openOffer(item)}
-          testID={`campaign-request-${item.id}`}
-        />
-      );
-    },
-    [pendingId, decline],
-  );
-
-  // Applied and Completed share the card layout; Request has its own rows.
-  const isRequest = activeTab === 'request';
-  const feed = isRequest ? requests : activeTab === 'completed' ? completed : applied;
-  const Skeleton = isRequest ? CampaignRequestCardSkeleton : AppliedSkeleton;
-  const renderItem = isRequest
-    ? renderRequestItem
-    : activeTab === 'completed'
-      ? renderCompletedItem
-      : renderAppliedItem;
-  const emptyVariant = TABS.find(tab => tab.key === activeTab)?.empty ?? 'empty';
-
-  const header = (
-    <>
-      <ScreenHeader
-        title="Campaign Applications"
-        // A tab now, with no stack history of its own - back returns Home,
-        // like the Order screen did.
-        onBack={() => router.push('/home')}
-        style={applicationsStyle.headerGap}
+  const renderInvitation: ListRenderItem<MyEngagementItem> = useCallback(
+    ({ item }) => (
+      <InvitationCard
+        {...mapInvitationToCard(item)}
+        negotiating={item.status !== 'pending'}
+        disabled={pendingId !== null}
+        onAccept={() => openOffer(item, true)}
+        onDecline={() => setConfirmDecline(item)}
+        onPress={() => openOffer(item)}
+        testID={`campaign-request-${item.id}`}
       />
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={applicationsStyle.tabScroll}
-        contentContainerStyle={applicationsStyle.tabRow}>
-        {TABS.map(tab => (
-          <CategoryChip
-            key={tab.key}
-            label={tab.label}
-            selected={activeTab === tab.key}
-            onPress={() => setActiveTab(tab.key)}
-            testID={`applications-tab-${tab.key}`}
-          />
-        ))}
-      </ScrollView>
-    </>
+    ),
+    [pendingId],
   );
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([applied.refresh(), invited.refresh(), completed.refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [applied, invited, completed]);
+
+  const isInvited = activeTab === 'invited';
+  const feed = isInvited ? invited : activeTab === 'completed' ? completed : applied;
+  const data = isInvited ? visibleInvitations : feed.campaigns;
+  const skeletonVariant = isInvited ? 'invitation' : 'application';
+
+  const tabs = TABS.map(tab => ({
+    ...tab,
+    count:
+      tab.key === 'invited'
+        ? countLabel(invited, visibleInvitations.length)
+        : tab.key === 'completed'
+          ? countLabel(completed, completed.campaigns.length)
+          : countLabel(applied, applied.campaigns.length),
+  }));
+
+  const emptyVariant: ApplicationsEmptyVariant = feed.isInitialError ? 'error' : activeTab;
 
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      {feed.isInitialLoading ? (
-        <View style={[layoutStyle.screen, layoutStyle.scrollContent]}>
-          {header}
-          <View
-            style={isRequest ? applicationsStyle.requestListGap : applicationsStyle.appliedListGap}>
-            {Array.from({ length: INITIAL_SKELETON_COUNT }, (_, index) => (
-              <Skeleton key={index} />
-            ))}
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={[s.screen, { backgroundColor: colors.background }]}>
+      <View style={s.header}>
+        <View style={s.titleRow}>
+          <View style={s.titleBlock}>
+            <Text
+              accessibilityRole="header"
+              style={[typography.displayM, s.title, { color: colors.text.primary }]}>
+              Applications
+            </Text>
+            <Text style={[s.subtitle, { color: colors.text.secondary }]}>
+              Track your pitches and campaign invitations
+            </Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Browse campaigns"
+            hitSlop={8}
+            onPress={browseCampaigns}
+            style={({ pressed }) => [
+              s.headerAction,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              pressed && s.pressed,
+            ]}
+            testID="applications-browse">
+            <Feather name="compass" size={20} color={colors.text.primary} />
+          </Pressable>
+        </View>
+
+        <ApplicationsTabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
+      </View>
+
+      {feed.isInitialLoading ? (
+        <View style={s.listContent}>
+          {Array.from({ length: INITIAL_SKELETON_COUNT }, (_, index) => (
+            <View key={index} style={index > 0 ? s.skeletonGap : undefined}>
+              <ApplicationsSkeleton variant={skeletonVariant} />
+            </View>
+          ))}
         </View>
       ) : (
         <FlatList
           // Remount per tab so scroll position and end-reached state don't
           // carry over between the lists.
           key={activeTab}
-          data={isRequest ? visibleRequests : feed.campaigns}
+          data={data}
           keyExtractor={item => item.id}
-          renderItem={renderItem}
+          renderItem={isInvited ? renderInvitation : renderApplication}
           extraData={pendingId}
-          ItemSeparatorComponent={isRequest ? RequestSeparator : AppliedSeparator}
-          ListHeaderComponent={header}
-          style={layoutStyle.screen}
-          contentContainerStyle={layoutStyle.scrollContent}
+          ItemSeparatorComponent={Separator}
+          style={s.screen}
+          contentContainerStyle={s.listContent}
           showsVerticalScrollIndicator={false}
           onEndReachedThreshold={0.4}
           onEndReached={feed.hasMore ? feed.loadMore : undefined}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor={palette.primary[400]}
+              colors={[palette.primary[400]]}
+            />
+          }
           ListEmptyComponent={
-            feed.isInitialError ? (
-              <CampaignsEmptyState variant="error" onRetry={feed.retry} />
-            ) : (
-              <CampaignsEmptyState variant={emptyVariant} />
-            )
+            <ApplicationsEmptyState
+              variant={emptyVariant}
+              onAction={
+                emptyVariant === 'error'
+                  ? feed.retry
+                  : emptyVariant === 'applied'
+                    ? browseCampaigns
+                    : undefined
+              }
+            />
           }
           ListFooterComponent={
             feed.isLoadingMore ? (
-              <View style={applicationsStyle.footer}>
-                <Skeleton />
+              <View style={s.footer}>
+                <ApplicationsSkeleton variant={skeletonVariant} />
               </View>
             ) : feed.isLoadMoreError ? (
-              <CampaignsEmptyState variant="error" onRetry={feed.retry} />
+              <ApplicationsEmptyState variant="error" onAction={feed.retry} />
             ) : null
           }
         />
       )}
+
+      {confirmDecline ? (
+        <ConfirmDialog
+          icon="x-circle"
+          tone="danger"
+          title="Decline this invitation?"
+          message={`${confirmDecline.campaign?.title ?? 'This campaign'} will be removed from your invitations. This can't be undone.`}
+          primaryLabel="Keep it"
+          onPrimaryPress={() => setConfirmDecline(null)}
+          secondaryLabel="Decline"
+          onSecondaryPress={() => decline(confirmDecline)}
+          onClose={() => setConfirmDecline(null)}
+          testID="decline-confirm"
+        />
+      ) : null}
     </SafeAreaView>
   );
-}
-
-function AppliedSkeleton() {
-  return <CampaignCardSkeleton variant="applied" />;
 }

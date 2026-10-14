@@ -11,7 +11,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
-import { getShadowStyle, radius } from '@/theme';
+import { getShadowStyle } from '@/theme';
 import Image from '../Image';
 import FallbackImage from '../FallbackImage';
 import StatusBadge from '../StatusBadge';
@@ -21,7 +21,7 @@ const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 // same generic campaign hero image the mock Home data used for this slot.
 const defaultCover: ImageSourcePropType = require('@/assets/images/home/hero-campaign.jpg');
 
-export type CampaignCardVariant = 'hero' | 'list' | 'applied';
+export type CampaignCardVariant = 'hero' | 'list';
 
 export interface CampaignCardProps {
   variant?: CampaignCardVariant;
@@ -198,65 +198,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: WHITE,
   },
-
-  // --- Applied: a compact row (Applications list) ---
-  applied: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    ...getShadowStyle('sm'),
-  },
-  thumb: {
-    width: 84,
-    height: 84,
-    borderRadius: radius.lg,
-  },
-  appliedBody: {
-    flex: 1,
-    justifyContent: 'space-between',
-    gap: 6,
-  },
-  appliedTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  appliedDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flexShrink: 1,
-  },
-  appliedDate: {
-    flexShrink: 1,
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  appliedTitle: {
-    fontSize: 15,
-    lineHeight: 21,
-    fontWeight: '700',
-  },
-  appliedPrice: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: '800',
-  },
 });
 
 // Campaign card (Figma nodes 6770:6078 "hero" carousel variant + 6121:6627/
-// 6659/6684/6709 "list" variant + the Applications "applied" rows):
+// 6659/6684/6709 "list" variant):
 // - `hero` (Home's Active Campaigns carousel) and `list` (Campaigns, Home,
 //   Business details, Live Campaigns, Search) are cover cards: a full-bleed
 //   photo under a soft scrim, tag and status pills on top, and a frosted-glass
 //   panel at the bottom with the business avatar, title, business name +
 //   verified badge, the deliverables (list), and white price / glass date
 //   chips. `list` is taller to fit the deliverables line.
-// - `applied` (Applications): a compact row - thumbnail, applied date and
-//   status, title, price.
 // Every variant is one labelled button with press feedback. See
 // docs/screen/home and docs/screen/search for detail.
 function CampaignCard({
@@ -277,52 +228,10 @@ function CampaignCard({
   style,
   testID,
 }: CampaignCardProps) {
-  const { colors, palette } = useTheme();
+  const { palette } = useTheme();
   const accessibilityLabel = [title, businessName, status, price, dueDate]
     .filter(Boolean)
     .join(', ');
-
-  if (variant === 'applied') {
-    return (
-      <Pressable
-        accessibilityRole={onPress ? 'button' : undefined}
-        accessibilityLabel={accessibilityLabel}
-        onPress={onPress}
-        testID={testID}
-        style={({ pressed }) => [
-          styles.applied,
-          { backgroundColor: colors.card, borderColor: colors.border },
-          style,
-          pressed && onPress ? styles.pressed : null,
-        ]}>
-        <FallbackImage
-          source={image}
-          fallbackSource={defaultCover}
-          name={title}
-          style={styles.thumb}
-        />
-        <View style={styles.appliedBody}>
-          <View style={styles.appliedTop}>
-            <View style={styles.appliedDateRow}>
-              <Feather name="clock" size={12} color={colors.text.secondary} />
-              <Text
-                style={[styles.appliedDate, { color: colors.text.secondary }]}
-                numberOfLines={1}>
-                {dueDate}
-              </Text>
-            </View>
-            {status && (
-              <StatusBadge label={status} color={statusColor} textColor={statusTextColor} />
-            )}
-          </View>
-          <Text style={[styles.appliedTitle, { color: colors.text.primary }]} numberOfLines={2}>
-            {title}
-          </Text>
-          <Text style={[styles.appliedPrice, { color: palette.primary[500] }]}>{price}</Text>
-        </View>
-      </Pressable>
-    );
-  }
 
   const isList = variant === 'list';
   const showAvatar = !!(businessAvatar || businessName);

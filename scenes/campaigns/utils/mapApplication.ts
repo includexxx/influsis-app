@@ -1,9 +1,12 @@
 import { ImageSourcePropType } from 'react-native';
-import { CampaignCardProps } from '@/components/elements/CampaignCard';
-import { palette } from '@/theme';
 import { resolveMediaKeyOrUrl } from '@/utils/media';
-import { EngagementStatus, MyEngagementItem } from '../types/myEngagement';
-import { MONTH_LABELS, formatDisplayDate, formatEngagementPrice } from './mapCampaignFeedItem';
+import { MyEngagementItem } from '../types/myEngagement';
+import {
+  MONTH_LABELS,
+  formatCampaignDueDate,
+  formatDisplayDate,
+  formatEngagementPrice,
+} from './mapCampaignFeedItem';
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -14,18 +17,6 @@ function toRemoteSource(keyOrUrl: string | null | undefined): ImageSourcePropTyp
   const url = resolveMediaKeyOrUrl(keyOrUrl);
   return url ? { uri: url } : null;
 }
-
-const STATUS_BADGES: Record<EngagementStatus, { label: string; color: string; textColor: string }> =
-  {
-    pending: { label: 'Applied', color: palette.primary[400], textColor: palette.white },
-    countered: { label: 'Countered', color: palette.warning[500], textColor: palette.white },
-    accepted: { label: 'Accepted', color: palette.success[500], textColor: palette.white },
-    completed: { label: 'Completed', color: palette.success[500], textColor: palette.white },
-    declined: { label: 'Declined', color: palette.error[500], textColor: palette.white },
-    withdrawn: { label: 'Withdrawn', color: palette.gray[300], textColor: palette.white },
-    expired: { label: 'Expired', color: palette.gray[300], textColor: palette.white },
-    cancelled: { label: 'Cancelled', color: palette.gray[300], textColor: palette.white },
-  };
 
 // "Applied 10 Jul" from the engagement's ISO `createdAt`, read in local time.
 // `label` is "Invited" for a business invitation (the Completed tab mixes both).
@@ -48,59 +39,76 @@ export function formatRelativeTime(iso: string, now: number = Date.now()): strin
   return formatDisplayDate(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-export type AppliedCampaignCardProps = Pick<
-  CampaignCardProps,
-  'image' | 'title' | 'price' | 'dueDate' | 'status' | 'statusColor' | 'statusTextColor'
->;
+export interface ApplicationCardModel {
+  /** Cover photo; `null` shows the generic campaign cover. */
+  image: ImageSourcePropType | null;
+  title: string;
+  /** "Applied 10 Jul" / "Invited 10 Jul". */
+  date: string;
+  /** What `amount` is: "Agreed fee", "Latest offer", "Your rate" or "Budget". */
+  amountLabel: string;
+  amount: string;
+}
 
-// Maps one of the creator's own applications (GET /me/engagements?origin=
-// requested row) onto CampaignCard's `applied` variant. The price is the
-// most settled amount on the thread: the agreed fee, else the newest offer,
-// else the creator's proposal, else the campaign's per-creator budget range.
-export function mapApplicationToCard(engagement: MyEngagementItem): AppliedCampaignCardProps {
+// Maps one of the creator's engagements (a GET /me/engagements row) onto
+// the Applications screen's ApplicationCard. The amount is the most settled
+// one on the thread: the agreed fee, else the newest offer, else the
+// creator's proposal, else the campaign's per-creator budget range - and
+// `amountLabel` names which one it is. The status is read off the row
+// itself (see components/applications/applicationStatus.ts).
+export function mapApplicationToCard(engagement: MyEngagementItem): ApplicationCardModel {
   const campaign = engagement.campaign;
-  const badge = STATUS_BADGES[engagement.status] ?? STATUS_BADGES.pending;
+  const [amountLabel, amountMinor] =
+    engagement.agreedAmountMinor != null
+      ? ['Agreed fee', engagement.agreedAmountMinor]
+      : engagement.latestOfferAmountMinor != null
+        ? ['Latest offer', engagement.latestOfferAmountMinor]
+        : engagement.proposedAmountMinor != null
+          ? ['Your rate', engagement.proposedAmountMinor]
+          : ['Budget', null];
   return {
     image: toRemoteSource(campaign?.coverUrl),
     title: campaign?.title ?? 'Untitled campaign',
-    price: formatEngagementPrice(
-      engagement.agreedAmountMinor ??
-        engagement.latestOfferAmountMinor ??
-        engagement.proposedAmountMinor,
-      campaign,
-      engagement.currency,
-    ),
-    dueDate: formatAppliedDate(
+    date: formatAppliedDate(
       engagement.createdAt,
       engagement.origin === 'invited' ? 'Invited' : 'Applied',
     ),
-    status: badge.label,
-    statusColor: badge.color,
-    statusTextColor: badge.textColor,
+    amountLabel,
+    amount: formatEngagementPrice(amountMinor, campaign, engagement.currency),
   };
 }
 
-export interface CampaignRequestRowProps {
+export interface InvitationCardModel {
+  /** Campaign avatar (else cover); `null` shows the title's initial. */
   avatar: ImageSourcePropType | null;
-  /** Used for the avatar initial and the Accept/Decline accessibility labels. */
-  name: string;
-  message: string;
+  title: string;
+  /** "Offer" when the business named a fee, else "Budget". */
+  amountLabel: string;
+  amount: string;
+  /** "01 Oct, 2026", or `null` when the campaign has no application deadline. */
+  deadline: string | null;
+  /** Relative time the invitation arrived, e.g. "2 h ago". */
   time: string;
 }
 
-// Maps one business invitation (GET /me/engagements?origin=invited row)
-// onto CampaignRequestCard. The row carries no business name, so the copy
-// names the campaign instead.
-export function mapCampaignRequestToRow(
+// Maps one business invitation (a GET /me/engagements?origin=invited row)
+// onto InvitationCard. The row carries no business name, so the card leads
+// with the campaign. The amount is the newest offer on the thread (the
+// business's opening offer, or the latest counter), else the budget range.
+export function mapInvitationToCard(
   engagement: MyEngagementItem,
   now?: number,
-): CampaignRequestRowProps {
+): InvitationCardModel {
   const campaign = engagement.campaign;
-  const title = campaign?.title ?? 'a campaign';
+  const offer = engagement.latestOfferAmountMinor;
   return {
     avatar: toRemoteSource(campaign?.avatarUrl ?? campaign?.coverUrl),
-    name: campaign?.title ?? 'Campaign',
-    message: `You're invited to join ${title}`,
+    title: campaign?.title ?? 'Campaign invitation',
+    amountLabel: offer != null ? 'Offer' : 'Budget',
+    amount: formatEngagementPrice(offer, campaign, engagement.currency),
+    deadline: campaign?.applicationDeadline
+      ? formatCampaignDueDate(campaign.applicationDeadline)
+      : null,
     time: formatRelativeTime(engagement.createdAt, now),
   };
 }

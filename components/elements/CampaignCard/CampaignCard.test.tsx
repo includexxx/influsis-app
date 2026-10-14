@@ -58,25 +58,6 @@ describe('<CampaignCard />', () => {
     expect(screen.getByText('Ongoing')).not.toBeNull();
   });
 
-  test('renders applied variant with applied date and price, no business name', () => {
-    render(
-      <CampaignCard
-        variant="applied"
-        image={image}
-        title="Bkash Branding Campaign"
-        status="Applied"
-        statusColor="#F42E9E"
-        statusTextColor="#FFFFFF"
-        price="$299.99"
-        dueDate="Applied 10 July"
-      />,
-    );
-    expect(screen.getByText('Bkash Branding Campaign')).not.toBeNull();
-    expect(screen.getByText('Applied 10 July')).not.toBeNull();
-    expect(screen.getByText('$299.99')).not.toBeNull();
-    expect(screen.getAllByText('Applied').length).toBeGreaterThan(0);
-  });
-
   test('falls back to the business initial when the hero avatar is missing', () => {
     render(
       <CampaignCard

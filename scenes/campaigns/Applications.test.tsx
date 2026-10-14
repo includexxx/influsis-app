@@ -137,11 +137,12 @@ describe('<Applications />', () => {
     mockLists({ applied: [application], invited: [] });
     renderScreen();
 
-    expect(screen.getAllByTestId('campaign-card-skeleton').length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('application-card-skeleton').length).toBeGreaterThan(0);
     expect(await screen.findByText('Bkash Branding Campaign')).toBeTruthy();
-    // The tab chip plus the card's status badge.
-    expect(screen.getAllByText('Applied')).toHaveLength(2);
-    expect(screen.queryByTestId('campaign-card-skeleton')).toBeNull();
+    expect(screen.getByText('Pending')).toBeTruthy();
+    expect(screen.getByText('Your rate')).toBeTruthy();
+    expect(screen.getByText('Applied 10 Jul')).toBeTruthy();
+    expect(screen.queryByTestId('application-card-skeleton')).toBeNull();
 
     const params = mockRequest.mock.calls.map(([cfg]) => (cfg as RequestConfig).params);
     expect(params).toEqual(
@@ -169,7 +170,7 @@ describe('<Applications />', () => {
       params: { id: 'app-1', title: 'Bkash Branding Campaign' },
     });
 
-    fireEvent.press(screen.getByTestId('applications-tab-request'));
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
     fireEvent.press(await screen.findByTestId('campaign-request-inv-1'));
     expect(mockPush).toHaveBeenLastCalledWith({
       pathname: '/engagement/[id]',
@@ -183,7 +184,7 @@ describe('<Applications />', () => {
       invited: [invitation, { ...invitation, id: 'inv-2', status: 'countered' }],
     });
     renderScreen();
-    fireEvent.press(screen.getByTestId('applications-tab-request'));
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
 
     expect(await screen.findByTestId('campaign-request-inv-2')).toBeTruthy();
     expect(screen.getByTestId('campaign-request-inv-1-accept')).toBeTruthy();
@@ -203,15 +204,15 @@ describe('<Applications />', () => {
     renderScreen();
     await screen.findByText('Bkash Branding Campaign');
 
-    fireEvent.press(screen.getByTestId('applications-tab-request'));
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
 
-    expect(await screen.findByText('No campaign requests')).toBeTruthy();
+    expect(await screen.findByText('No invitations yet')).toBeTruthy();
   });
 
   test('quick Accept opens the Offer screen with the agreement up and sends no CF4', async () => {
     mockLists({ applied: [], invited: [invitation] });
     renderScreen();
-    fireEvent.press(screen.getByTestId('applications-tab-request'));
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
 
     fireEvent.press(await screen.findByTestId('campaign-request-inv-1-accept'));
 
@@ -227,12 +228,15 @@ describe('<Applications />', () => {
   test('declining an invitation calls CF5 and removes the row', async () => {
     mockLists({ applied: [], invited: [invitation] });
     renderScreen();
-    fireEvent.press(screen.getByTestId('applications-tab-request'));
-    expect(await screen.findByText("You're invited to join Pathao Summer Push")).toBeTruthy();
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
+    expect(await screen.findByText('Pathao Summer Push')).toBeTruthy();
 
     answerWith(({ method }) => (method === 'POST' ? { id: 'inv-1', status: 'declined' } : []));
+    fireEvent.press(screen.getByTestId('campaign-request-inv-1-decline'));
+    // Nothing is sent until the creator confirms.
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
     await act(async () => {
-      fireEvent.press(screen.getByTestId('campaign-request-inv-1-decline'));
+      fireEvent.press(screen.getByTestId('decline-confirm-secondary'));
     });
 
     expect(mockRequest).toHaveBeenCalledWith(
@@ -242,7 +246,7 @@ describe('<Applications />', () => {
         data: { reason: '' },
       }),
     );
-    expect(await screen.findByText('No campaign requests')).toBeTruthy();
+    expect(await screen.findByText('No invitations yet')).toBeTruthy();
   });
 
   test('the Completed Campaigns tab lists finished campaigns and opens their Offer screen', async () => {
@@ -260,7 +264,9 @@ describe('<Applications />', () => {
     fireEvent.press(screen.getByTestId('applications-tab-completed'));
 
     expect(await screen.findByText('Daraz Eid Sale')).toBeTruthy();
-    expect(screen.getByText('Completed')).toBeTruthy();
+    // The tab label plus the card's status pill.
+    expect(screen.getAllByText('Completed')).toHaveLength(2);
+    expect(screen.getByText('Agreed fee')).toBeTruthy();
     expect(screen.getByText('Invited 10 Jul')).toBeTruthy();
     expect(screen.queryByText('Bkash Branding Campaign')).toBeNull();
     expect(mockRequest).toHaveBeenCalledWith(
@@ -285,6 +291,61 @@ describe('<Applications />', () => {
     fireEvent.press(screen.getByTestId('applications-tab-completed'));
 
     expect(await screen.findByText('No completed campaigns yet')).toBeTruthy();
+  });
+
+  test('keeping a declined invitation sends nothing and leaves the row', async () => {
+    mockLists({ applied: [], invited: [invitation] });
+    renderScreen();
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
+
+    fireEvent.press(await screen.findByTestId('campaign-request-inv-1-decline'));
+    fireEvent.press(screen.getByTestId('decline-confirm-primary'));
+
+    expect(mockRequest).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+    expect(screen.queryByTestId('decline-confirm')).toBeNull();
+    expect(screen.getByTestId('campaign-request-inv-1')).toBeTruthy();
+  });
+
+  test('a countered invitation points to its negotiation', async () => {
+    mockLists({ applied: [], invited: [{ ...invitation, status: 'countered' }] });
+    renderScreen();
+    fireEvent.press(screen.getByTestId('applications-tab-invited'));
+
+    expect(await screen.findByText('Continue the negotiation')).toBeTruthy();
+    expect(screen.getByText('Negotiating')).toBeTruthy();
+  });
+
+  test('a counter-offer on an application is flagged for review', async () => {
+    mockLists({
+      applied: [{ ...application, status: 'countered', latestOfferAmountMinor: 500000 }],
+      invited: [],
+    });
+    renderScreen();
+
+    expect(await screen.findByText('Counter-offer')).toBeTruthy();
+    expect(screen.getByText('Latest offer')).toBeTruthy();
+    expect(screen.getByText('New offer on the table - tap to review')).toBeTruthy();
+  });
+
+  test('each tab shows how many items it holds', async () => {
+    mockLists({
+      applied: [application, { ...application, id: 'app-2' }],
+      invited: [invitation],
+    });
+    renderScreen();
+    await screen.findAllByText('Bkash Branding Campaign');
+
+    expect(screen.getByLabelText('Applied, 2')).toBeTruthy();
+    expect(screen.getByLabelText('Invited, 1')).toBeTruthy();
+    expect(screen.getByLabelText('Completed')).toBeTruthy();
+  });
+
+  test('the empty Applied tab offers to browse campaigns', async () => {
+    mockLists({ applied: [], invited: [] });
+    renderScreen();
+
+    fireEvent.press(await screen.findByText('Browse campaigns'));
+    expect(mockPush).toHaveBeenLastCalledWith('/campaigns');
   });
 
   test('shows a retryable error state when the list fails to load', async () => {
