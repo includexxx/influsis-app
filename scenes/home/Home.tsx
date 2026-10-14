@@ -85,7 +85,7 @@ export default function Home() {
 
           <EarningsSection />
 
-          <QuickActions actions={QUICK_ACTIONS} />
+          {/* <QuickActions actions={QUICK_ACTIONS} /> */}
         </View>
 
         <ActiveCampaignsSection
