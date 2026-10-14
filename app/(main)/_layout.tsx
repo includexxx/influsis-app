@@ -3,12 +3,13 @@ import { useAuthSlice } from '@/slices';
 import { authGate } from '@/utils/authGate';
 import AnimatedTabBar from '@/components/layouts/AnimatedTabBar';
 
-// Main app shell (Figma "TabBar", node 6355:6595): Home / Order / Create Gig
-// / Message / Profile. Create Gig is a real tab: `/create` (the wizard's
-// first step, app/(main)/create.tsx) lives here, so the tab bar stays
-// mounted on it and its tab shows as active. The wizard's later steps
-// (`/create-gig-pricing`, `/create-gig-preview`) stay in `(details)` and
-// push onto the root Stack - see docs/screen/create-gig/README.md.
+// Main app shell (Figma "TabBar", node 6355:6595): Home / Applications /
+// Transactions / Message / Profile. Order and Create Gig are no longer tab
+// buttons but keep their routes here (hidden), since `/order` and `/create`
+// are still navigated to and keep the tab bar mounted. The Create Gig
+// wizard's later steps (`/create-gig-pricing`, `/create-gig-preview`) stay
+// in `(details)` and push onto the root Stack - see
+// docs/screen/create-gig/README.md.
 // The bar itself is the custom AnimatedTabBar (components/layouts); which
 // routes get a button, with what icon and label, is its MAIN_TABS list.
 export default function MainLayout() {
@@ -21,10 +22,14 @@ export default function MainLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false }} tabBar={props => <AnimatedTabBar {...props} />}>
       <Tabs.Screen name="home" options={{ title: 'Home' }} />
-      <Tabs.Screen name="order" options={{ title: 'Order' }} />
-      <Tabs.Screen name="create" options={{ title: 'Create Gig' }} />
+      <Tabs.Screen name="applications" options={{ title: 'Applications' }} />
+      <Tabs.Screen name="transactions" options={{ title: 'Transactions' }} />
       <Tabs.Screen name="message" options={{ title: 'Message' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      {/* Former tabs, now without a tab button: Order (reached back from
+          OrderDelivered) and Create Gig (CreateGigPreview's edit step). */}
+      <Tabs.Screen name="order" options={{ href: null }} />
+      <Tabs.Screen name="create" options={{ href: null }} />
       {/* Reached via the Home tab's search bar (scenes/home/Home.tsx). Not
           a tab bar destination (Figma's Search screen has no matching tab
           icon), but the tab bar itself stays visible on this screen per

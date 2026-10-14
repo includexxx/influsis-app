@@ -27,8 +27,8 @@ export interface TabConfig {
 // registered in the shell but get no tab button.
 export const MAIN_TABS: TabConfig[] = [
   { name: 'home', label: 'Home', icon: 'home' },
-  { name: 'order', label: 'Order', icon: 'shopping-bag' },
-  { name: 'create', label: 'Create Gig', icon: 'plus-square' },
+  { name: 'applications', label: 'Applications', icon: 'send' },
+  { name: 'transactions', label: 'Transactions', icon: 'bar-chart-2' },
   { name: 'message', label: 'Message', icon: 'message-circle' },
   { name: 'profile', label: 'Profile', icon: 'user' },
 ];

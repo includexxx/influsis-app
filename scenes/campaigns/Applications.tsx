@@ -28,8 +28,8 @@ type ApplicationsTab = 'applied' | 'request' | 'completed';
 
 const TABS: { key: ApplicationsTab; label: string; empty: CampaignsStatusVariant }[] = [
   { key: 'applied', label: 'Applied', empty: 'noApplications' },
-  { key: 'request', label: 'Request', empty: 'noRequests' },
-  { key: 'completed', label: 'Completed Campaigns', empty: 'noCompleted' },
+  { key: 'request', label: 'Invited', empty: 'noRequests' },
+  { key: 'completed', label: 'Ended', empty: 'noCompleted' },
 ];
 
 const INITIAL_SKELETON_COUNT = 4;
@@ -160,7 +160,13 @@ export default function Applications() {
 
   const header = (
     <>
-      <ScreenHeader title="List" onBack={() => router.back()} style={applicationsStyle.headerGap} />
+      <ScreenHeader
+        title="Campaign Applications"
+        // A tab now, with no stack history of its own - back returns Home,
+        // like the Order screen did.
+        onBack={() => router.push('/home')}
+        style={applicationsStyle.headerGap}
+      />
 
       <ScrollView
         horizontal

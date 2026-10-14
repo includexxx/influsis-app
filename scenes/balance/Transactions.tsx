@@ -29,7 +29,9 @@ export default function Transactions() {
         showsVerticalScrollIndicator={false}>
         <ScreenHeader
           title="Transaction"
-          onBack={() => router.back()}
+          // A tab now, with no stack history of its own - back returns Home,
+          // like the Order screen did.
+          onBack={() => router.push('/home')}
           style={transactionsStyle.headerRow}
         />
 

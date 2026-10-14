@@ -6,9 +6,17 @@ import AnimatedTabBar from './AnimatedTabBar';
 
 jest.mock('expo-haptics', () => ({ selectionAsync: jest.fn(() => Promise.resolve()) }));
 
-const ROUTES = ['home', 'order', 'create', 'message', 'profile', 'search', 'ballance'].map(
-  name => ({ key: `${name}-key`, name, params: undefined }),
-);
+const ROUTES = [
+  'home',
+  'applications',
+  'transactions',
+  'message',
+  'profile',
+  'order',
+  'create',
+  'search',
+  'ballance',
+].map(name => ({ key: `${name}-key`, name, params: undefined }));
 
 const metrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -41,9 +49,11 @@ beforeEach(() => {
 describe('<AnimatedTabBar />', () => {
   test('renders the five main tabs and no button for hidden routes', () => {
     renderBar('home');
-    for (const label of ['Home', 'Order', 'Create Gig', 'Message', 'Profile']) {
+    for (const label of ['Home', 'Applications', 'Transactions', 'Message', 'Profile']) {
       expect(screen.getByLabelText(label)).toBeTruthy();
     }
+    expect(screen.queryByTestId('main-tab-order')).toBeNull();
+    expect(screen.queryByTestId('main-tab-create')).toBeNull();
     expect(screen.queryByTestId('main-tab-search')).toBeNull();
     expect(screen.queryByTestId('main-tab-ballance')).toBeNull();
   });
@@ -59,7 +69,7 @@ describe('<AnimatedTabBar />', () => {
   });
 
   test('raises the active tab into the circle with its label once laid out', () => {
-    renderBar('order');
+    renderBar('applications');
     expect(screen.queryByTestId('main-tab-active-circle')).toBeNull();
 
     fireEvent(screen.getByTestId('main-tab-row'), 'layout', {
@@ -67,7 +77,7 @@ describe('<AnimatedTabBar />', () => {
     });
 
     expect(screen.getByTestId('main-tab-active-circle')).toBeTruthy();
-    expect(screen.getByTestId('main-tab-active-label').props.children).toBe('Order');
+    expect(screen.getByTestId('main-tab-active-label').props.children).toBe('Applications');
   });
 
   test('shows no raised tab on a screen without a tab button', () => {
@@ -94,10 +104,10 @@ describe('<AnimatedTabBar />', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  test('Create Gig is a regular tab that opens the wizard', () => {
+  test('the Transactions tab opens the transactions screen', () => {
     renderBar('home');
-    fireEvent.press(screen.getByTestId('main-tab-create'));
-    expect(navigate).toHaveBeenCalledWith('create', undefined);
+    fireEvent.press(screen.getByTestId('main-tab-transactions'));
+    expect(navigate).toHaveBeenCalledWith('transactions', undefined);
   });
 
   test('a prevented tabPress does not navigate', () => {
