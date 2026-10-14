@@ -1,9 +1,25 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  createAsyncThunk,
+  createSlice,
+  PayloadAction,
+  ThunkDispatch,
+  UnknownAction,
+} from '@reduxjs/toolkit';
 import { State, Dispatch } from '@/utils/store';
 import { authApi, clearTokens, getTokens, ApiError } from '@/services';
 import { profilesApi } from '@/services/profilesApi';
+import { campaignFeedApi } from '@/scenes/campaigns/api/campaignFeedApi';
+import { businessDirectoryApi } from '@/scenes/business/api/businessDirectoryApi';
+import { creatorDirectoryApi } from '@/scenes/creator/api/creatorDirectoryApi';
+import { DataPersistKeys } from '@/hooks/useDataPersist';
+import { clearPendingPreAuthToken } from '@/utils/preAuthToken';
+import { clearPendingResetToken } from '@/utils/resetToken';
 import { AuthAccount } from '@/types';
+import { reset as resetApp } from './app.slice';
+import { reset as resetCreatorOnboarding } from './creatorOnboarding.slice';
+import { reset as resetCreateGig } from './createGig.slice';
 
 export type AuthStatus = 'restoring' | 'authenticated' | 'unauthenticated';
 
@@ -74,16 +90,35 @@ const slice = createSlice({
 export const { sessionEstablished, sessionEnded, accountUpdated } = slice.actions;
 
 /**
- * Explicit user logout. Ends the Redux session and drops cached authApi data
- * synchronously (so a caller can navigate immediately against a consistent
- * `unauthenticated` status), then wipes the stored token pair. A later leaf
- * adds `POST /auth/logout` before `clearTokens()`.
+ * Synchronous in-memory wipe shared by every sign-out path (explicit logout
+ * and the dead-refresh handler in `utils/store.ts`): ends the session, resets
+ * every user-scoped slice back to its initial state, drops every RTK Query
+ * cache, and forgets any half-finished MFA / password-reset token.
  */
-export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
+export function clearSessionState(dispatch: ThunkDispatch<unknown, unknown, UnknownAction>) {
   dispatch(sessionEnded());
+  dispatch(resetApp());
+  dispatch(resetCreatorOnboarding());
+  dispatch(resetCreateGig());
   dispatch(authApi.util.resetApiState());
   dispatch(profilesApi.util.resetApiState());
+  dispatch(campaignFeedApi.util.resetApiState());
+  dispatch(businessDirectoryApi.util.resetApiState());
+  dispatch(creatorDirectoryApi.util.resetApiState());
+  clearPendingPreAuthToken();
+  clearPendingResetToken();
+}
+
+/**
+ * Explicit user logout. Clears all in-memory state synchronously (so a caller
+ * can navigate immediately against a consistent `unauthenticated` status),
+ * then wipes the token pair (and its in-memory mirror) and every other
+ * persisted key. A later leaf adds `POST /auth/logout` before `clearTokens()`.
+ */
+export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
+  clearSessionState(dispatch);
   await clearTokens();
+  await AsyncStorage.multiRemove(Object.values(DataPersistKeys));
 });
 
 export function useAuthSlice() {

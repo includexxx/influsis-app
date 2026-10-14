@@ -22,6 +22,8 @@ const slice = createSlice({
   },
 });
 
+export const { setUser, reset } = slice.actions;
+
 export function useAppSlice() {
   const dispatch = useDispatch<Dispatch>();
   const state = useSelector(({ app }: State) => app);

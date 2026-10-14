@@ -4,8 +4,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { useTheme, useDataPersist, DataPersistKeys } from '@/hooks';
-import { useAppSlice, useAuthSlice } from '@/slices';
+import { useTheme } from '@/hooks';
+import { useAuthSlice } from '@/slices';
+import { clearDeviceCaches } from '@/utils/deviceCaches';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { isCreatorProfileResponse } from '@/types';
 import { layoutStyle } from '@/styles';
@@ -36,9 +37,7 @@ const appVersion = Constants.expoConfig?.version;
 export default function Profile() {
   const { colors, palette, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { dispatch, setUser } = useAppSlice();
-  const { account, signOut } = useAuthSlice();
-  const { removePersistData } = useDataPersist();
+  const { dispatch, account, signOut } = useAuthSlice();
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const { data, isError, error } = useGetMyProfileQuery();
 
@@ -125,11 +124,12 @@ export default function Profile() {
 
   const danger = toneColors('error', isDark);
 
+  // signOut resets every slice, every RTK Query cache, and all persisted
+  // data; clearDeviceCaches drops the Google account and the image cache.
   function handleLogout() {
     setIsLogoutConfirmOpen(false);
-    removePersistData(DataPersistKeys.USER);
-    dispatch(setUser(undefined));
     dispatch(signOut());
+    clearDeviceCaches();
     router.replace('/auth');
   }
 

@@ -21,19 +21,18 @@ jest.mock(
 );
 
 const mockDispatch = jest.fn();
-const mockRemovePersistData = jest.fn();
+const mockClearDeviceCaches = jest.fn();
 
 jest.mock('@/slices', () => ({
-  useAppSlice: () => ({ dispatch: mockDispatch, setUser: (user: unknown) => ({ user }) }),
   useAuthSlice: () => ({
+    dispatch: mockDispatch,
     account: { email: 'ayesha@example.com' },
     signOut: () => ({ type: 'auth/signOut' }),
   }),
 }));
 
-jest.mock('@/hooks', () => ({
-  ...(jest.requireActual('@/hooks') as object),
-  useDataPersist: () => ({ removePersistData: mockRemovePersistData }),
+jest.mock('@/utils/deviceCaches', () => ({
+  clearDeviceCaches: () => mockClearDeviceCaches(),
 }));
 
 jest.mock('@/services/http', () => {
@@ -110,7 +109,7 @@ beforeEach(() => {
   mockPush.mockClear();
   mockReplace.mockClear();
   mockDispatch.mockClear();
-  mockRemovePersistData.mockClear();
+  mockClearDeviceCaches.mockClear();
 });
 
 afterEach(() => {
@@ -219,8 +218,8 @@ describe('<Profile />', () => {
 
     fireEvent.press(screen.getByTestId('account-row-logout'));
     fireEvent.press(screen.getByTestId('logout-confirm-secondary'));
-    expect(mockRemovePersistData).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'auth/signOut' });
+    expect(mockClearDeviceCaches).toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith('/auth');
   });
 });

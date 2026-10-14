@@ -107,6 +107,8 @@ const slice = createSlice({
   },
 });
 
+export const { reset } = slice.actions;
+
 export function useCreateGigSlice() {
   const dispatch = useDispatch<Dispatch>();
   const state = useSelector(({ createGig }: State) => createGig);

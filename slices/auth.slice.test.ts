@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { configureStore } from '@reduxjs/toolkit';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { AuthAccount, AuthTokens } from '@/types';
+import { AuthAccount, AuthTokens, User } from '@/types';
+import { DataPersistKeys } from '@/hooks/useDataPersist';
+import { getPendingPreAuthToken, setPendingPreAuthToken } from '@/utils/preAuthToken';
+import { getPendingResetToken, setPendingResetToken } from '@/utils/resetToken';
+import appReducer, { setUser } from './app.slice';
+import createGigReducer from './createGig.slice';
 import { authApi, clearTokens, getTokens, httpClient, setTokens } from '@/services';
 import authReducer, {
   accountUpdated,
@@ -176,5 +181,31 @@ describe('signOut', () => {
     await store.dispatch(signOut());
 
     expect(await getTokens()).toBeNull();
+  });
+
+  test('wipes every persisted key', async () => {
+    await AsyncStorage.setItem(DataPersistKeys.USER, JSON.stringify({ id: 'u-1' }));
+    const store = makeStore();
+
+    await store.dispatch(signOut());
+
+    expect(await AsyncStorage.getItem(DataPersistKeys.USER)).toBeNull();
+  });
+
+  test('resets the user-scoped slices and forgets pending auth tokens', async () => {
+    setPendingPreAuthToken('pre-auth');
+    setPendingResetToken('reset');
+    const store = configureStore({
+      reducer: { auth: authReducer, app: appReducer, createGig: createGigReducer },
+    });
+    store.dispatch(setUser({ id: 'u-1', name: 'Ayesha', email: 'c@influsis.test' } as User));
+    store.dispatch({ type: 'createGig/setTitle', payload: 'Draft gig' });
+
+    await store.dispatch(signOut());
+
+    expect(store.getState().app.user).toBeUndefined();
+    expect(store.getState().createGig.title).toBe('');
+    expect(getPendingPreAuthToken()).toBeNull();
+    expect(getPendingResetToken()).toBeNull();
   });
 });
