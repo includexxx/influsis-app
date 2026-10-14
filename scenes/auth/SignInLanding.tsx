@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useTheme } from '@/hooks';
 import { useAuthSlice } from '@/slices';
@@ -124,9 +124,6 @@ export default function SignInLanding() {
           <Text style={[sharedText.authHeading, styles.title, { color: colors.text.primary }]}>
             Welcome to Influsis
           </Text>
-          <Link href="/home" style={{ color: palette.primary[400] }}>
-            Skip to Home
-          </Link>
         </View>
 
         <View style={styles.buttonList}>
