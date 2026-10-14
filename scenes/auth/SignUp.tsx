@@ -1,68 +1,57 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { useRegisterMutation } from '@/services';
 import { signUpSchema, SignUpValues } from '@/utils/authSchemas';
 import { applyApiError } from '@/utils/authFormErrors';
 import { DEFAULT_DIAL_CODE, isE164, toE164 } from '@/utils/phone';
-import { layoutStyle, buttonStyle as sharedButton, textStyle as sharedText } from '@/styles';
 import { phoneCountries, findPhoneCountry } from '@/data/dial-codes';
-import Button from '@/components/elements/Button';
-import ControlledTextField from '@/components/elements/ControlledTextField';
-import AuthHeader from '@/components/elements/AuthHeader';
 import CountryCodeSheet from '@/components/elements/CountryCodeSheet';
-import Divider from '@/components/elements/Divider';
-import Image from '@/components/elements/Image';
+import {
+  AuthScaffold,
+  AuthSubmitButton,
+  AuthSwitchLink,
+  AuthTextField,
+  FormAlert,
+  PasswordStrengthMeter,
+  PhoneCountryPrefix,
+} from './components';
 
-const chevronDownIcon = require('@/assets/images/account/chevron-down.png');
-
-// Matches the `+880` this screen's phone field was already seeded with.
+// The phone field starts on Bangladesh (+880).
 const DEFAULT_PHONE_COUNTRY = 'bd';
 
 const styles = StyleSheet.create({
-  header: {
-    marginBottom: 32,
+  form: {
+    gap: 20,
   },
-  phonePrefix: {
+  note: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginRight: 8,
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 12,
+    borderRadius: 14,
   },
-  phoneFlag: {
-    width: 20,
-    height: 14,
+  noteText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
-  phoneDialCode: {
-    fontSize: 14,
-  },
-  phoneChevron: {
-    width: 14,
-    height: 14,
-  },
-  formError: {
-    fontSize: 14,
-    fontWeight: '600',
+  submit: {
     marginTop: 4,
-  },
-  submitButton: {
-    marginTop: 8,
-  },
-  divider: {
-    marginTop: 32,
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: 16,
   },
 });
 
+// Creator sign-up (POST /auth/register). Email, phone or both - at least one
+// is required, and the backend sends the verification code by SMS when a
+// phone is given. On success it continues on /auth/verify-otp with the
+// destination the backend normalized. The password gets a live strength
+// meter; errors land on their field, or in the banner above the button.
 export default function SignUp() {
-  const { colors, palette } = useTheme();
+  const { colors, palette, isDark } = useTheme();
   const [registerCreator, { isLoading }] = useRegisterMutation();
 
   const [phoneCountry, setPhoneCountry] = useState(DEFAULT_PHONE_COUNTRY);
@@ -73,12 +62,14 @@ export default function SignUp() {
     control,
     handleSubmit,
     setError,
+    setFocus,
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { email: '', phone: '', password: '', confirmPassword: '' },
   });
+  const password = useWatch({ control, name: 'password' });
 
   async function onSubmit(values: SignUpValues) {
     clearErrors('root');
@@ -120,88 +111,108 @@ export default function SignUp() {
     }
   }
 
+  const submit = handleSubmit(onSubmit);
+  const noteTint = isDark ? 'rgba(239, 239, 253, 0.08)' : palette.primaryNavy[50];
+
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <ScrollView
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Sign Up" onBack={() => router.push('/auth')} style={styles.header} />
-        <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
+    <>
+      <AuthScaffold
+        title="Create your account"
+        subtitle="Join Influsis and start landing paid brand collaborations."
+        onBack={() => router.push('/auth')}
+        footer={
+          <AuthSwitchLink
+            prompt="Already have an account?"
+            action="Sign in"
+            onPress={() => router.push('/auth/sign-in')}
+            testID="sign-up-go-sign-in"
+          />
+        }
+        testID="sign-up-screen">
+        <View style={styles.form}>
+          <View style={[styles.note, { backgroundColor: noteTint }]}>
+            <Feather name="info" size={16} color={colors.text.secondary} />
+            <Text style={[styles.noteText, { color: colors.text.secondary }]}>
+              Add an email, a phone number, or both. We&apos;ll send a code to verify it - by SMS
+              when you add a phone.
+            </Text>
+          </View>
+
+          <AuthTextField
             control={control}
             name="email"
             label="Email"
+            icon="mail"
             placeholder="you@example.com"
             autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
             keyboardType="email-address"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => setFocus('phone')}
+            testID="sign-up-email"
           />
-          <ControlledTextField
+          <AuthTextField
             control={control}
             name="phone"
             label="Phone"
-            placeholder="1521702480"
+            placeholder="1XXXXXXXXX"
             keyboardType="phone-pad"
+            autoComplete="tel"
+            textContentType="telephoneNumber"
             leftAdornment={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Select country code"
-                hitSlop={8}
-                style={styles.phonePrefix}
+              <PhoneCountryPrefix
+                flag={selectedPhoneCountry?.flag}
+                dialCode={selectedPhoneCountry?.dialCode}
                 onPress={() => setIsPhoneCountryPickerOpen(true)}
-                testID="sign-up-phone-country">
-                {!!selectedPhoneCountry && (
-                  <>
-                    <Image
-                      source={{ uri: selectedPhoneCountry.flag }}
-                      style={styles.phoneFlag}
-                      contentFit="contain"
-                    />
-                    <Text style={[styles.phoneDialCode, { color: colors.text.primary }]}>
-                      {selectedPhoneCountry.dialCode}
-                    </Text>
-                  </>
-                )}
-                <Image source={chevronDownIcon} style={styles.phoneChevron} contentFit="contain" />
-              </Pressable>
+                testID="sign-up-phone-country"
+              />
             }
+            testID="sign-up-phone"
           />
-          <ControlledTextField
+          <AuthTextField
             control={control}
             name="password"
             label="Password"
-            placeholder="Password"
+            icon="lock"
+            placeholder="At least 8 characters"
             secureTextEntry
-          />
-          <ControlledTextField
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => setFocus('confirmPassword')}
+            testID="sign-up-password">
+            <PasswordStrengthMeter password={password} />
+          </AuthTextField>
+          <AuthTextField
             control={control}
             name="confirmPassword"
-            label="Confirm Password"
-            placeholder="Confirm password"
+            label="Confirm password"
+            icon="shield"
+            placeholder="Re-enter your password"
             secureTextEntry
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="go"
+            onSubmitEditing={submit}
+            testID="sign-up-confirm-password"
           />
-          {errors.root?.message ? (
-            <Text style={[styles.formError, { color: colors.error }]}>{errors.root.message}</Text>
-          ) : null}
-          <Button
-            title="Sign Up"
-            titleStyle={sharedButton.primaryTitle}
-            style={[sharedButton.primary, styles.submitButton]}
-            isLoading={isLoading || isSubmitting}
-            onPress={handleSubmit(onSubmit)}
-          />
+
+          <FormAlert message={errors.root?.message} />
+
+          <View style={styles.submit}>
+            <AuthSubmitButton
+              title="Create account"
+              isLoading={isLoading || isSubmitting}
+              onPress={submit}
+              testID="sign-up-submit"
+            />
+          </View>
         </View>
-        <Divider style={styles.divider} />
-        <Text style={styles.footer}>
-          <Text style={[sharedText.footerText, { color: colors.text.secondary }]}>
-            Have an account?{' '}
-          </Text>
-          <Text
-            style={[sharedText.footerLink, { color: palette.primary[400] }]}
-            onPress={() => router.push('/auth/sign-in')}>
-            Sign In
-          </Text>
-        </Text>
-      </ScrollView>
+      </AuthScaffold>
 
       {isPhoneCountryPickerOpen && (
         <CountryCodeSheet
@@ -214,6 +225,6 @@ export default function SignUp() {
           onClose={() => setIsPhoneCountryPickerOpen(false)}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 }

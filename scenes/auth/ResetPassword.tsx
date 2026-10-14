@@ -1,36 +1,44 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTheme } from '@/hooks';
 import { ApiError, useResetPasswordMutation } from '@/services';
 import { resetPasswordSchema, ResetPasswordValues } from '@/utils/authSchemas';
 import { applyApiError } from '@/utils/authFormErrors';
 import { clearPendingResetToken, getPendingResetToken } from '@/utils/resetToken';
-import { layoutStyle, buttonStyle as sharedButton } from '@/styles';
-import Button from '@/components/elements/Button';
-import ControlledTextField from '@/components/elements/ControlledTextField';
-import AuthHeader from '@/components/elements/AuthHeader';
-import AuthTitleBlock from '@/components/elements/AuthTitleBlock';
 import SuccessSheet from '@/components/elements/SuccessSheet';
+import {
+  AuthScaffold,
+  AuthSubmitButton,
+  AuthSwitchLink,
+  AuthTextField,
+  FormAlert,
+  PasswordStrengthMeter,
+  ResetSteps,
+} from './components';
 
 const EXPIRED_LINK = 'This reset link has expired. Start the reset again.';
 
 const styles = StyleSheet.create({
-  header: {
-    marginBottom: 24,
+  form: {
+    gap: 20,
   },
-  formError: {
-    fontSize: 14,
-    fontWeight: '600',
+  submit: {
     marginTop: 4,
   },
 });
 
+function startOver() {
+  router.replace('/auth/forgot-password');
+}
+
+// Step 3 of the password reset: the new password (with a strength meter) and
+// its confirmation, sent with the single-use reset token the OTP screen held
+// in memory (POST /auth/reset-password). Without a token - a cold restart, or
+// one the backend reports expired - the form is disabled and the banner
+// offers to start over. Success opens a sheet that leads to sign-in.
 export default function ResetPassword() {
-  const { colors } = useTheme();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
   const [resetToken] = useState(getPendingResetToken);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -40,12 +48,14 @@ export default function ResetPassword() {
     control,
     handleSubmit,
     setError,
+    setFocus,
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { newPassword: '', confirmPassword: '' },
   });
+  const newPassword = useWatch({ control, name: 'newPassword' });
 
   async function onSubmit(values: ResetPasswordValues) {
     if (!resetToken) return;
@@ -63,56 +73,85 @@ export default function ResetPassword() {
     }
   }
 
+  const submit = handleSubmit(onSubmit);
   const formError = tokenMissing ? EXPIRED_LINK : errors.root?.message;
 
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <View style={layoutStyle.scrollContent}>
-        <AuthHeader onBack={() => router.back()} style={styles.header} />
-        <AuthTitleBlock
-          title="Create New Password"
-          description="Your new password must be different from your previously used password."
-        />
-        <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
+    <>
+      <AuthScaffold
+        title="Set a new password"
+        subtitle="Choose a strong password that's different from the one you used before."
+        onBack={() => router.back()}
+        footer={
+          <AuthSwitchLink
+            prompt="Remembered it?"
+            action="Back to sign in"
+            onPress={() => router.replace('/auth/sign-in')}
+            testID="reset-password-go-sign-in"
+          />
+        }
+        testID="reset-password-screen">
+        <View style={styles.form}>
+          <ResetSteps current={3} />
+          <AuthTextField
             control={control}
             name="newPassword"
-            label="New Password"
-            placeholder="Enter new password"
+            label="New password"
+            icon="lock"
+            placeholder="At least 8 characters"
             secureTextEntry
-            testID="reset-password-new"
-          />
-          <ControlledTextField
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => setFocus('confirmPassword')}
+            editable={!tokenMissing}
+            testID="reset-password-new">
+            <PasswordStrengthMeter password={newPassword} />
+          </AuthTextField>
+          <AuthTextField
             control={control}
             name="confirmPassword"
-            label="Confirm Password"
-            placeholder="Confirm new password"
+            label="Confirm new password"
+            icon="shield"
+            placeholder="Re-enter your new password"
             secureTextEntry
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="go"
+            onSubmitEditing={submit}
+            editable={!tokenMissing}
             testID="reset-password-confirm"
           />
-          {formError ? (
-            <Text style={[styles.formError, { color: colors.error }]}>{formError}</Text>
-          ) : null}
-          <Button
-            title="Reset Password"
-            titleStyle={sharedButton.primaryTitle}
-            style={sharedButton.primary}
-            isLoading={isLoading || isSubmitting}
-            disabled={tokenMissing}
-            onPress={handleSubmit(onSubmit)}
+
+          <FormAlert
+            message={formError}
+            action={
+              formError === EXPIRED_LINK ? { label: 'Start over', onPress: startOver } : undefined
+            }
           />
+
+          <View style={styles.submit}>
+            <AuthSubmitButton
+              title="Reset password"
+              isLoading={isLoading || isSubmitting}
+              disabled={tokenMissing}
+              onPress={submit}
+              testID="reset-password-submit"
+            />
+          </View>
         </View>
-      </View>
+      </AuthScaffold>
 
       {isSuccessOpen && (
         <SuccessSheet
-          title="Reset Succesfully"
-          description="Please re-login to get started"
-          buttonLabel="Log in"
+          title="Password reset"
+          description="Your password has been updated. Sign in with your new password to get started."
+          buttonLabel="Sign in"
           onButtonPress={() => router.replace('/auth/sign-in')}
           onClose={() => setIsSuccessOpen(false)}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 }

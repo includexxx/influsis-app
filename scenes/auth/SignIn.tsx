@@ -1,6 +1,4 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,53 +6,55 @@ import { useTheme } from '@/hooks';
 import { useAuthSlice } from '@/slices';
 import { useLoginMutation, useRequestOtpMutation, setTokens } from '@/services';
 import { OtpChannel } from '@/types';
+import { Env } from '@/types/env';
+import config from '@/utils/config';
 import { signInSchema, SignInValues } from '@/utils/authSchemas';
 import { applyApiError } from '@/utils/authFormErrors';
 import { normalizeIdentifier } from '@/utils/phone';
 import { setPendingPreAuthToken } from '@/utils/preAuthToken';
-import { layoutStyle, buttonStyle } from '@/styles';
-import Button from '@/components/elements/Button';
-import ControlledTextField from '@/components/elements/ControlledTextField';
-import AuthHeader from '@/components/elements/AuthHeader';
+import {
+  AuthScaffold,
+  AuthSubmitButton,
+  AuthSwitchLink,
+  AuthTextField,
+  FormAlert,
+} from './components';
 
 /** Backend `OTP_EXPIRES_IN_MINUTES` default - `POST /auth/otp/request` does not report it. */
 const OTP_EXPIRES_MINUTES = 5;
 
+// Dev builds start pre-filled with the seeded test creator for quick sign-in.
+const DEFAULT_VALUES: SignInValues =
+  config.env === Env.dev
+    ? { identifier: 'creator1@test.com', password: 'pass1234' }
+    : { identifier: '', password: '' };
+
 const styles = StyleSheet.create({
-  header: {
-    marginBottom: 32,
+  form: {
+    gap: 20,
   },
-  forgotPassword: {
+  forgotRow: {
     alignSelf: 'flex-end',
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 8,
+    marginTop: -8,
   },
-  alert: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderLeftWidth: 4,
-  },
-  alertText: {
-    flex: 1,
+  forgot: {
     fontSize: 14,
-    fontWeight: '500',
     lineHeight: 20,
+    fontWeight: '600',
+  },
+  submit: {
+    marginTop: 4,
   },
 });
 
+// Email / phone sign-in (POST /auth/login). On success it stores the token
+// pair and opens Home, or onboarding when the creator never finished it. Two
+// detours: an account with 2FA continues on /auth/verify-2fa, and one that
+// registered but never verified gets a fresh code and resumes on the OTP
+// screen. Errors land on their field, or in the banner above the button.
 export default function SignIn() {
-  const { colors, palette, isDark } = useTheme();
+  const { palette, isDark } = useTheme();
   const { dispatch, sessionEstablished } = useAuthSlice();
-  const alertBackground = isDark ? 'rgba(249, 112, 102, 0.14)' : palette.error[50];
-  const alertBorder = isDark ? 'rgba(249, 112, 102, 0.35)' : palette.error[200];
-  const alertText = isDark ? palette.error[300] : palette.error[700];
   const [login, { isLoading }] = useLoginMutation();
   const [requestOtp] = useRequestOtpMutation();
 
@@ -62,11 +62,12 @@ export default function SignIn() {
     control,
     handleSubmit,
     setError,
+    setFocus,
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { identifier: 'creator1@test.com', password: 'pass1234' },
+    defaultValues: DEFAULT_VALUES,
   });
 
   async function onSubmit(values: SignInValues) {
@@ -128,61 +129,77 @@ export default function SignIn() {
     }
   }
 
+  const submit = handleSubmit(onSubmit);
+
   return (
-    <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
-      <ScrollView
-        contentContainerStyle={layoutStyle.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Sign In" onBack={() => router.push('/auth')} style={styles.header} />
-        <View style={layoutStyle.fieldGroup}>
-          <ControlledTextField
-            control={control}
-            name="identifier"
-            label="Email or Phone"
-            placeholder="you@example.com or 01XXXXXXXXX"
-            autoCapitalize="none"
-            keyboardType="default"
-            testID="sign-in-email"
-          />
-          <View>
-            <ControlledTextField
-              control={control}
-              name="password"
-              label="Password"
-              placeholder="Password"
-              secureTextEntry
-              testID="sign-in-password"
-            />
-            <Text
-              style={[styles.forgotPassword, { color: palette.gray[300] }]}
-              onPress={() => router.push('/auth/forgot-password')}>
-              Forgot password?
-            </Text>
-          </View>
-          {errors.root?.message ? (
-            <View
-              accessibilityRole="alert"
-              style={[
-                styles.alert,
-                {
-                  backgroundColor: alertBackground,
-                  borderColor: alertBorder,
-                  borderLeftColor: colors.error,
-                },
-              ]}>
-              <Feather name="alert-circle" size={18} color={colors.error} />
-              <Text style={[styles.alertText, { color: alertText }]}>{errors.root.message}</Text>
-            </View>
-          ) : null}
-          <Button
+    <AuthScaffold
+      title="Welcome back"
+      subtitle="Sign in to manage your campaigns, offers and payouts."
+      onBack={() => router.push('/auth')}
+      footer={
+        <AuthSwitchLink
+          prompt="New to Influsis?"
+          action="Create an account"
+          onPress={() => router.push('/auth/sign-up')}
+          testID="sign-in-go-sign-up"
+        />
+      }
+      testID="sign-in-screen">
+      <View style={styles.form}>
+        <AuthTextField
+          control={control}
+          name="identifier"
+          label="Email or phone"
+          icon="user"
+          placeholder="you@example.com or 01XXXXXXXXX"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="username"
+          textContentType="username"
+          returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => setFocus('password')}
+          testID="sign-in-email"
+        />
+        <AuthTextField
+          control={control}
+          name="password"
+          label="Password"
+          icon="lock"
+          placeholder="Enter your password"
+          secureTextEntry
+          autoComplete="current-password"
+          textContentType="password"
+          returnKeyType="go"
+          onSubmitEditing={submit}
+          testID="sign-in-password"
+        />
+        <Pressable
+          accessibilityRole="link"
+          hitSlop={8}
+          onPress={() => router.push('/auth/forgot-password')}
+          style={styles.forgotRow}
+          testID="sign-in-forgot-password">
+          <Text
+            style={[
+              styles.forgot,
+              { color: isDark ? palette.primary[300] : palette.primary[500] },
+            ]}>
+            Forgot password?
+          </Text>
+        </Pressable>
+
+        <FormAlert message={errors.root?.message} />
+
+        <View style={styles.submit}>
+          <AuthSubmitButton
             title="Sign in"
-            titleStyle={buttonStyle.primaryTitle}
-            style={buttonStyle.primary}
             isLoading={isLoading || isSubmitting}
-            onPress={handleSubmit(onSubmit)}
+            onPress={submit}
+            testID="sign-in-submit"
           />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </AuthScaffold>
   );
 }
