@@ -83,6 +83,12 @@ const slice = createSlice({
       .addCase(restoreSession.rejected, state => {
         state.status = 'unauthenticated';
         state.account = null;
+      })
+      // Any later GET /auth/me (e.g. the services/cacheSync.ts refetch after
+      // a profile edit) keeps `account` current. Ignored once signed out, so
+      // a response landing after logout can't bring the account back.
+      .addMatcher(authApi.endpoints.getMe.matchFulfilled, (state, { payload }) => {
+        if (state.status === 'authenticated') state.account = payload;
       });
   },
 });

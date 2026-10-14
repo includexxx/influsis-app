@@ -15,7 +15,6 @@ import { buildCreatorOnboardingBody } from '@/utils/onboardingPayload';
 import { profileSubmitErrorMessage, handleConflictMessage } from '@/utils/profileErrors';
 import { useOnboardCreatorMutation } from '@/services/profilesApi';
 import { uploadOnboardingMedia } from '@/services/mediaUpload';
-import { authApi } from '@/services/authApi';
 import OnboardingStepScreen from '@/components/elements/OnboardingStepScreen';
 import TextField from '@/components/elements/TextField';
 import CategoryChip from '@/components/elements/CategoryChip';
@@ -130,9 +129,8 @@ export default function UsernameStep() {
 
       await onboardCreator(buildCreatorOnboardingBody(submissionState, media)).unwrap();
 
-      // GET /auth/me also returns `handle` and a profile summary — a
-      // different createApi instance, so it isn't invalidated automatically.
-      slice.dispatch(authApi.util.invalidateTags(['Me']));
+      // GET /auth/me and the other APIs' caches are refreshed by
+      // services/cacheSync.ts on onboardCreator's success.
       slice.dispatch(slice.completeOnboarding());
     } catch (err) {
       setIsUploading(false);

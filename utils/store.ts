@@ -9,6 +9,7 @@ import { campaignFeedApi } from '@/scenes/campaigns/api/campaignFeedApi';
 import { businessDirectoryApi } from '@/scenes/business/api/businessDirectoryApi';
 import { creatorDirectoryApi } from '@/scenes/creator/api/creatorDirectoryApi';
 import { setUnauthorizedHandler } from '@/services/http';
+import cacheSync from '@/services/cacheSync';
 import config from '@/utils/config';
 import { Env } from '@/types/env';
 import logger from 'redux-logger';
@@ -48,13 +49,16 @@ const store = configureStore({
           creatorDirectoryApi.reducerPath,
         ],
       },
-    }).concat(
-      authApi.middleware,
-      profilesApi.middleware,
-      campaignFeedApi.middleware,
-      businessDirectoryApi.middleware,
-      creatorDirectoryApi.middleware,
-    );
+    })
+      // cross-API cache invalidation after mutations (services/cacheSync.ts)
+      .prepend(cacheSync.middleware)
+      .concat(
+        authApi.middleware,
+        profilesApi.middleware,
+        campaignFeedApi.middleware,
+        businessDirectoryApi.middleware,
+        creatorDirectoryApi.middleware,
+      );
     return config.env === Env.dev ? base.concat(logger) : base;
   },
   devTools: config.env === Env.dev,

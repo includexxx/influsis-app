@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { nanoid } from '@reduxjs/toolkit';
 import { useTheme } from '@/hooks';
 import { useAuthSlice } from '@/slices';
-import { authApi } from '@/services/authApi';
 import { useGetMyProfileQuery, useUpdateMyProfileMutation } from '@/services/profilesApi';
 import { uploadPickedImage } from '@/services/mediaUpload';
 import { editProfileSchema, EditProfileValues, editProfileCities } from '@/utils/profileSchemas';
@@ -131,7 +130,7 @@ function toggleValue(values: string[], value: string): string[] {
 // `CountryCodeSheet` never had to do because nothing was ever saved).
 export default function EditProfile() {
   const { colors } = useTheme();
-  const { account, dispatch } = useAuthSlice();
+  const { account } = useAuthSlice();
   const { data, isLoading: isLoadingProfile } = useGetMyProfileQuery();
   const [updateMyProfile, { isLoading: isSaving }] = useUpdateMyProfileMutation();
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -218,10 +217,9 @@ export default function EditProfile() {
         return;
       }
 
+      // services/cacheSync.ts refreshes GET /auth/me and the other APIs'
+      // caches on success.
       const res = await updateMyProfile(body).unwrap();
-      if (body.handle || body.name || body.avatarUrl !== undefined) {
-        dispatch(authApi.util.invalidateTags(['Me']));
-      }
       reset(toEditProfileDefaults(res));
       setIsSuccessOpen(true);
     } catch (err) {

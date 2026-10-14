@@ -247,7 +247,7 @@ export const campaignFeedApi = createApi({
         if (result.error) return { error: result.error as ApiError };
         return { data: result.data as MyEngagementDetail };
       },
-      invalidatesTags: ['MyEngagements', 'CampaignFeed'],
+      invalidatesTags: (_result, error, { engagementId }) => engagementTags(error, engagementId),
     }),
     // Campaign API group CF5 - declines a business invitation. `reason` is
     // required by the backend but may be empty.
@@ -352,6 +352,7 @@ export const campaignFeedApi = createApi({
               { type: 'Delivery' as const, id: engagementId },
               { type: 'Deliverables' as const, id: engagementId },
               { type: 'MyEngagement' as const, id: engagementId },
+              'MyEngagements' as const,
             ],
     }),
     // Campaign API CK1 (backend 23a) - both sides' reviews of one engagement
@@ -382,7 +383,9 @@ export const campaignFeedApi = createApi({
           : [
               { type: 'EngagementReviews' as const, id: engagementId },
               { type: 'MyEngagement' as const, id: engagementId },
+              'MyEngagements' as const,
               'PendingReviews' as const,
+              'CampaignPortfolio' as const,
             ],
     }),
     // Campaign API CK8 (backend 23b) - completed engagements the creator
@@ -464,13 +467,17 @@ async function fetchAllCompletedEngagements(
 }
 
 // Every negotiation mutation changes the engagement, its row in the CF2
-// lists, and the feed's "Applied" badge. Nothing is invalidated on error - the
-// Offer screen refetches explicitly after a 409.
+// lists, and the feed's "Applied" badge. An accept also opens delivery, so
+// that engagement's delivery/deliverables reads (possibly a cached 404 from
+// before) are dropped too. Nothing is invalidated on error - the Offer
+// screen refetches explicitly after a 409.
 function engagementTags(error: unknown, engagementId: string) {
   return error
     ? []
     : [
         { type: 'MyEngagement' as const, id: engagementId },
+        { type: 'Delivery' as const, id: engagementId },
+        { type: 'Deliverables' as const, id: engagementId },
         'MyEngagements' as const,
         'CampaignFeed' as const,
       ];
