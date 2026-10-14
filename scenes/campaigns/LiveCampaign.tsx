@@ -48,7 +48,7 @@ export default function LiveCampaign() {
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
       <View style={layoutStyle.screen}>
         <ScreenHeader
-          title="Live Campaigns"
+          title="Active Campaigns"
           onBack={() => router.back()}
           style={liveCampaignStyle.headerGap}
         />
