@@ -36,20 +36,34 @@ function calls(url: string) {
   return adapter.mock.calls.filter(([config]) => config.url === url).length;
 }
 
-type Store = ReturnType<typeof makeStore>;
-const stores: Store[] = [];
-
-function makeStore() {
-  const store = configureStore({
+function createStore() {
+  return configureStore({
     reducer: {
       auth: authReducer,
-      ...Object.fromEntries(apis.map(api => [api.reducerPath, api.reducer])),
+      [authApi.reducerPath]: authApi.reducer,
+      [profilesApi.reducerPath]: profilesApi.reducer,
+      [campaignFeedApi.reducerPath]: campaignFeedApi.reducer,
+      [businessDirectoryApi.reducerPath]: businessDirectoryApi.reducer,
+      [creatorDirectoryApi.reducerPath]: creatorDirectoryApi.reducer,
     },
     middleware: gDM =>
       gDM({ serializableCheck: false })
         .prepend(cacheSync.middleware)
-        .concat(apis.map(api => api.middleware)),
+        .concat(
+          authApi.middleware,
+          profilesApi.middleware,
+          campaignFeedApi.middleware,
+          businessDirectoryApi.middleware,
+          creatorDirectoryApi.middleware,
+        ),
   });
+}
+
+type Store = ReturnType<typeof createStore>;
+const stores: Store[] = [];
+
+function makeStore() {
+  const store = createStore();
   stores.push(store);
   store.dispatch(sessionEstablished(account));
   return store;
