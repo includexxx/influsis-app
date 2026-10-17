@@ -490,3 +490,81 @@ app's part). Backend 23a-23c are planned, not built. The business side is
         `BusinessCard` (Businesses). A reviewer of "Former Influsis member"
         has `handle`/`avatarUrl` null, so it isn't tappable. Live-post links open
         with `Linking.openURL`, http(s) only.
+
+## Notifications (backend 24)
+
+Product decision 2026-10-17: every notification is a row in the backend (the
+feed, the unread badge) and is announced live over Socket.io while the app is
+open. **There is no mobile push in this phase**: with the app closed, a
+creator learns about high-urgency events (final decisions, deadlines) **by
+email only**, and normal ones in a 15-minute email digest they can turn off
+per category. Creators with no verified email (phone sign-ups) get nothing
+outside the app (backend README O2 proposes an in-app prompt). A notification
+carries a `target` (`type`, `id`, `params`), never a path: this app turns it
+into a screen with its own route map. Design and contract:
+`../backend/docs/features/notifications/` (`CLIENT_INTEGRATION.md` §4, §6 and
+§7.3 are this app's part; REST `NT1`-`NT6` and the socket events in
+`API_ENDPOINTS_LIST.md`). Backend 24 is planned, not built: 38a needs backend
+24a-24c, 38b needs 24d, 38c needs 24b, 38d needs 24e and the link domain
+(backend README O7). The business side is `web` item 48, staff is `admin`
+item 34.
+
+- [ ] 38. **Real notifications (backend 24 `NT1`-`NT6`, `/realtime`)** - the
+      notifications screen, the unread badge and the email settings run on
+      the real backend instead of `data/notifications.ts`, and every
+      notification and email button opens the right screen. Split into:
+  - [ ] 38a. **Real notifications screen and badge (backend 24a-24c `NT1`-`NT4`)** -
+        a `notificationsApi` RTK Query slice next to `profilesApi.ts`
+        (`getNotifications` with `page`, `limit`, `unread` and the `before`
+        anchor from page 1's newest `createdAt`; `getUnreadCount`;
+        `markNotificationRead`, `markAllNotificationsRead` with `before`,
+        both optimistic). `app/(details)/notifications.tsx` replaces the
+        `data/notifications.ts` mock with `NT1` (pull-to-refresh, infinite
+        scroll, All / Unread, "Mark all as read"); `NotificationItem` widens
+        with `eventType`, `urgency`, `target`, `readAt`, and `category` maps
+        to the existing icons with a generic fallback. The bell/tab shows
+        `NT2` (`99+` above 99), refetched on every `AppState` return to
+        `active` and every 60 s while foregrounded until 38b.
+        `lib/notifications/route-map.ts` resolves by `eventType`, then
+        `target.type`, then `/notifications` (CLIENT_INTEGRATION §4:
+        `/engagement/{id}` for engagement and offer events,
+        `/engagement/{id}/submit-delivery` for changes requested and draft
+        approved, `/engagement/{id}/review` for `review.prompt` and
+        `review.hidden`, `/my-profile` for reviews published and
+        verification). A tap marks read, then `router.push`es; a target that
+        404s shows "This item is no longer available". A tap before the
+        session is restored keeps the path and opens it after auth. Unknown
+        `eventType`s show the server-rendered title/body. Ship a route-map
+        test asserting every Phase 1 creator event resolves to a real screen.
+  - [ ] 38b. **Live updates while the app is open (backend 24d `/realtime`)** -
+        `socket.io-client` connected **only in the foreground**
+        (`AppState` `active` connects, `background` disconnects) with
+        `auth: { token }` from `tokenStore` and `transports: ['websocket']`.
+        On every connect and `realtime:resync`: refetch `NT2` (and page 1
+        when the screen is open). `notification:new` prepends and shows an
+        in-app banner for `urgency === 'high'` that opens the target on tap;
+        `notification:unread_count` overwrites the badge; `notification:read`
+        syncs read state. `auth:expiring` -> refresh -> emit
+        `auth:refresh { token }`; `connect_error` `AUTH_TOKEN_*` refreshes and
+        retries with jittered backoff, `AUTH_SESSION_REVOKED` /
+        `ACCOUNT_SUSPENDED` signs out. Disconnect and clear the cache on
+        logout.
+  - [ ] 38c. **Email notification settings (backend 24b `NT5`, `NT6`)** - new
+        `app/(details)/notification-settings.tsx`, linked from the profile
+        settings menu: one **Email** toggle per category from `NT5`
+        (engagement, offer, delivery, review, account) with its locked events
+        shown as "Always sent: final decisions and deadlines"; in-app is
+        always on. Saves with `NT6` (partial, optimistic, reverted on error).
+        When the creator has no verified email, show "Add an email to get
+        important updates when the app is closed" instead of the toggles,
+        linking to the existing email flow (pending backend README O2).
+  - [ ] 38d. **Open email links in the app (backend 24e)** - universal links
+        and Android App Links for `CREATOR_APP_LINK_URL` (domain pending
+        backend README O7): `ios.associatedDomains` and
+        `android.intentFilters` with `autoVerify: true` in `app.config.ts`,
+        `apple-app-site-association` and `assetlinks.json` hosted on that
+        domain, and a small fallback page there ("Open on your phone" plus
+        store links). Expo Router opens the matching screen; the screen reads
+        `?n={id}`, calls `NT3` and drops the param. The manage link opens
+        `/notification-settings`. Verify cold start and warm start on iOS and
+        Android.
