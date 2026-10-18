@@ -495,24 +495,68 @@ app's part). Backend 23a-23c are planned, not built. The business side is
 
 Product decision 2026-10-17: every notification is a row in the backend (the
 feed, the unread badge) and is announced live over Socket.io while the app is
-open. **There is no mobile push in this phase**: with the app closed, a
-creator learns about high-urgency events (final decisions, deadlines) **by
-email only**, and normal ones in a 15-minute email digest they can turn off
-per category. Creators with no verified email (phone sign-ups) get nothing
-outside the app (backend README O2 proposes an in-app prompt). A notification
+open. Important ones also arrive by email: high urgency (final decisions,
+deadlines) always, normal ones in a 15-minute email digest they can turn off
+per category. Product decision 2026-10-18: **mobile push through FCM** is
+added (it was out on 2026-10-17), with the same urgency rule: high always,
+normal per category in a 2-minute batch, low never. With the app closed, a
+creator learns about events by push and email; a creator who blocks push and
+has no verified email (phone sign-ups) gets nothing outside the app (backend
+README O2 proposes an in-app prompt). A notification
 carries a `target` (`type`, `id`, `params`), never a path: this app turns it
 into a screen with its own route map. Design and contract:
 `../backend/docs/features/notifications/` (`CLIENT_INTEGRATION.md` §4, §6 and
-§7.3 are this app's part; REST `NT1`-`NT6` and the socket events in
-`API_ENDPOINTS_LIST.md`). Backend 24 is planned, not built: 38a needs backend
-24a-24c, 38b needs 24d, 38c needs 24b, 38d needs 24e and the link domain
-(backend README O7). The business side is `web` item 48, staff is `admin`
-item 34.
+§7.3 are this app's part, and `PUSH_NOTIFICATIONS.md` §12.1 for push; REST
+`NT1`-`NT8` and the socket events in `API_ENDPOINTS_LIST.md`). **Backend 24
+is fully built** (24a-24g2, 2026-10-18) on backend `feat/notifications`, which
+is not merged into `develop` yet, so build against that branch until it is.
+Push is behind the backend flag `NOTIFICATION_PUSH_ENABLED`, which stays off
+until the Firebase projects exist (backend README P4). Dependencies:
 
-- [ ] 38. **Real notifications (backend 24 `NT1`-`NT6`, `/realtime`)** - the
-      notifications screen, the unread badge and the email settings run on
-      the real backend instead of `data/notifications.ts`, and every
-      notification and email button opens the right screen. Split into:
+- 38a needs backend 24a-24c.
+- 38b needs 24d.
+- 38c needs 24b.
+- 38d needs 24e and the link domain (backend README O7).
+- 38e needs 24g.
+
+The business side is `web` item 48, staff is `admin` item 34.
+
+**Contract checks and edge cases (validated against the backend build,
+2026-10-18).** Every 38 sub-item follows these:
+
+- **Errors.** Every `NT` call uses the standard envelope.
+  - `401 AUTH_*` goes through `services/http.ts`' refresh.
+  - `404 NOT_FOUND` means "gone", and `NT3` never alerts on it.
+  - `422` shows inline.
+  - Offline or anything else shows the error state with a retry.
+  - A failed optimistic mark-read reverts.
+- **Feed data.**
+  - `limit` is clamped to 50, with `hasNextPage` and no total.
+  - Merge socket items, pages and pull-to-refresh by `id`.
+  - `params` values are strings.
+  - `title`/`body` are plain text.
+- **`?n={id}` / push taps.** `NT3` can answer `404`: another account's
+  link, or a notification the backend's retention already deleted (read ones
+  after 180 days, unread after 365). Ignore it silently and still open the
+  screen, which shows "This item is no longer available" if the target is
+  gone too.
+- **Account states.** `ACCOUNT_SUSPENDED`, `ACCOUNT_DEACTIVATED` and
+  `ACCOUNT_PENDING_VERIFICATION` sign out like `AUTH_SESSION_REVOKED`.
+  `account.suspended` is delivered by email only, never by push.
+- **Token refresh.** The backend refresh token is single-use, and reuse
+  detection revokes **every** session. So the socket's `auth:expiring`
+  refresh must share `services/http.ts`' `refreshPromise`. It must never
+  make a second, parallel refresh call.
+- **Language.** Send `x-custom-lang` on `NT` calls and `auth.lang` on the
+  socket. If the app language changes, `PATCH /auth/me { preferredLocale }`
+  so push and email follow. Only English copy exists today (backend README
+  O3).
+
+- [ ] 38. **Real notifications (backend 24 `NT1`-`NT8`, `/realtime`, FCM)** -
+      the notifications screen, the unread badge, push and the email and push
+      settings run on the real backend instead of `data/notifications.ts`, and
+      every notification, push and email button opens the right screen. Split
+      into:
   - [ ] 38a. **Real notifications screen and badge (backend 24a-24c `NT1`-`NT4`)** -
         a `notificationsApi` RTK Query slice next to `profilesApi.ts`
         (`getNotifications` with `page`, `limit`, `unread` and the `before`
@@ -534,8 +578,32 @@ item 34.
         verification). A tap marks read, then `router.push`es; a target that
         404s shows "This item is no longer available". A tap before the
         session is restored keeps the path and opens it after auth. Unknown
-        `eventType`s show the server-rendered title/body. Ship a route-map
-        test asserting every Phase 1 creator event resolves to a real screen.
+        `eventType`s show the server-rendered title/body.
+
+        **The route map must equal the backend's creator table**
+        (`../backend/src/notifications/links/notification-links.ts`, which
+        builds the email links), so a tap, an email button and a push all
+        open the same screen. Two `eventType` overrides come before the
+        target type:
+
+        | Event or target | Screen |
+        | --- | --- |
+        | `delivery.escalated` (override) | `/engagement/{id}` |
+        | `review.hidden` (override) | `/engagement/{id}/review` |
+        | `engagement` target (engagement and offer events, and a creator's `campaign.cancelled`) | `/engagement/{id}` |
+        | `delivery` target | `/engagement/{id}/submit-delivery` |
+        | `review` target | `/engagement/{id}/review` |
+        | `profile` and `account` targets | `/my-profile` |
+        | `campaign` target | `/campaign/{id}` |
+        | Unknown | `/notifications` |
+
+        Without the `delivery.escalated` override, its `delivery` target
+        would wrongly open submit-delivery.
+
+        Mark-all sends `before` = the newest `createdAt` on screen;
+        `updated: 0` is not an error. Ship a route-map test that copies the
+        backend table for every Phase 1 creator event, plus tests for the
+        optimistic revert and the `NT3` 404.
   - [ ] 38b. **Live updates while the app is open (backend 24d `/realtime`)** -
         `socket.io-client` connected **only in the foreground**
         (`AppState` `active` connects, `background` disconnects) with
@@ -544,11 +612,39 @@ item 34.
         when the screen is open). `notification:new` prepends and shows an
         in-app banner for `urgency === 'high'` that opens the target on tap;
         `notification:unread_count` overwrites the badge; `notification:read`
-        syncs read state. `auth:expiring` -> refresh -> emit
-        `auth:refresh { token }`; `connect_error` `AUTH_TOKEN_*` refreshes and
-        retries with jittered backoff, `AUTH_SESSION_REVOKED` /
-        `ACCOUNT_SUSPENDED` signs out. Disconnect and clear the cache on
-        logout.
+        syncs read state. `auth:expiring` -> refresh (shared
+        `refreshPromise`) -> emit `auth:refresh { token }`. If the ack is not
+        `ok`, reconnect with the new token; this is not a sign-out. Handle
+        `connect_error` by code:
+
+        | Code | Action |
+        | --- | --- |
+        | `AUTH_TOKEN_MISSING`, `AUTH_TOKEN_INVALID`, `AUTH_TOKEN_EXPIRED` | Refresh, then retry with jittered backoff (1 s doubling to 30 s) |
+        | `INTERNAL_ERROR` | Retry with the same backoff |
+        | `AUTH_SESSION_REVOKED`, `ACCOUNT_SUSPENDED`, `ACCOUNT_DEACTIVATED`, `ACCOUNT_PENDING_VERIFICATION` | Sign out |
+
+        **`disconnect` with reason `io server disconnect`** is the backend
+        closing the socket (24d3): token expiry, a revoked session (logout
+        elsewhere, password change), or suspension. socket.io does **not**
+        reconnect by itself. Refresh: a sign-out code, or an account that is
+        gone, signs out; otherwise reconnect with the new token. Do not
+        treat the app's own background disconnect as this case.
+
+        Other edge cases:
+
+        - `notification:read { all: true, before }` marks cached items up to
+          `before`. Ignore unknown ids.
+        - Dedupe `notification:new` by `id`, including against items a
+          foreground push or a refetch already added.
+        - The socket is closed in the background, so the first thing on
+          every return to `active` is `NT2` plus page 1 if the screen is
+          open.
+        - Flaky mobile networks: no reconnect storm. One socket, the
+          built-in reconnection with the same backoff, and no new socket per
+          `AppState` flap (debounce `active`/`background` by about 1 s).
+
+        Disconnect and clear the cache on logout. Ship tests for the event
+        reducers and the disconnect and refresh decision table.
   - [ ] 38c. **Email notification settings (backend 24b `NT5`, `NT6`)** - new
         `app/(details)/notification-settings.tsx`, linked from the profile
         settings menu: one **Email** toggle per category from `NT5`
@@ -558,6 +654,17 @@ item 34.
         When the creator has no verified email, show "Add an email to get
         important updates when the app is closed" instead of the toggles,
         linking to the existing email flow (pending backend README O2).
+
+        Edge cases:
+
+        - Decide "no verified email" from `GET /auth/me`'s `emailVerified`.
+          `NT5` does not say.
+        - `NT5` already returns a `push` block (backend 24g1). Ignore it
+          until 38e.
+        - Render the categories `NT5` returns, in its fixed order. Creators
+          get no `campaign` category.
+        - Serialize rapid toggles so the last state wins, and never send an
+          empty channel object (`422`).
   - [ ] 38d. **Open email links in the app (backend 24e)** - universal links
         and Android App Links for `CREATOR_APP_LINK_URL` (domain pending
         backend README O7): `ios.associatedDomains` and
@@ -566,5 +673,92 @@ item 34.
         domain, and a small fallback page there ("Open on your phone" plus
         store links). Expo Router opens the matching screen; the screen reads
         `?n={id}`, calls `NT3` and drops the param. The manage link opens
-        `/notification-settings`. Verify cold start and warm start on iOS and
-        Android.
+        `/notification-settings`. Edge cases:
+
+        - The paths the backend puts in emails are the 38a route table plus
+          `/notifications` (digest) and `/notification-settings` (manage), on
+          `CREATOR_APP_LINK_URL` (default `https://app.influsis.com`). The
+          link domain and the app config must use that exact origin.
+        - A link opened while signed out holds the path until sign-in.
+        - A link for another account gives an `NT3` 404 (ignored) and a
+          target that 404s ("no longer available").
+
+        Verify cold start and warm start on iOS and Android.
+  - [ ] 38e. **Push notifications (backend 24g `NT5`-`NT8`, FCM)** -
+        `@react-native-firebase/app` + `@react-native-firebase/messaging`
+        (new native dependencies, so a new EAS development build; Expo Go
+        cannot run them) with their config plugins in `app.config.ts`, and
+        `google-services.json` / `GoogleService-Info.plist` per environment
+        through EAS secrets (the APNs key lives in the Firebase project,
+        backend README P4). Android channels `high_priority` (heads-up,
+        sound) and `updates` created at start. **Never ask on first launch**:
+        an in-app explainer after the first invitation, join request or
+        accepted engagement, then `requestPermission()` (iOS) or
+        `POST_NOTIFICATIONS` (Android 13+). Granted → `getToken()` → `NT7`
+        (`platform: 'ios' | 'android'`), repeated at most once a day on start
+        and on `onTokenRefresh`; store the returned device id. Foreground
+        `onMessage`: no system notification, the 38b banner only if the
+        socket hasn't shown it. Taps: `onNotificationOpenedApp` (background)
+        and `getInitialNotification` (cold start, held until the session is
+        restored) mark read with `NT3` and open `routeFor(...)` from the push
+        `data`; a batched push opens `/notifications`. iOS badge set to `NT2`
+        on every foreground. Logout calls `NT8` and `deleteToken()` before
+        signing out. `notification-settings.tsx` gains the "Push on this
+        device" switch (with "Turned off in your phone settings" and a link
+        to the OS settings when blocked) and one **Push** toggle per category
+        next to Email. The backend's push payload (24g2) is fixed, and the
+        handlers must match it:
+
+        - **Data.** All values are strings: `kind` (`single` | `batch`),
+          `notificationId`, `eventType`, `urgency`, `targetType`, `targetId`
+          and `targetParams`. Creators get **no `url`**: rebuild the target
+          from `targetType`/`targetId`/`targetParams` (a JSON string; parse
+          it in a try/catch, and fall back to `/notifications` on bad data)
+          and run the 38a route map.
+        - **Batched push.** `kind: 'batch'` has no `notificationId`. It
+          opens `/notifications`, marks nothing read, and replaces the
+          previous batch in the tray (tag and collapse id `batch`).
+        - **Android.** The backend sets `channelId` `high_priority` or
+          `updates`. Create both channels with exactly those ids before the
+          first push; otherwise Android 8+ shows them in a default
+          "Miscellaneous" channel. It also sets `icon: 'ic_notification'` and
+          colour `#e8467c`. Bundle a monochrome `ic_notification` drawable
+          through a config plugin, or Android shows a blank white square.
+          `visibility: 'private'` hides the text on the lock screen.
+        - **iOS.** `aps.badge` arrives as the unread count. High pushes
+          carry `sound: 'default'` and normal ones are silent.
+          `apns-collapse-id` = `notificationId`, so a duplicate replaces the
+          first.
+        - **Expiry.** High pushes expire after 24 h and normal after 1 h, so
+          the feed stays the record.
+
+        Registration edge cases:
+
+        - The device is bound to the **session**, so call `NT7` after
+          **every sign-in**, whatever the once-a-day throttle says. Key the
+          throttle by user and session. The refresh rotation moves the
+          device on the server, so a token refresh needs no `NT7`, but
+          `onTokenRefresh` does.
+        - `NT8` answering `404` is success (the server already deleted the
+          device on logout or revoke, or dropped the oldest above 10). Never
+          block logout on `NT8`, and call it best-effort with a short
+          timeout.
+        - A push that arrives after logout and is tapped with no session:
+          hold the route until sign-in. If a different user signs in, the
+          `NT3` 404 is ignored and the target screen handles its own 404.
+        - Permission: iOS can be `denied` or `provisional`. On Android 13+,
+          `POST_NOTIFICATIONS` can be denied, and after two denials it
+          cannot be asked again, so show the OS-settings link.
+        - `getToken()` can fail (no Play Services, simulator). Show "Push
+          unavailable on this device", with no retry loop.
+        - `google-services.json` / `GoogleService-Info.plist` must belong to
+          the same Firebase project as the backend's `FIREBASE_PROJECT_ID`
+          for that environment. A dev build against the prod backend gets
+          every token rejected and deleted.
+
+        Ship tests for the push-to-route mapping (including the bad
+        `targetParams` fallback and `kind: 'batch'`), the registration flow
+        (sign-in re-registration, `NT8` 404) and the foreground dedupe.
+        Verify on real Android (13+ and older) and iOS (TestFlight) devices,
+        foreground, background and killed, once the backend flag is on in an
+        environment with Firebase.
