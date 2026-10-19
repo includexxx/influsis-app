@@ -84,6 +84,14 @@ export default function Profile() {
       onPress: () => router.push('/security-settings'),
       testID: 'account-row-security',
     },
+    {
+      icon: 'bell',
+      tone: 'warning',
+      title: 'Notifications',
+      subtitle: 'Email alerts',
+      onPress: () => router.push('/notification-settings'),
+      testID: 'account-row-notifications',
+    },
   ];
   const workItems: ProfileMenuItem[] = [
     {

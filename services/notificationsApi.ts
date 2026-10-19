@@ -3,8 +3,10 @@ import {
   MarkAllReadResult,
   MarkReadResult,
   NotificationItem,
+  NotificationPreference,
   NotificationsPageArgs,
   UnreadCount,
+  UpdateNotificationPreferencesRequest,
 } from '@/types';
 import { axiosBaseQuery } from './baseQuery';
 
@@ -16,7 +18,7 @@ import { axiosBaseQuery } from './baseQuery';
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['NotificationsFeed', 'UnreadCount'],
+  tagTypes: ['NotificationsFeed', 'UnreadCount', 'NotificationPreferences'],
   endpoints: builder => ({
     // NT1
     getNotificationsPage: builder.query<NotificationItem[], NotificationsPageArgs>({
@@ -54,6 +56,32 @@ export const notificationsApi = createApi({
       }),
       invalidatesTags: (result, error) => (error ? [] : ['UnreadCount']),
     }),
+    // NT5 - one row per category in the backend's fixed order
+    getNotificationPreferences: builder.query<NotificationPreference[], void>({
+      query: () => ({ url: '/notifications/preferences', method: 'GET' }),
+      providesTags: ['NotificationPreferences'],
+    }),
+    // NT6 - partial; answers the NT5 shape, which replaces the cached NT5
+    updateNotificationPreferences: builder.mutation<
+      NotificationPreference[],
+      UpdateNotificationPreferencesRequest
+    >({
+      query: body => ({ url: '/notifications/preferences', method: 'PATCH', data: body }),
+      async onQueryStarted(_body, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            notificationsApi.util.updateQueryData(
+              'getNotificationPreferences',
+              undefined,
+              () => data,
+            ),
+          );
+        } catch {
+          // The caller reverts its own optimistic state.
+        }
+      },
+    }),
   }),
 });
 
@@ -62,4 +90,6 @@ export const {
   useGetUnreadCountQuery,
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
+  useGetNotificationPreferencesQuery,
+  useUpdateNotificationPreferencesMutation,
 } = notificationsApi;

@@ -78,6 +78,19 @@ describe('accountStateSignOut', () => {
     },
   );
 
+  test('a preferences save rejected with an account code signs out', async () => {
+    const store = createStore();
+    store.dispatch(sessionEstablished(account));
+    answer(403, 'ACCOUNT_SUSPENDED');
+
+    await store.dispatch(
+      notificationsApi.endpoints.updateNotificationPreferences.initiate({ email: { offer: true } }),
+    );
+    await settle();
+
+    expect(store.getState().auth.status).toBe('unauthenticated');
+  });
+
   test('a mutation rejected with an account code signs out too', async () => {
     const store = createStore();
     store.dispatch(sessionEstablished(account));

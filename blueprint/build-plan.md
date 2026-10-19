@@ -645,7 +645,7 @@ The business side is `web` item 48, staff is `admin` item 34.
 
         Disconnect and clear the cache on logout. Ship tests for the event
         reducers and the disconnect and refresh decision table.
-  - [ ] 38c. **Email notification settings (backend 24b `NT5`, `NT6`)** - new
+  - [x] 38c. **Email notification settings (backend 24b `NT5`, `NT6`)** - new
         `app/(details)/notification-settings.tsx`, linked from the profile
         settings menu: one **Email** toggle per category from `NT5`
         (engagement, offer, delivery, review, account) with its locked events

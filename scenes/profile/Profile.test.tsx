@@ -190,6 +190,7 @@ describe('<Profile />', () => {
       ['account-row-my-profile', '/my-profile'],
       ['account-row-profile', '/profile-edit'],
       ['account-row-security', '/security-settings'],
+      ['account-row-notifications', '/notification-settings'],
       ['account-row-ballance', '/ballance'],
       ['account-row-applications', '/applications'],
       ['account-row-help-center', '/help-center'],

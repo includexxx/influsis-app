@@ -22,6 +22,8 @@ accountStateSignOut.startListening({
     notificationsApi.endpoints.getUnreadCount.matchRejected,
     notificationsApi.endpoints.markNotificationRead.matchRejected,
     notificationsApi.endpoints.markAllNotificationsRead.matchRejected,
+    notificationsApi.endpoints.getNotificationPreferences.matchRejected,
+    notificationsApi.endpoints.updateNotificationPreferences.matchRejected,
   ),
   effect: (action, { dispatch }) => {
     const code = (action.payload as { code?: unknown } | undefined)?.code;

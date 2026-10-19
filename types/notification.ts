@@ -71,3 +71,27 @@ export interface MarkReadResult {
 export interface MarkAllReadResult {
   updated: number;
 }
+
+/** One channel's toggle for a category (NT5). `enabled` covers the optional events only. */
+export interface NotificationChannelPreference {
+  enabled: boolean;
+  /** Always sent on this channel, whatever `enabled` says. */
+  lockedEvents: string[];
+  optionalEvents: string[];
+}
+
+/** One NT5 row. Listed in the backend's fixed category order. */
+export interface NotificationPreference {
+  category: NotificationCategory | (string & {});
+  /** Always `{ enabled: true, locked: true }`. */
+  inApp: { enabled: boolean; locked: boolean };
+  email: NotificationChannelPreference | null;
+  /** Ignored until push (38e). */
+  push: NotificationChannelPreference | null;
+}
+
+/** NT6: partial - only the channels and categories sent change. */
+export interface UpdateNotificationPreferencesRequest {
+  email?: Record<string, boolean>;
+  push?: Record<string, boolean>;
+}

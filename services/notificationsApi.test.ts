@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { configureStore } from '@reduxjs/toolkit';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { NotificationItem } from '@/types';
+import { NotificationItem, NotificationPreference } from '@/types';
 import { httpClient } from './http';
 import { clearTokens, setTokens } from './tokenStore';
 import { notificationsApi } from './notificationsApi';
@@ -19,6 +19,15 @@ const item: NotificationItem = {
   resolvedAt: null,
   createdAt: '2026-10-17T09:30:00.000Z',
 };
+
+function preference(enabled: boolean): NotificationPreference {
+  return {
+    category: 'offer',
+    inApp: { enabled: true, locked: true },
+    email: { enabled, lockedEvents: [], optionalEvents: ['offer.countered'] },
+    push: { enabled: true, lockedEvents: [], optionalEvents: ['offer.countered'] },
+  };
+}
 
 function ok(config: InternalAxiosRequestConfig, data: unknown, status = 200) {
   const response = { data, status, statusText: '', headers: {}, config };
@@ -186,6 +195,46 @@ describe('notificationsApi', () => {
     await store.dispatch(notificationsApi.endpoints.markNotificationRead.initiate({ id: 'n-2' }));
     for (let i = 0; i < 5; i++) await jest.advanceTimersByTimeAsync(10);
     expect(countCalls()).toBe(2);
+    sub.unsubscribe();
+  });
+
+  test('getNotificationPreferences GETs /notifications/preferences', async () => {
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope([preference(true)])));
+
+    const data = await store
+      .dispatch(notificationsApi.endpoints.getNotificationPreferences.initiate())
+      .unwrap();
+
+    expect(data).toEqual([preference(true)]);
+    expect(adapter.mock.calls[0][0].url).toBe('/notifications/preferences');
+    expect(adapter.mock.calls[0][0].method).toBe('get');
+  });
+
+  test('updateNotificationPreferences PATCHes the partial body and replaces the cached NT5', async () => {
+    const store = makeStore();
+    adapter.mockImplementation(c =>
+      ok(c, envelope([preference(c.method === 'patch' ? false : true)])),
+    );
+    const sub = store.dispatch(notificationsApi.endpoints.getNotificationPreferences.initiate());
+    await sub.unwrap();
+
+    await store
+      .dispatch(
+        notificationsApi.endpoints.updateNotificationPreferences.initiate({
+          email: { offer: false },
+        }),
+      )
+      .unwrap();
+
+    const patch = adapter.mock.calls.find(([c]) => c.method === 'patch')?.[0];
+    expect(patch?.url).toBe('/notifications/preferences');
+    expect(JSON.parse(String(patch?.data))).toEqual({ email: { offer: false } });
+    const cached = notificationsApi.endpoints.getNotificationPreferences.select()(
+      store.getState() as never,
+    ).data;
+    expect(cached?.[0].email?.enabled).toBe(false);
+    expect(adapter.mock.calls.filter(([c]) => c.method === 'get')).toHaveLength(1);
     sub.unsubscribe();
   });
 });
