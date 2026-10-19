@@ -120,7 +120,10 @@ before improvising new UI patterns.
 - **Build**: EAS Build for iOS/Android per `eas.json` profiles; `expo export`
   for web
 - **Distribution**: EAS Update (OTA) for JS-only changes; EAS Hosting for web
-  deploys
+  deploys. Production web is served on `app.influsis.com`, which is also the
+  creator link domain for notification emails (universal links / App Links;
+  decided 2026-10-19, backend README O7): a desktop, or a phone without the
+  app, opens the same screen on the web
 - **Environments**: dotenvx-managed env files (`.env.dev`, plus `.env.prod.example`)
   with typed access via `utils/config.ts`; secrets pushed to EAS via
   `npm run dev:secret:push`

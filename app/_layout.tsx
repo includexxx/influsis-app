@@ -5,6 +5,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthSlice } from '@/slices';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useIncomingNotificationLinks } from '@/hooks/useIncomingNotificationLinks';
+import { useNotificationReadParam } from '@/hooks/useNotificationReadParam';
 import Provider from '@/providers';
 import NotificationBannerHost from '@/components/layouts/NotificationBannerHost';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -23,6 +25,10 @@ function Router() {
   // The realtime notifications socket (38b): open while signed in and in the
   // foreground.
   useRealtimeNotifications();
+  // Notification links (38d1): keep one that arrives signed out for after
+  // sign-in, and mark `?n={id}` read on whatever screen it opens.
+  useIncomingNotificationLinks();
+  useNotificationReadParam();
 
   /**
    * preload assets, then rehydrate the session from the token store

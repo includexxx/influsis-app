@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash 06d3a410d20c94b88d8c494bde6437b34ce443422eec6ab288a2b8fc8e854da2 -->
+<!-- blueprint:source-hash fc80fb73e38860ab166141642e4789755fad48a87d0cdbbbb4e8b5d1af532b80 -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -131,11 +131,13 @@ Firebase projects exist (P4). Business side: `web` 48; staff: `admin` 34.
   locked events read "Always sent: final decisions and deadlines". Partial,
   optimistic, serialized `NT6`; never an empty channel object. No verified
   email (`GET /auth/me` `emailVerified`) -> "Add an email..." prompt instead.
-- **38d. Email links open the app (24e)** - universal links / Android App
-  Links for `CREATOR_APP_LINK_URL` (default `https://app.influsis.com`,
-  domain pending O7): `associatedDomains`, `intentFilters` `autoVerify`,
-  hosted AASA + `assetlinks.json` + fallback page. Screens read `?n={id}`,
-  call `NT3`, drop the param. Signed-out links wait for sign-in.
+- **38d. Email links open the app (24e)** - links use
+  `https://app.influsis.com` (decided 2026-10-19), which serves this app's
+  web build, so desktops open the same screen on the web. 38d1: screens read
+  `?n={id}`, call `NT3` (404 ignored), drop the param; signed-out or
+  pre-restore links wait for sign-in (works via `influsis://` and the web).
+  38d2: `associatedDomains`, `intentFilters` `autoVerify`, AASA +
+  `assetlinks.json` in the web build's `public/.well-known/`.
 - **38e. Push (24g, `NT5`-`NT8`, FCM)** - `@react-native-firebase/app` +
   `messaging` (new EAS dev build), per-env Firebase files via EAS secrets,
   Android channels `high_priority` + `updates`, monochrome `ic_notification`
@@ -292,17 +294,19 @@ Main routes (`app/`):
 - Item 38 adds: a new EAS development build (native Firebase modules);
   `google-services.json` / `GoogleService-Info.plist` per environment via EAS
   secrets, matching that environment's backend `FIREBASE_PROJECT_ID`;
-  `associatedDomains` / `intentFilters` in `app.config.ts`; AASA,
-  `assetlinks.json`, and a fallback page on the `CREATOR_APP_LINK_URL`
-  domain. Verify links and push on real iOS (TestFlight) and Android (13+
-  and older) devices.
+  `associatedDomains` / `intentFilters` in `app.config.ts`; AASA and
+  `assetlinks.json` served by the production web build on
+  `app.influsis.com` (also the creator link domain). Verify links and push on
+  real iOS (TestFlight) and Android (13+ and older) devices.
 
 > TODO: production/staging API endpoints and hosting; `API_URL` defaults to a
 > placeholder.
 
 ## Open questions
 
-- 38d: the link domain is pending (backend README O7).
+- 38d2: needs the Apple Team ID, Android signing SHA-256 fingerprints and
+  production bundle ids (not in the repo), and a decision on dev/staging
+  link domains.
 - 38e: Firebase projects and the APNs key don't exist yet (P4); push stays
   off until they do.
 - 38: backend `feat/notifications` isn't merged into `develop`; build against

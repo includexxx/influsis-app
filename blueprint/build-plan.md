@@ -665,25 +665,30 @@ The business side is `web` item 48, staff is `admin` item 34.
           get no `campaign` category.
         - Serialize rapid toggles so the last state wins, and never send an
           empty channel object (`422`).
-  - [ ] 38d. **Open email links in the app (backend 24e)** - universal links
-        and Android App Links for `CREATOR_APP_LINK_URL` (domain pending
-        backend README O7): `ios.associatedDomains` and
-        `android.intentFilters` with `autoVerify: true` in `app.config.ts`,
-        `apple-app-site-association` and `assetlinks.json` hosted on that
-        domain, and a small fallback page there ("Open on your phone" plus
-        store links). Expo Router opens the matching screen; the screen reads
-        `?n={id}`, calls `NT3` and drops the param. The manage link opens
-        `/notification-settings`. Edge cases:
-
-        - The paths the backend puts in emails are the 38a route table plus
-          `/notifications` (digest) and `/notification-settings` (manage), on
-          `CREATOR_APP_LINK_URL` (default `https://app.influsis.com`). The
-          link domain and the app config must use that exact origin.
-        - A link opened while signed out holds the path until sign-in.
-        - A link for another account gives an `NT3` 404 (ignored) and a
-          target that 404s ("no longer available").
-
-        Verify cold start and warm start on iOS and Android.
+  - [ ] 38d. **Open email links in the app (backend 24e)** - email buttons
+        open the matching app screen. Product decision 2026-10-19: production
+        creator links use `https://app.influsis.com` (backend README O7's
+        default, `CREATOR_APP_LINK_URL`), and that domain serves this app's
+        Expo web build, so a desktop (or a phone without the app) opens the
+        same screen on the web instead of an "Open on your phone" page.
+        Split into:
+    - [x] 38d1. **Open notification links in the app** - the
+          domain-independent part, working today through the `influsis://`
+          scheme and on the web build. A screen opened with `?n={id}` calls
+          `NT3` and drops the param (`404` ignored). A link opened before the
+          session is restored, or while signed out, keeps its path until
+          sign-in (the 38a held route). The paths are the 38a route table plus
+          `/notifications` (digest) and `/notification-settings` (manage). A
+          link for another account gives an `NT3` 404 (ignored) and a target
+          that 404s ("no longer available").
+    - [ ] 38d2. **Universal links and App Links on app.influsis.com** -
+          `ios.associatedDomains` and `android.intentFilters` with
+          `autoVerify: true` in `app.config.ts`, and `apple-app-site-association`
+          and `assetlinks.json` served from the web build's `public/.well-known/`
+          on `app.influsis.com`. Needs the Apple Team ID, the Android signing
+          SHA-256 fingerprints and the production bundle ids (not in the repo),
+          a new native build, and a decision on dev/staging link domains.
+          Verify cold start and warm start on iOS and Android.
   - [ ] 38e. **Push notifications (backend 24g `NT5`-`NT8`, FCM)** -
         `@react-native-firebase/app` + `@react-native-firebase/messaging`
         (new native dependencies, so a new EAS development build; Expo Go
