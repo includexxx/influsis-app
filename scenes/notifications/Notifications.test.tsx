@@ -6,6 +6,11 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { request } from '@/services/http';
 import { notificationsApi } from '@/services/notificationsApi';
 import authReducer, { sessionEstablished } from '@/slices/auth.slice';
+import notificationsLive, {
+  notificationReceived,
+  notificationsReadReceived,
+  resyncRequested,
+} from '@/slices/notificationsLive.slice';
 import { AuthAccount, NotificationItem } from '@/types';
 import Notifications from './Notifications';
 
@@ -94,6 +99,7 @@ function makeStore() {
   return configureStore({
     reducer: {
       auth: authReducer,
+      notificationsLive,
       [notificationsApi.reducerPath]: notificationsApi.reducer,
     },
     middleware: gDM => gDM({ serializableCheck: false }).concat(notificationsApi.middleware),
@@ -199,5 +205,71 @@ describe('<Notifications />', () => {
     expect(calls('/notifications/read-all')[0].data).toEqual({ before: accepted.createdAt });
     expect(screen.queryByLabelText(/^Unread,/)).toBeNull();
     expect(screen.queryByTestId('notifications-mark-all')).toBeNull();
+  });
+
+  describe('live updates (38b)', () => {
+    test('a notification from the socket appears at the top', async () => {
+      serveFeed([accepted, changes]);
+      renderScreen();
+      await screen.findByText('Offer accepted');
+
+      act(() => {
+        store.dispatch(
+          notificationReceived(
+            item({
+              id: 'n-live',
+              title: 'New campaign invitation',
+              createdAt: '2026-10-17T10:00:00.000Z',
+            }),
+          ),
+        );
+      });
+
+      const cards = screen.getAllByTestId(/^notification-n-/);
+      expect(cards[0].props.testID).toBe('notification-n-live');
+      expect(screen.getByLabelText(/^Unread, New campaign invitation/)).toBeTruthy();
+    });
+
+    test('a notification already on the page is not shown twice', async () => {
+      serveFeed([accepted, changes]);
+      renderScreen();
+      await screen.findByText('Offer accepted');
+
+      act(() => {
+        store.dispatch(notificationReceived(accepted));
+      });
+
+      expect(screen.getAllByTestId('notification-n-1')).toHaveLength(1);
+    });
+
+    test('a read event from another device clears the unread mark', async () => {
+      serveFeed([accepted, changes]);
+      renderScreen();
+      await screen.findByLabelText(/^Unread, Offer accepted/);
+
+      act(() => {
+        store.dispatch(notificationsReadReceived({ ids: ['n-1'] }));
+      });
+
+      expect(screen.queryByLabelText(/^Unread, Offer accepted/)).toBeNull();
+      expect(screen.getByLabelText(/^Offer accepted/)).toBeTruthy();
+    });
+
+    test('a resync reloads page 1 without the before anchor', async () => {
+      serveFeed([accepted, changes]);
+      renderScreen();
+      await screen.findByText('Offer accepted');
+      const before = calls('/notifications').length;
+
+      await act(async () => {
+        store.dispatch(resyncRequested());
+        await jest.advanceTimersByTimeAsync(10);
+      });
+
+      const reloads = calls('/notifications').slice(before);
+      expect(reloads).toHaveLength(1);
+      expect(reloads[0].params).toEqual(expect.objectContaining({ page: 1 }));
+      expect(reloads[0].params?.before).toBeUndefined();
+    });
   });
 });

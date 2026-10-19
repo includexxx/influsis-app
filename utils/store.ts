@@ -3,6 +3,7 @@ import app from '@/slices/app.slice';
 import auth, { clearSessionState } from '@/slices/auth.slice';
 import creatorOnboarding from '@/slices/creatorOnboarding.slice';
 import createGig from '@/slices/createGig.slice';
+import notificationsLive from '@/slices/notificationsLive.slice';
 import { authApi } from '@/services/authApi';
 import { profilesApi } from '@/services/profilesApi';
 import { campaignFeedApi } from '@/scenes/campaigns/api/campaignFeedApi';
@@ -22,6 +23,7 @@ const store = configureStore({
     auth,
     creatorOnboarding,
     createGig,
+    notificationsLive,
     [authApi.reducerPath]: authApi.reducer,
     [profilesApi.reducerPath]: profilesApi.reducer,
     [campaignFeedApi.reducerPath]: campaignFeedApi.reducer,

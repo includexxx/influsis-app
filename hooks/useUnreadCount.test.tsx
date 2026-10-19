@@ -7,6 +7,7 @@ import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { httpClient } from '@/services/http';
 import { notificationsApi } from '@/services/notificationsApi';
+import notificationsLive, { connectionChanged } from '@/slices/notificationsLive.slice';
 import { UNREAD_COUNT_POLL_MS, useUnreadCount } from './useUnreadCount';
 
 type AppStateHandler = (state: string) => void;
@@ -18,7 +19,10 @@ let adapter: jest.Mock<(config: InternalAxiosRequestConfig) => Promise<unknown>>
 let store: ReturnType<typeof makeStore>;
 function makeStore() {
   return configureStore({
-    reducer: { [notificationsApi.reducerPath]: notificationsApi.reducer },
+    reducer: {
+      notificationsLive,
+      [notificationsApi.reducerPath]: notificationsApi.reducer,
+    },
     middleware: gDM => gDM({ serializableCheck: false }).concat(notificationsApi.middleware),
   });
 }
@@ -104,6 +108,26 @@ describe('useUnreadCount', () => {
 
     await waitFor(() => expect(result.current).toBe(8));
     expect(reads()).toBeGreaterThan(before);
+  });
+
+  test('does not poll while the realtime socket is connected', async () => {
+    store.dispatch(connectionChanged(true));
+    const { result } = renderHook(() => useUnreadCount(), { wrapper });
+    await waitFor(() => expect(result.current).toBe(3));
+    const before = reads();
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(UNREAD_COUNT_POLL_MS * 3);
+    });
+    expect(reads()).toBe(before);
+
+    act(() => {
+      store.dispatch(connectionChanged(false));
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(UNREAD_COUNT_POLL_MS);
+    });
+    expect(reads()).toBe(before + 1);
   });
 
   test('a failed read counts as 0', async () => {

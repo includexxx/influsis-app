@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { AuthTokens } from '@/types';
-import { ApiError, httpClient, request, setUnauthorizedHandler } from './http';
+import { ApiError, httpClient, refreshSession, request, setUnauthorizedHandler } from './http';
 import { clearTokens, getTokens, setTokens } from './tokenStore';
 
 const tokens: AuthTokens = {
@@ -22,7 +22,9 @@ const nextTokens: AuthTokens = {
 function ok(config: InternalAxiosRequestConfig, data: unknown, status = 200) {
   const response = { data, status, statusText: '', headers: {}, config };
   if (status >= 200 && status < 300) return Promise.resolve(response);
-  return Promise.reject(new AxiosError(`status ${status}`, 'ERR_BAD_RESPONSE', config, {}, response));
+  return Promise.reject(
+    new AxiosError(`status ${status}`, 'ERR_BAD_RESPONSE', config, {}, response),
+  );
 }
 
 function envelope<T>(data: T) {
@@ -62,7 +64,9 @@ describe('request envelope handling', () => {
   });
 
   test('throws ApiError carrying the exact code / statusCode / field errors', async () => {
-    adapter.mockImplementation(c => ok(c, errorBody('VALIDATION_FAILED', 422, { email: 'invalid' }), 422));
+    adapter.mockImplementation(c =>
+      ok(c, errorBody('VALIDATION_FAILED', 422, { email: 'invalid' }), 422),
+    );
     const err = await rejection(request({ url: '/x', method: 'POST' }));
     expect(err).toBeInstanceOf(ApiError);
     expect(err.code).toBe('VALIDATION_FAILED');
@@ -170,5 +174,55 @@ describe('401 refresh interceptor', () => {
     const err = await rejection(request({ url: '/auth/login', method: 'POST', skipAuth: true }));
     expect(err.code).toBe('AUTH_INVALID_CREDENTIALS');
     expect(adapter.mock.calls.some(([c]) => c.url === '/auth/refresh')).toBe(false);
+  });
+});
+
+describe('refreshSession', () => {
+  test('rotates and persists the pair', async () => {
+    await setTokens(tokens);
+    adapter.mockImplementation(c => ok(c, envelope(nextTokens)));
+
+    await expect(refreshSession()).resolves.toEqual(nextTokens);
+
+    expect(adapter.mock.calls[0][0].url).toBe('/auth/refresh');
+    expect(adapter.mock.calls[0][0].headers.Authorization).toBe('Bearer refresh-1');
+    expect(await getTokens()).toEqual(nextTokens);
+  });
+
+  test('concurrent calls and an HTTP 401 retry share one refresh request', async () => {
+    await setTokens(tokens);
+    adapter.mockImplementation(c => {
+      if (c.url === '/auth/refresh') return ok(c, envelope(nextTokens));
+      if (c._retry) return ok(c, envelope({ ok: true }));
+      return ok(c, errorBody('AUTH_TOKEN_EXPIRED', 401), 401);
+    });
+
+    await Promise.all([refreshSession(), refreshSession(), request({ url: '/protected' })]);
+
+    expect(adapter.mock.calls.filter(([c]) => c.url === '/auth/refresh')).toHaveLength(1);
+  });
+
+  test('with no refresh token it ends the session without calling the backend', async () => {
+    const onUnauthorized = jest.fn();
+    setUnauthorizedHandler(onUnauthorized);
+
+    const err = await rejection(refreshSession());
+
+    expect(err.code).toBe('AUTH_TOKEN_MISSING');
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+    expect(adapter).not.toHaveBeenCalled();
+  });
+
+  test('a dead refresh ends the session and rejects with its code', async () => {
+    await setTokens(tokens);
+    const onUnauthorized = jest.fn();
+    setUnauthorizedHandler(onUnauthorized);
+    adapter.mockImplementation(c => ok(c, errorBody('AUTH_SESSION_REVOKED', 401), 401));
+
+    const err = await rejection(refreshSession());
+
+    expect(err.code).toBe('AUTH_SESSION_REVOKED');
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+    expect(await getTokens()).toBeNull();
   });
 });

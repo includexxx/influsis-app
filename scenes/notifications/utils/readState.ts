@@ -66,3 +66,20 @@ export function newestCreatedAt(items: NotificationItem[]): string | undefined {
   }
   return newest;
 }
+
+/**
+ * The feed with the items the realtime socket delivered since it loaded
+ * (newest first) in front, minus any id the pages already hold. The Unread
+ * tab only takes incoming items that are still unread.
+ */
+export function mergeIncoming(
+  items: NotificationItem[],
+  incoming: NotificationItem[],
+  unreadOnly: boolean,
+): NotificationItem[] {
+  const loaded = new Set(items.map(item => item.id));
+  const fresh = incoming.filter(
+    item => !loaded.has(item.id) && (!unreadOnly || item.readAt === null),
+  );
+  return fresh.length ? [...fresh, ...items] : items;
+}

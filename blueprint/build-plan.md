@@ -604,7 +604,7 @@ The business side is `web` item 48, staff is `admin` item 34.
         `updated: 0` is not an error. Ship a route-map test that copies the
         backend table for every Phase 1 creator event, plus tests for the
         optimistic revert and the `NT3` 404.
-  - [ ] 38b. **Live updates while the app is open (backend 24d `/realtime`)** -
+  - [x] 38b. **Live updates while the app is open (backend 24d `/realtime`)** -
         `socket.io-client` connected **only in the foreground**
         (`AppState` `active` connects, `background` disconnects) with
         `auth: { token }` from `tokenStore` and `transports: ['websocket']`.

@@ -4,7 +4,9 @@ import { loadImages, loadFonts } from '@/theme';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthSlice } from '@/slices';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import Provider from '@/providers';
+import NotificationBannerHost from '@/components/layouts/NotificationBannerHost';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import config from '@/utils/config';
 
@@ -18,6 +20,9 @@ GoogleSignin.configure({
 
 function Router() {
   const { dispatch, restoreSession } = useAuthSlice();
+  // The realtime notifications socket (38b): open while signed in and in the
+  // foreground.
+  useRealtimeNotifications();
 
   /**
    * preload assets, then rehydrate the session from the token store
@@ -37,6 +42,8 @@ function Router() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />
+      {/* After the Stack so it draws over every screen. */}
+      <NotificationBannerHost />
       <StatusBar style="light" />
     </>
   );

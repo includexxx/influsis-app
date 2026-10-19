@@ -3,6 +3,7 @@ import { NotificationItem } from '@/types';
 import {
   applyReadState,
   EMPTY_READ_STATE,
+  mergeIncoming,
   newestCreatedAt,
   withAllRead,
   withoutAllRead,
@@ -67,5 +68,25 @@ describe('readState', () => {
     expect(newestCreatedAt([older, newer])).toBe(newer.createdAt);
     expect(newestCreatedAt([newer, older])).toBe(newer.createdAt);
     expect(newestCreatedAt([])).toBeUndefined();
+  });
+
+  test('mergeIncoming puts new socket items first and skips ones the pages hold', () => {
+    const live = item('live', '2026-10-17T11:00:00.000Z');
+    expect(mergeIncoming([newer, older], [live, newer], false).map(i => i.id)).toEqual([
+      'live',
+      'b',
+      'a',
+    ]);
+  });
+
+  test('mergeIncoming on the Unread tab takes only unread socket items', () => {
+    const unread = item('u', '2026-10-17T11:00:00.000Z');
+    const read = item('r', '2026-10-17T11:30:00.000Z', '2026-10-17T11:31:00.000Z');
+    expect(mergeIncoming([older], [read, unread], true).map(i => i.id)).toEqual(['u', 'a']);
+  });
+
+  test('mergeIncoming with nothing new returns the same list', () => {
+    const items = [newer, older];
+    expect(mergeIncoming(items, [], false)).toBe(items);
   });
 });

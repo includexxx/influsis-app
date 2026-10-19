@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { layoutStyle } from '@/styles';
-import { useAuthSlice } from '@/slices';
+import { useAuthSlice, useNotificationsLiveSlice } from '@/slices';
 import { NotificationIconName, NotificationItem } from '@/types';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import NotificationCard from '@/components/elements/NotificationCard';
@@ -15,7 +15,7 @@ import { NOTIFICATIONS_PATH } from '@/lib/notifications/route-map';
 import { notificationsStyle as s } from './notifications.style';
 import { NotificationsFilter, useNotificationsFeed } from './hooks/useNotificationsFeed';
 import { useNotificationReadState } from './hooks/useNotificationReadState';
-import { applyReadState, newestCreatedAt } from './utils/readState';
+import { applyReadState, mergeIncoming, newestCreatedAt } from './utils/readState';
 import {
   NotificationsEmpty,
   NotificationsError,
@@ -49,7 +49,28 @@ export default function Notifications() {
   const { readState, markRead, markAllRead, isMarkingAll, markAllError } =
     useNotificationReadState();
 
-  const items = useMemo(() => applyReadState(feed.items, readState), [feed.items, readState]);
+  const live = useNotificationsLiveSlice();
+
+  // NT1 pages + what the socket delivered since (38b), then read state from
+  // other devices, then this screen's own optimistic marks on top.
+  const items = useMemo(
+    () =>
+      applyReadState(
+        applyReadState(mergeIncoming(feed.items, live.incoming, filter === 'unread'), live.read),
+        readState,
+      ),
+    [feed.items, live.incoming, live.read, readState, filter],
+  );
+
+  // A reconnect or `realtime:resync` while the screen is open: events are not
+  // replayed, so reload page 1 (the value at mount is not a resync).
+  const { refresh } = feed;
+  const seenResync = useRef(live.resyncCount);
+  useEffect(() => {
+    if (live.resyncCount === seenResync.current) return;
+    seenResync.current = live.resyncCount;
+    void refresh();
+  }, [live.resyncCount, refresh]);
   const hasUnread = items.some(item => item.readAt === null);
 
   const onRefresh = useCallback(async () => {

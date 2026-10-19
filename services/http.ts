@@ -151,6 +151,27 @@ export function setUnauthorizedHandler(fn: () => void): void {
   unauthorizedHandler = fn;
 }
 
+/**
+ * Rotates the session outside an HTTP 401 - the realtime socket's
+ * `auth:expiring` and its reconnects use this. It shares refreshTokens()'
+ * single flight with the response interceptor: the refresh token is
+ * single-use and reusing one revokes every session, so there must never be
+ * two refresh calls in parallel. A missing refresh token or a dead refresh
+ * ends the session through the unauthorized handler.
+ */
+export async function refreshSession(): Promise<AuthTokens> {
+  const tokens = await getTokens();
+  if (!tokens?.refreshToken) {
+    unauthorizedHandler();
+    throw new ApiError({
+      code: 'AUTH_TOKEN_MISSING',
+      statusCode: 401,
+      message: 'There is no session to refresh.',
+    });
+  }
+  return refreshTokens(tokens.refreshToken);
+}
+
 function refreshTokens(refreshToken: string): Promise<AuthTokens> {
   if (!refreshPromise) {
     refreshPromise = doRefresh(refreshToken).finally(() => {
