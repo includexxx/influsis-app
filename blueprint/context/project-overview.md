@@ -1,6 +1,6 @@
 # Influsis - Project Overview
 
-<!-- blueprint:source-hash fc80fb73e38860ab166141642e4789755fad48a87d0cdbbbb4e8b5d1af532b80 -->
+<!-- blueprint:source-hash 74dd386724643e372326594101df6c76a95e678166a61c32e530d356a426aaad -->
 
 > A cross-platform marketplace connecting creators and businesses for paid
 > promotional work - campaigns and gigs, applications, delivery, messaging, and
@@ -148,6 +148,10 @@ Firebase projects exist (P4). Business side: `web` 48; staff: `admin` 34.
   hasn't shown it. Taps (background + cold start) mark read via `NT3` and run
   the route map; `kind: 'batch'` opens `/notifications`. iOS badge = `NT2`.
   Settings gain "Push on this device" and a Push toggle per category.
+  Split (2026-10-19): 38e1 setup + registration, 38e2 receiving, 38e3
+  settings. Firebase plugins are added only when the EAS file env vars
+  `GOOGLE_SERVICES_JSON` / `GOOGLE_SERVICE_INFO_PLIST` are set; Android
+  channels come from `expo-notifications`.
 
 **Route map** (must equal backend
 `src/notifications/links/notification-links.ts`; overrides first):

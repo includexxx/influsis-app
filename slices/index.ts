@@ -3,3 +3,4 @@ export { useAuthSlice, restoreSession, signOut, sessionEnded } from './auth.slic
 export { useCreatorOnboardingSlice, ONBOARDING_TOTAL_STEPS } from './creatorOnboarding.slice';
 export { useCreateGigSlice } from './createGig.slice';
 export { useNotificationsLiveSlice } from './notificationsLive.slice';
+export { usePushSlice } from './push.slice';

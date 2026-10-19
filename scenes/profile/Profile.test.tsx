@@ -2,7 +2,7 @@ import { describe, expect, test, jest, beforeEach, afterEach } from '@jest/globa
 import { ReactNode } from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
 import { request } from '@/services/http';
@@ -29,6 +29,10 @@ jest.mock('@/slices', () => ({
     account: { email: 'ayesha@example.com' },
     signOut: () => ({ type: 'auth/signOut' }),
   }),
+}));
+
+jest.mock('@/services/push/pushThunks', () => ({
+  releasePushDevice: () => ({ type: 'push/release' }),
 }));
 
 jest.mock('@/utils/deviceCaches', () => ({
@@ -218,7 +222,13 @@ describe('<Profile />', () => {
     expect(mockReplace).not.toHaveBeenCalled();
 
     fireEvent.press(screen.getByTestId('account-row-logout'));
-    fireEvent.press(screen.getByTestId('logout-confirm-secondary'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('logout-confirm-secondary'));
+    });
+    // Push to this device stops (NT8 + deleteToken) before the session ends.
+    const types = mockDispatch.mock.calls.map(([action]) => (action as { type: string }).type);
+    expect(types.indexOf('push/release')).toBeGreaterThanOrEqual(0);
+    expect(types.indexOf('push/release')).toBeLessThan(types.indexOf('auth/signOut'));
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'auth/signOut' });
     expect(mockClearDeviceCaches).toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith('/auth');

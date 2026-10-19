@@ -767,3 +767,28 @@ The business side is `web` item 48, staff is `admin` item 34.
         Verify on real Android (13+ and older) and iOS (TestFlight) devices,
         foreground, background and killed, once the backend flag is on in an
         environment with Firebase.
+
+        Decision 2026-10-19: until the Firebase projects exist, the Firebase
+        config plugins are added only when the EAS file env vars
+        `GOOGLE_SERVICES_JSON` / `GOOGLE_SERVICE_INFO_PLIST` are set, so builds
+        without them keep working and the app treats push as unavailable.
+        Split into:
+    - [x] 38e1. **Push setup and device registration** - the two native
+          modules and their conditional config plugins, the Android channels
+          and `ic_notification` icon, the permission explainer after the first
+          invitation, join request or accepted engagement, `NT7` after every
+          sign-in (otherwise once a day, keyed by user and session) and on
+          `onTokenRefresh`, "Push unavailable on this device" when
+          `getToken()` fails, and best-effort `NT8` + `deleteToken()` before
+          sign-out (`404` is success).
+    - [ ] 38e2. **Receiving pushes** - foreground `onMessage` shows the 38b
+          banner unless the socket already delivered that `notificationId`,
+          then refetches `NT2`; background and cold-start taps mark read with
+          `NT3` and open `routeFor(...)` rebuilt from the push data (bad
+          `targetParams` -> `/notifications`), held until the session is
+          restored; `kind: 'batch'` opens `/notifications`; the iOS badge is set
+          to `NT2` on every foreground.
+    - [ ] 38e3. **Push settings** - the "Push on this device" switch (on ->
+          permission + `NT7`, off -> `NT8` + `deleteToken()`, "Turned off in
+          your phone settings" with an OS-settings link when blocked) and one
+          **Push** toggle per category next to Email (`NT5`/`NT6` `push`).

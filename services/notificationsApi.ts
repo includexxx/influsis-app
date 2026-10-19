@@ -5,6 +5,8 @@ import {
   NotificationItem,
   NotificationPreference,
   NotificationsPageArgs,
+  PushDevice,
+  RegisterPushDeviceRequest,
   UnreadCount,
   UpdateNotificationPreferencesRequest,
 } from '@/types';
@@ -82,6 +84,17 @@ export const notificationsApi = createApi({
         }
       },
     }),
+    // NT7 - idempotent upsert, bound to the caller's current session
+    registerPushDevice: builder.mutation<PushDevice, RegisterPushDeviceRequest>({
+      query: body => ({ url: '/notifications/push-devices', method: 'POST', data: body }),
+    }),
+    // NT8 - 404 (already gone) counts as success for the caller
+    deletePushDevice: builder.mutation<null, { id: string }>({
+      query: ({ id }) => ({
+        url: `/notifications/push-devices/${encodeURIComponent(id)}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
 });
 
@@ -92,4 +105,6 @@ export const {
   useMarkAllNotificationsReadMutation,
   useGetNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
+  useRegisterPushDeviceMutation,
+  useDeletePushDeviceMutation,
 } = notificationsApi;

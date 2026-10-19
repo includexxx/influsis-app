@@ -237,4 +237,39 @@ describe('notificationsApi', () => {
     expect(adapter.mock.calls.filter(([c]) => c.method === 'get')).toHaveLength(1);
     sub.unsubscribe();
   });
+
+  test('registerPushDevice POSTs { token, platform } to /notifications/push-devices', async () => {
+    const store = makeStore();
+    adapter.mockImplementation(c =>
+      ok(c, envelope({ id: 'dev-1', platform: 'android', createdAt: '2026-10-18T09:30:00.000Z' })),
+    );
+
+    const data = await store
+      .dispatch(
+        notificationsApi.endpoints.registerPushDevice.initiate({
+          token: 'fcm-token',
+          platform: 'android',
+        }),
+      )
+      .unwrap();
+
+    expect(data.id).toBe('dev-1');
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/notifications/push-devices');
+    expect(call.method).toBe('post');
+    expect(JSON.parse(String(call.data))).toEqual({ token: 'fcm-token', platform: 'android' });
+  });
+
+  test('deletePushDevice DELETEs the encoded device id', async () => {
+    const store = makeStore();
+    adapter.mockImplementation(c => ok(c, envelope(null)));
+
+    await store
+      .dispatch(notificationsApi.endpoints.deletePushDevice.initiate({ id: 'a/b' }))
+      .unwrap();
+
+    const call = adapter.mock.calls[0][0];
+    expect(call.url).toBe('/notifications/push-devices/a%2Fb');
+    expect(call.method).toBe('delete');
+  });
 });

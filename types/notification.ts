@@ -95,3 +95,16 @@ export interface UpdateNotificationPreferencesRequest {
   email?: Record<string, boolean>;
   push?: Record<string, boolean>;
 }
+
+/** NT7 body. The FCM token is never logged. */
+export interface RegisterPushDeviceRequest {
+  token: string;
+  platform: 'ios' | 'android' | 'web';
+}
+
+/** NT7 result: this device's registration. */
+export interface PushDevice {
+  id: string;
+  platform: 'ios' | 'android' | 'web';
+  createdAt: string;
+}

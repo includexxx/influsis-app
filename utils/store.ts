@@ -4,6 +4,7 @@ import auth, { clearSessionState } from '@/slices/auth.slice';
 import creatorOnboarding from '@/slices/creatorOnboarding.slice';
 import createGig from '@/slices/createGig.slice';
 import notificationsLive from '@/slices/notificationsLive.slice';
+import push from '@/slices/push.slice';
 import { authApi } from '@/services/authApi';
 import { profilesApi } from '@/services/profilesApi';
 import { campaignFeedApi } from '@/scenes/campaigns/api/campaignFeedApi';
@@ -13,6 +14,8 @@ import { notificationsApi } from '@/services/notificationsApi';
 import { setUnauthorizedHandler } from '@/services/http';
 import cacheSync from '@/services/cacheSync';
 import accountStateSignOut from '@/services/accountStateSignOut';
+import pushListener from '@/services/push/pushListener';
+import pushPrompt from '@/services/push/pushPrompt';
 import config from '@/utils/config';
 import { Env } from '@/types/env';
 import logger from 'redux-logger';
@@ -24,6 +27,7 @@ const store = configureStore({
     creatorOnboarding,
     createGig,
     notificationsLive,
+    push,
     [authApi.reducerPath]: authApi.reducer,
     [profilesApi.reducerPath]: profilesApi.reducer,
     [campaignFeedApi.reducerPath]: campaignFeedApi.reducer,
@@ -62,6 +66,10 @@ const store = configureStore({
       .prepend(cacheSync.middleware)
       // ACCOUNT_* on a notification call signs out (services/accountStateSignOut.ts)
       .prepend(accountStateSignOut.middleware)
+      // registers this device for push on sign-in / restore (services/push)
+      .prepend(pushListener.middleware)
+      // offers push after a join request, acceptance or invitation
+      .prepend(pushPrompt.middleware)
       .concat(
         authApi.middleware,
         profilesApi.middleware,

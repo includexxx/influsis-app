@@ -22,6 +22,7 @@ import { reset as resetApp } from './app.slice';
 import { reset as resetCreatorOnboarding } from './creatorOnboarding.slice';
 import { reset as resetCreateGig } from './createGig.slice';
 import { reset as resetNotificationsLive } from './notificationsLive.slice';
+import { reset as resetPush } from './push.slice';
 
 export type AuthStatus = 'restoring' | 'authenticated' | 'unauthenticated';
 
@@ -109,6 +110,7 @@ export function clearSessionState(dispatch: ThunkDispatch<unknown, unknown, Unkn
   dispatch(resetCreatorOnboarding());
   dispatch(resetCreateGig());
   dispatch(resetNotificationsLive());
+  dispatch(resetPush());
   dispatch(authApi.util.resetApiState());
   dispatch(profilesApi.util.resetApiState());
   dispatch(campaignFeedApi.util.resetApiState());

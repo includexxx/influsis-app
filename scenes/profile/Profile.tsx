@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
 import { useAuthSlice } from '@/slices';
 import { clearDeviceCaches } from '@/utils/deviceCaches';
+import { releasePushDevice } from '@/services/push/pushThunks';
 import { useGetMyProfileQuery } from '@/services/profilesApi';
 import { isCreatorProfileResponse } from '@/types';
 import { layoutStyle } from '@/styles';
@@ -39,6 +40,7 @@ export default function Profile() {
   const insets = useSafeAreaInsets();
   const { dispatch, account, signOut } = useAuthSlice();
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { data, isError, error } = useGetMyProfileQuery();
 
   const creator = data && isCreatorProfileResponse(data) ? data.profile : undefined;
@@ -132,9 +134,14 @@ export default function Profile() {
 
   const danger = toneColors('error', isDark);
 
-  // signOut resets every slice, every RTK Query cache, and all persisted
-  // data; clearDeviceCaches drops the Google account and the image cache.
-  function handleLogout() {
+  // releasePushDevice stops push to this device (NT8 + deleteToken, at most
+  // ~2 s, best-effort) while the session can still call the API. signOut then
+  // resets every slice, every RTK Query cache, and all persisted data;
+  // clearDeviceCaches drops the Google account and the image cache.
+  async function handleLogout() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    await dispatch(releasePushDevice());
     setIsLogoutConfirmOpen(false);
     dispatch(signOut());
     clearDeviceCaches();
@@ -241,7 +248,7 @@ export default function Profile() {
           message="You'll need to sign in again to manage your campaigns and payouts."
           primaryLabel="Cancel"
           onPrimaryPress={() => setIsLogoutConfirmOpen(false)}
-          secondaryLabel="Log Out"
+          secondaryLabel={isLoggingOut ? 'Logging out…' : 'Log Out'}
           onSecondaryPress={handleLogout}
           onClose={() => setIsLogoutConfirmOpen(false)}
           testID="logout-confirm"

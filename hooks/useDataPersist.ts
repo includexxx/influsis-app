@@ -3,6 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export enum DataPersistKeys {
   USER = 'USER',
   TOKENS = 'TOKENS',
+  /** This device's push registration: `{ deviceId, userId, registeredAt }` (38e1). */
+  PUSH_DEVICE = 'PUSH_DEVICE',
+  /** The push permission explainer was shown on this device (38e1). */
+  PUSH_PROMPT_SHOWN = 'PUSH_PROMPT_SHOWN',
   // add more keys here
 }
 

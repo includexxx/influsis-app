@@ -7,8 +7,10 @@ import { useAuthSlice } from '@/slices';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useIncomingNotificationLinks } from '@/hooks/useIncomingNotificationLinks';
 import { useNotificationReadParam } from '@/hooks/useNotificationReadParam';
+import { usePushSetup } from '@/hooks/usePushSetup';
 import Provider from '@/providers';
 import NotificationBannerHost from '@/components/layouts/NotificationBannerHost';
+import PushPromptHost from '@/components/layouts/PushPromptHost';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import config from '@/utils/config';
 
@@ -29,6 +31,8 @@ function Router() {
   // sign-in, and mark `?n={id}` read on whatever screen it opens.
   useIncomingNotificationLinks();
   useNotificationReadParam();
+  // Push (38e1): Android channels and FCM token refresh.
+  usePushSetup();
 
   /**
    * preload assets, then rehydrate the session from the token store
@@ -50,6 +54,8 @@ function Router() {
       <Stack screenOptions={{ headerShown: false }} />
       {/* After the Stack so it draws over every screen. */}
       <NotificationBannerHost />
+      {/* The push permission explainer (38e1). */}
+      <PushPromptHost />
       <StatusBar style="light" />
     </>
   );
