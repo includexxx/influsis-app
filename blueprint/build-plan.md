@@ -557,7 +557,7 @@ The business side is `web` item 48, staff is `admin` item 34.
       settings run on the real backend instead of `data/notifications.ts`, and
       every notification, push and email button opens the right screen. Split
       into:
-  - [ ] 38a. **Real notifications screen and badge (backend 24a-24c `NT1`-`NT4`)** -
+  - [x] 38a. **Real notifications screen and badge (backend 24a-24c `NT1`-`NT4`)** -
         a `notificationsApi` RTK Query slice next to `profilesApi.ts`
         (`getNotifications` with `page`, `limit`, `unread` and the `before`
         anchor from page 1's newest `createdAt`; `getUnreadCount`;

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useTheme } from '@/hooks';
+import { useTheme, useUnreadCount } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { searchStyle } from './search.style';
 import AppHeader from '@/components/elements/AppHeader';
@@ -24,6 +24,7 @@ export default function Search() {
   const { colors } = useTheme();
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>('');
+  const unreadCount = useUnreadCount();
 
   const filteredResults = useMemo(
     () =>
@@ -42,6 +43,7 @@ export default function Search() {
         keyboardShouldPersistTaps="handled">
         <AppHeader
           onNotificationPress={() => router.push('/notifications')}
+          unreadCount={unreadCount}
           style={searchStyle.headerGap}
         />
 

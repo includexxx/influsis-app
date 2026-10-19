@@ -13,6 +13,7 @@ import Button from '@/components/elements/Button';
 import ControlledTextField from '@/components/elements/ControlledTextField';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import StarRatingInput from '@/components/elements/StarRatingInput';
+import ItemUnavailable from '@/components/elements/ItemUnavailable';
 import { reviewBusinessStyle as s } from './reviewBusiness.style';
 import { CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import ReviewEntry from './components/ReviewEntry';
@@ -57,7 +58,7 @@ export default function ReviewBusinessScreen() {
     { skip: !engagementId },
   );
 
-  if (!engagementId || error?.code === 'NOT_FOUND') {
+  if (!engagementId) {
     return <Redirect href="/home" />;
   }
 
@@ -76,6 +77,8 @@ export default function ReviewBusinessScreen() {
           <View testID="review-loading">
             <CampaignRequestCardSkeleton />
           </View>
+        ) : error?.code === 'NOT_FOUND' ? (
+          <ItemUnavailable />
         ) : isError || !data ? (
           <CampaignsEmptyState variant="error" onRetry={refetch} />
         ) : (

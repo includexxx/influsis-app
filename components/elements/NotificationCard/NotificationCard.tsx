@@ -8,6 +8,7 @@ import {
   ViewStyle,
   ImageSourcePropType,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { NotificationIconName } from '@/types';
 import Image from '../Image';
@@ -20,6 +21,8 @@ export interface NotificationCardProps {
   title: string;
   description: string;
   time: string;
+  /** Shows the unread dot and starts the accessibility label with "Unread". */
+  unread?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -84,9 +87,27 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     letterSpacing: -0.24,
   },
+  meta: {
+    alignItems: 'flex-end',
+    gap: 8,
+    marginLeft: 8,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
 });
 
-const icons: Record<NotificationIconName, ImageSourcePropType> = {
+// "Unread, Offer accepted. Terms are locked. 5 min ago" - one sentence per
+// part, without doubling the server text's own end punctuation.
+function cardLabel(unread: boolean | undefined, parts: string[]): string {
+  const sentences = parts.filter(Boolean).map(part => part.replace(/[.!?]+$/, ''));
+  return `${unread ? 'Unread, ' : ''}${sentences.join('. ')}`;
+}
+
+// `generic` has no image: it is drawn as a Feather bell in the same circle.
+const icons: Record<Exclude<NotificationIconName, 'generic'>, ImageSourcePropType> = {
   'money-tick': moneyTickIcon,
   wallet: walletIcon,
 };
@@ -102,6 +123,7 @@ function NotificationCard({
   title,
   description,
   time,
+  unread,
   onPress,
   style,
   testID,
@@ -111,19 +133,34 @@ function NotificationCard({
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={cardLabel(unread, [title, description, time])}
       onPress={onPress}
       testID={testID}
       style={[styles.root, cardShadow, { backgroundColor: colors.card }, style]}>
       <View style={styles.main}>
-        <View style={[styles.iconCircle, { backgroundColor: palette.primary[400] }]}>
-          <Image source={icons[icon]} style={styles.icon} contentFit="contain" />
+        <View
+          style={[styles.iconCircle, { backgroundColor: palette.primary[400] }]}
+          testID={icon === 'generic' ? 'notification-icon-generic' : undefined}>
+          {icon === 'generic' ? (
+            <Feather name="bell" size={22} color={palette.white} />
+          ) : (
+            <Image source={icons[icon]} style={styles.icon} contentFit="contain" />
+          )}
         </View>
         <View style={styles.textBlock}>
           <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
           <Text style={[styles.description, { color: palette.gray[300] }]}>{description}</Text>
         </View>
       </View>
-      <Text style={[styles.time, { color: palette.gray[300] }]}>{time}</Text>
+      <View style={styles.meta}>
+        <Text style={[styles.time, { color: palette.gray[300] }]}>{time}</Text>
+        {unread ? (
+          <View
+            style={[styles.unreadDot, { backgroundColor: palette.primary[500] }]}
+            testID="notification-unread-dot"
+          />
+        ) : null}
+      </View>
     </Pressable>
   );
 }

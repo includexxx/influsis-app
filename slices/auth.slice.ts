@@ -13,6 +13,7 @@ import { profilesApi } from '@/services/profilesApi';
 import { campaignFeedApi } from '@/scenes/campaigns/api/campaignFeedApi';
 import { businessDirectoryApi } from '@/scenes/business/api/businessDirectoryApi';
 import { creatorDirectoryApi } from '@/scenes/creator/api/creatorDirectoryApi';
+import { notificationsApi } from '@/services/notificationsApi';
 import { DataPersistKeys } from '@/hooks/useDataPersist';
 import { clearPendingPreAuthToken } from '@/utils/preAuthToken';
 import { clearPendingResetToken } from '@/utils/resetToken';
@@ -111,6 +112,7 @@ export function clearSessionState(dispatch: ThunkDispatch<unknown, unknown, Unkn
   dispatch(campaignFeedApi.util.resetApiState());
   dispatch(businessDirectoryApi.util.resetApiState());
   dispatch(creatorDirectoryApi.util.resetApiState());
+  dispatch(notificationsApi.util.resetApiState());
   clearPendingPreAuthToken();
   clearPendingResetToken();
 }

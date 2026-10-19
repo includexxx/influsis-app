@@ -13,6 +13,7 @@ import Image from '@/components/elements/Image';
 import ScreenHeader from '@/components/elements/ScreenHeader';
 import Button from '@/components/elements/Button';
 import TextField from '@/components/elements/TextField';
+import ItemUnavailable from '@/components/elements/ItemUnavailable';
 import { pieceStyle as p } from './deliverablePiece.style';
 import { submitDeliveryStyle as s } from './submitDelivery.style';
 import { CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
@@ -91,8 +92,19 @@ export default function SubmitDeliveryScreen() {
     <ScreenHeader title="Submit delivery" onBack={() => router.back()} style={p.headerGap} />
   );
 
-  if (!engagementId || delivery.error?.code === 'NOT_FOUND') {
+  if (!engagementId) {
     return <Redirect href="/live-campaign" />;
+  }
+
+  if (delivery.error?.code === 'NOT_FOUND') {
+    return (
+      <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
+        <View style={layoutStyle.scrollContent}>
+          {header}
+          <ItemUnavailable />
+        </View>
+      </SafeAreaView>
+    );
   }
 
   if (delivery.isLoading || (delivery.data && !slots)) {

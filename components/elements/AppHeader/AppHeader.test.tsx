@@ -16,10 +16,20 @@ describe('<AppHeader />', () => {
     expect(onNotificationPress).toHaveBeenCalledTimes(1);
   });
 
-  test('shows the unread dot only when there is something unread', () => {
-    const { rerender } = render(<AppHeader />);
+  test('shows no badge when nothing is unread', () => {
+    render(<AppHeader unreadCount={0} />);
     expect(screen.queryByTestId('app-header-unread')).toBeNull();
-    rerender(<AppHeader hasUnread />);
+    expect(screen.getByLabelText('Notifications')).not.toBeNull();
+  });
+
+  test.each([
+    [5, '5'],
+    [99, '99'],
+    [100, '99+'],
+  ])('shows %d unread as "%s" and says so to screen readers', (count, text) => {
+    render(<AppHeader unreadCount={count} />);
     expect(screen.getByTestId('app-header-unread')).not.toBeNull();
+    expect(screen.getByText(text)).not.toBeNull();
+    expect(screen.getByLabelText(`Notifications, ${text} unread`)).not.toBeNull();
   });
 });

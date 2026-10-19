@@ -1,6 +1,8 @@
-import { Redirect, Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Href, Redirect, router, Tabs } from 'expo-router';
 import { useAuthSlice } from '@/slices';
 import { authGate } from '@/utils/authGate';
+import { takeNotificationRoute } from '@/lib/notifications/pendingRoute';
 import AnimatedTabBar from '@/components/layouts/AnimatedTabBar';
 
 // Main app shell (Figma "TabBar", node 6355:6595): Home / Applications /
@@ -15,6 +17,15 @@ import AnimatedTabBar from '@/components/layouts/AnimatedTabBar';
 export default function MainLayout() {
   const { status } = useAuthSlice();
   const gate = authGate(status, '(main)');
+  const allowed = gate.type === 'allow';
+
+  // A notification opened before sign-in (lib/notifications/pendingRoute.ts)
+  // opens once the shell is reachable.
+  useEffect(() => {
+    if (!allowed) return;
+    const held = takeNotificationRoute();
+    if (held) router.push(held as Href);
+  }, [allowed]);
 
   if (gate.type === 'wait') return null;
   if (gate.type === 'redirect') return <Redirect href={gate.href} />;

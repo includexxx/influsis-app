@@ -6,6 +6,7 @@ import { layoutStyle } from '@/styles';
 import { spacing } from '@/theme';
 import { resolveMediaUrl } from '@/utils/media';
 import ScreenHeader from '@/components/elements/ScreenHeader';
+import ItemUnavailable from '@/components/elements/ItemUnavailable';
 import { campaignDetailsStyle as s } from './campaignDetails.style';
 import { useGetFeedCampaignQuery } from './api/campaignFeedApi';
 import { CampaignFeedDetail } from './types/campaignFeed';
@@ -67,7 +68,7 @@ export default function CampaignDetails() {
     refetch,
   } = useGetFeedCampaignQuery({ id: id ?? '' }, { skip: !id });
 
-  if (!id || error?.code === 'NOT_FOUND') {
+  if (!id) {
     return <Redirect href="/home" />;
   }
 
@@ -88,7 +89,11 @@ export default function CampaignDetails() {
         <View style={s.headerRow}>
           <ScreenHeader title="Campaign details" onBack={() => router.back()} />
         </View>
-        <CampaignsEmptyState variant="error" onRetry={refetch} style={s.errorContent} />
+        {error?.code === 'NOT_FOUND' ? (
+          <ItemUnavailable style={s.errorContent} />
+        ) : (
+          <CampaignsEmptyState variant="error" onRetry={refetch} style={s.errorContent} />
+        )}
       </SafeAreaView>
     );
   }

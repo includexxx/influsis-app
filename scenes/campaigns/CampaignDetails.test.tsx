@@ -312,12 +312,13 @@ describe('<CampaignDetails />', () => {
     expect(await screen.findByText('Something went wrong')).toBeTruthy();
   });
 
-  test('redirects home when the campaign is not live (404)', async () => {
+  test('says the campaign is no longer available when it is not live (404)', async () => {
     mockRequest.mockRejectedValue(
       new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Campaign not found.' }),
     );
     renderScreen();
 
-    expect(await screen.findByText('redirect:/home')).toBeTruthy();
+    expect(await screen.findByText('This item is no longer available')).toBeTruthy();
+    expect(screen.queryByText('redirect:/home')).toBeNull();
   });
 });

@@ -378,6 +378,16 @@ describe('<OfferScreen />', () => {
     expect(screen.queryByTestId('agreement-sheet')).toBeNull();
   });
 
+  test('says the item is no longer available when the engagement read 404s', async () => {
+    answerWith(() => {
+      throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' });
+    });
+    renderScreen();
+
+    expect(await screen.findByText('This item is no longer available')).toBeTruthy();
+    expect(screen.queryByText('Try again')).toBeNull();
+  });
+
   test('shows a retryable error state when the engagement fails to load', async () => {
     answerWith(() => {
       throw new Error('offline');

@@ -32,4 +32,36 @@ describe('<NotificationCard />', () => {
     fireEvent.press(screen.getByTestId('notification-card'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  test('the generic icon draws a bell instead of an image', () => {
+    render(
+      <NotificationCard icon="generic" title="Review published" description="" time="2 h ago" />,
+    );
+    expect(screen.getByTestId('notification-icon-generic')).toBeTruthy();
+  });
+
+  test('an unread card shows the dot and says so to screen readers', () => {
+    render(
+      <NotificationCard
+        icon="wallet"
+        title="Offer accepted"
+        description="Terms are locked."
+        time="5 min ago"
+        unread
+        onPress={jest.fn()}
+      />,
+    );
+    expect(screen.getByTestId('notification-unread-dot')).toBeTruthy();
+    expect(
+      screen.getByLabelText('Unread, Offer accepted. Terms are locked. 5 min ago'),
+    ).toBeTruthy();
+  });
+
+  test('a read card has no dot', () => {
+    render(
+      <NotificationCard icon="wallet" title="Offer accepted" description="Done" time="1 d ago" />,
+    );
+    expect(screen.queryByTestId('notification-unread-dot')).toBeNull();
+    expect(screen.getByLabelText('Offer accepted. Done. 1 d ago')).toBeTruthy();
+  });
 });

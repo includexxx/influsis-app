@@ -250,13 +250,14 @@ describe('<ReviewBusinessScreen />', () => {
     expect(await screen.findByText('Rate the business')).toBeTruthy();
   });
 
-  test('redirects home when the engagement is not the creator’s', async () => {
+  test('says the item is no longer available when the engagement is not the creator’s', async () => {
     answerWith(() => {
       throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' });
     });
     renderScreen();
 
-    expect(await screen.findByText('redirect:/home')).toBeTruthy();
+    expect(await screen.findByText('This item is no longer available')).toBeTruthy();
+    expect(screen.queryByText('redirect:/home')).toBeNull();
   });
 
   test('shows a retryable error when CK1 fails', async () => {

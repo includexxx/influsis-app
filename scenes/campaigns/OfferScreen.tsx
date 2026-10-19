@@ -16,6 +16,7 @@ import ConfirmDialog from '@/components/elements/ConfirmDialog';
 import DeliverablesEditor from '@/components/elements/DeliverablesEditor';
 import OptionSheet from '@/components/elements/OptionSheet';
 import RichText from '@/components/elements/RichText';
+import ItemUnavailable from '@/components/elements/ItemUnavailable';
 import { offerScreenStyle as s } from './offerScreen.style';
 import { AgreementSheet, CampaignRequestCardSkeleton, CampaignsEmptyState } from './components';
 import {
@@ -132,7 +133,7 @@ export default function OfferScreen() {
   }>();
   const engagementId = id ?? '';
 
-  const { data, isLoading, isError, isFetching, refetch } = useGetMyEngagementQuery(
+  const { data, isLoading, isError, error, isFetching, refetch } = useGetMyEngagementQuery(
     { engagementId },
     { skip: !engagementId },
   );
@@ -257,7 +258,11 @@ export default function OfferScreen() {
       <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
         <View style={layoutStyle.scrollContent}>
           {header}
-          <CampaignsEmptyState variant="error" onRetry={refetch} />
+          {error?.code === 'NOT_FOUND' ? (
+            <ItemUnavailable />
+          ) : (
+            <CampaignsEmptyState variant="error" onRetry={refetch} />
+          )}
         </View>
       </SafeAreaView>
     );

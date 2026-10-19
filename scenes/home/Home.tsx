@@ -1,5 +1,5 @@
 import AppHeader from '@/components/elements/AppHeader';
-import { useTheme } from '@/hooks';
+import { useTheme, useUnreadCount } from '@/hooks';
 import { layoutStyle } from '@/styles';
 import { palette } from '@/theme';
 import { router } from 'expo-router';
@@ -61,6 +61,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 export default function Home() {
   const { colors } = useTheme();
   const { refreshing, refresh, profile } = useHomeRefresh();
+  const unreadCount = useUnreadCount();
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -77,7 +78,10 @@ export default function Home() {
           />
         }>
         <View style={homeStyle.topGroup}>
-          <AppHeader onNotificationPress={() => router.push('/notifications')} />
+          <AppHeader
+            onNotificationPress={() => router.push('/notifications')}
+            unreadCount={unreadCount}
+          />
 
           {/* <HomeSearchBar onPress={() => router.push('/search')} /> */}
 

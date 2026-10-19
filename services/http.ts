@@ -78,9 +78,18 @@ function toApiError(error: AxiosError): ApiError {
   });
 }
 
+// The language the backend renders server text in (notification title/body,
+// emails, push). English is the only language the app ships today, and the
+// backend falls back to it anyway (backend README O3).
+export const APP_LANGUAGE = 'en';
+
 export const httpClient = axios.create({
   baseURL: config.apiUrl,
-  headers: { 'Content-Type': 'application/json', 'x-client-id': 'creator-app-client' },
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-id': 'creator-app-client',
+    'x-custom-lang': APP_LANGUAGE,
+  },
   timeout: 15000,
   // Arrays go out as repeated keys (`category=a&category=b`), which the
   // backend's Express 5 query parser reads as an array. Axios's default

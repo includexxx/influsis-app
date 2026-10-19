@@ -343,6 +343,16 @@ describe('<SubmitDeliveryScreen />', () => {
     });
   });
 
+  test('says the item is no longer available when the delivery read 404s', async () => {
+    mockRequest.mockImplementation(async () => {
+      throw new ApiError({ code: 'NOT_FOUND', statusCode: 404, message: 'Not found' } as never);
+    });
+    renderScreen();
+
+    expect(await screen.findByText('This item is no longer available')).toBeTruthy();
+    expect(screen.queryByText('redirect:/live-campaign')).toBeNull();
+  });
+
   test('a 409 shows the server message and refetches the delivery', async () => {
     answers(delivery(), () => {
       throw new ApiError({
