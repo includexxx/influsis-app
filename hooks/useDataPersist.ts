@@ -7,6 +7,8 @@ export enum DataPersistKeys {
   PUSH_DEVICE = 'PUSH_DEVICE',
   /** The push permission explainer was shown on this device (38e1). */
   PUSH_PROMPT_SHOWN = 'PUSH_PROMPT_SHOWN',
+  /** User ids that switched push off on this device; kept across sign-out (38e3). */
+  PUSH_DEVICE_OFF = 'PUSH_DEVICE_OFF',
   // add more keys here
 }
 

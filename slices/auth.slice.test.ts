@@ -183,13 +183,21 @@ describe('signOut', () => {
     expect(await getTokens()).toBeNull();
   });
 
-  test('wipes every persisted key', async () => {
-    await AsyncStorage.setItem(DataPersistKeys.USER, JSON.stringify({ id: 'u-1' }));
+  test('wipes every persisted key but the push-off-on-this-device list', async () => {
+    for (const key of Object.values(DataPersistKeys)) {
+      await AsyncStorage.setItem(key, JSON.stringify(['u-1']));
+    }
     const store = makeStore();
 
     await store.dispatch(signOut());
 
-    expect(await AsyncStorage.getItem(DataPersistKeys.USER)).toBeNull();
+    for (const key of Object.values(DataPersistKeys)) {
+      const kept = key === DataPersistKeys.PUSH_DEVICE_OFF;
+      expect([key, await AsyncStorage.getItem(key)]).toEqual([
+        key,
+        kept ? JSON.stringify(['u-1']) : null,
+      ]);
+    }
   });
 
   test('resets the user-scoped slices and forgets pending auth tokens', async () => {

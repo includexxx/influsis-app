@@ -9,6 +9,18 @@ import type { AndroidPermissionResult, PushDeps, StoredPushDevice } from './regi
 
 type AppDispatch = ThunkDispatch<unknown, unknown, UnknownAction>;
 
+/** User ids that switched push off on this device (kept across sign-out). */
+async function readOptOut(): Promise<string[]> {
+  try {
+    const parsed: unknown = JSON.parse(
+      (await AsyncStorage.getItem(DataPersistKeys.PUSH_DEVICE_OFF)) ?? '[]',
+    );
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
 // The real dependencies for services/push/registration.ts.
 export function pushDeps(dispatch: AppDispatch, getState: () => unknown): PushDeps {
   return {
@@ -29,6 +41,14 @@ export function pushDeps(dispatch: AppDispatch, getState: () => unknown): PushDe
       },
       set: device => AsyncStorage.setItem(DataPersistKeys.PUSH_DEVICE, JSON.stringify(device)),
       remove: () => AsyncStorage.removeItem(DataPersistKeys.PUSH_DEVICE),
+      isOptedOut: async userId => (await readOptOut()).includes(userId),
+      setOptedOut: async (userId, optedOut) => {
+        const others = (await readOptOut()).filter(id => id !== userId);
+        await AsyncStorage.setItem(
+          DataPersistKeys.PUSH_DEVICE_OFF,
+          JSON.stringify(optedOut ? [...others, userId] : others),
+        );
+      },
     },
     api: {
       register: body =>

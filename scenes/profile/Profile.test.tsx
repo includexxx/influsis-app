@@ -189,6 +189,7 @@ describe('<Profile />', () => {
     mockRequest.mockResolvedValue(profileResponse);
     renderScreen();
     await screen.findByText('Ayesha Rahman');
+    expect(screen.getByText('Email and push')).toBeTruthy();
 
     const destinations: [string, string][] = [
       ['account-row-my-profile', '/my-profile'],

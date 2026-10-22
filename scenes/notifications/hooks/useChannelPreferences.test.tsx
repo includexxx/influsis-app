@@ -7,12 +7,13 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { httpClient } from '@/services/http';
 import { notificationsApi } from '@/services/notificationsApi';
 import { NotificationPreference } from '@/types';
-import { EMAIL_SAVE_ERROR, useEmailPreferences } from './useEmailPreferences';
+import { saveErrorFor, useChannelPreferences } from './useChannelPreferences';
 
 const CATEGORIES = ['engagement', 'offer', 'delivery', 'review', 'account'];
 
-// The fake server's email toggles.
+// The fake server's email and push toggles.
 let server: Record<string, boolean>;
+let pushServer: Record<string, boolean>;
 let failWith: { status: number; code: string; message: string } | null;
 // PATCHes are held until released, to drive the "in flight" cases.
 let pending: (() => void)[];
@@ -24,7 +25,7 @@ function prefs(): NotificationPreference[] {
     category,
     inApp: { enabled: true, locked: true },
     email: { enabled: server[category], lockedEvents: [], optionalEvents: ['x'] },
-    push: null,
+    push: { enabled: pushServer[category], lockedEvents: [], optionalEvents: ['x'] },
   }));
 }
 
@@ -41,8 +42,12 @@ function respond(config: InternalAxiosRequestConfig) {
     return Promise.reject(new AxiosError('err', 'ERR_BAD_RESPONSE', config, {}, response));
   }
   if (config.method === 'patch') {
-    const { email } = JSON.parse(String(config.data)) as { email: Record<string, boolean> };
+    const { email, push } = JSON.parse(String(config.data)) as {
+      email?: Record<string, boolean>;
+      push?: Record<string, boolean>;
+    };
     server = { ...server, ...email };
+    pushServer = { ...pushServer, ...push };
   }
   return Promise.resolve({
     data: { success: true, statusCode: 200, message: 'ok', data: prefs(), meta: null },
@@ -85,18 +90,23 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 async function loaded() {
-  const hook = renderHook(() => useEmailPreferences({ skip: false }), { wrapper });
+  const hook = renderHook(() => useChannelPreferences({ channel: 'email', skip: false }), {
+    wrapper,
+  });
   await waitFor(() => expect(hook.result.current.toggles).toHaveLength(CATEGORIES.length));
   return hook;
 }
 
-const enabledOf = (result: { current: ReturnType<typeof useEmailPreferences> }, category: string) =>
-  result.current.toggles.find(t => t.category === category)?.enabled;
+const enabledOf = (
+  result: { current: ReturnType<typeof useChannelPreferences> },
+  category: string,
+) => result.current.toggles.find(t => t.category === category)?.enabled;
 
 beforeEach(() => {
   jest.useFakeTimers();
   store = makeStore();
   server = Object.fromEntries(CATEGORIES.map(c => [c, true]));
+  pushServer = Object.fromEntries(CATEGORIES.map(c => [c, true]));
   failWith = null;
   pending = [];
   holdPatches = false;
@@ -115,14 +125,14 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-describe('useEmailPreferences', () => {
+describe('useChannelPreferences (email)', () => {
   test('loads the toggles in NT5 order', async () => {
     const { result } = await loaded();
     expect(result.current.toggles.map(t => t.category)).toEqual(CATEGORIES);
   });
 
   test('skip makes no request', async () => {
-    renderHook(() => useEmailPreferences({ skip: true }), { wrapper });
+    renderHook(() => useChannelPreferences({ channel: 'email', skip: true }), { wrapper });
     await act(async () => {
       await jest.advanceTimersByTimeAsync(10);
     });
@@ -196,7 +206,9 @@ describe('useEmailPreferences', () => {
     act(() => result.current.toggle('offer'));
     expect(enabledOf(result, 'offer')).toBe(false);
 
-    await waitFor(() => expect(result.current.saveError).toBe(EMAIL_SAVE_ERROR));
+    await waitFor(() =>
+      expect(result.current.saveError).toBe("Couldn't save your email settings. Try again."),
+    );
     expect(enabledOf(result, 'offer')).toBe(true);
   });
 
@@ -223,5 +235,51 @@ describe('useEmailPreferences', () => {
     for (const body of patchBodies() as { email: object }[]) {
       expect(Object.keys(body.email).length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('useChannelPreferences (push)', () => {
+  test('one toggle sends only that category on the push channel', async () => {
+    const { result } = renderHook(() => useChannelPreferences({ channel: 'push', skip: false }), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.toggles).toHaveLength(CATEGORIES.length));
+
+    act(() => result.current.toggle('offer'));
+
+    await waitFor(() => expect(patchBodies()).toEqual([{ push: { offer: false } }]));
+    await waitFor(() => expect(result.current.isSaving).toBe(false));
+    expect(pushServer.offer).toBe(false);
+    expect(server.offer).toBe(true);
+    expect(saveErrorFor('push')).toBe("Couldn't save your push settings. Try again.");
+  });
+
+  test('email and push saves in flight together both land, and neither undoes the other', async () => {
+    holdPatches = true;
+    const { result } = renderHook(
+      () => ({
+        email: useChannelPreferences({ channel: 'email', skip: false }),
+        push: useChannelPreferences({ channel: 'push', skip: false }),
+      }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.push.toggles).toHaveLength(CATEGORIES.length));
+
+    act(() => result.current.email.toggle('review'));
+    act(() => result.current.push.toggle('offer'));
+    await settle();
+    expect(patchBodies()).toEqual([{ email: { review: false } }, { push: { offer: false } }]);
+
+    await releaseOne();
+    await releaseOne();
+    await waitFor(() => expect(result.current.push.isSaving).toBe(false));
+
+    expect(server.review).toBe(false);
+    expect(pushServer.offer).toBe(false);
+    const on = (list: { category: string; enabled: boolean }[], c: string) =>
+      list.find(t => t.category === c)?.enabled;
+    expect(on(result.current.email.toggles, 'review')).toBe(false);
+    expect(on(result.current.push.toggles, 'offer')).toBe(false);
+    expect(patchBodies()).toHaveLength(2);
   });
 });

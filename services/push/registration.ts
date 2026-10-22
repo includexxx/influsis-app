@@ -43,6 +43,9 @@ export interface PushDeps {
     get: () => Promise<StoredPushDevice | null>;
     set: (device: StoredPushDevice) => Promise<void>;
     remove: () => Promise<void>;
+    /** This user switched push off on this device (38e3). */
+    isOptedOut: (userId: string) => Promise<boolean>;
+    setOptedOut: (userId: string, optedOut: boolean) => Promise<void>;
   };
   api: {
     register: (body: { token: string; platform: 'ios' | 'android' }) => Promise<{ id: string }>;
@@ -54,7 +57,13 @@ export interface PushDeps {
   now: () => number;
 }
 
-export type RegisterResult = 'registered' | 'skipped' | 'no-permission' | 'unavailable' | 'failed';
+export type RegisterResult =
+  | 'registered'
+  | 'skipped'
+  | 'opted-out'
+  | 'no-permission'
+  | 'unavailable'
+  | 'failed';
 
 /** Android 13 (API 33) added the POST_NOTIFICATIONS runtime permission. */
 const needsAndroidRuntimePermission = (deps: PushDeps) =>
@@ -136,11 +145,18 @@ export async function registerDevice(
 
   const userId = deps.userId();
   if (!userId) return 'skipped';
+  // Switched off on this device: nothing registers it again, not even a
+  // sign-in, until the creator switches it back on (38e3).
+  if (await deps.storage.isOptedOut(userId).catch(() => false)) return 'opted-out';
 
   if (!force) {
     const stored = await deps.storage.get().catch(() => null);
     const at = stored ? Date.parse(stored.registeredAt) : NaN;
-    if (stored?.userId === userId && deps.now() - at < REGISTER_INTERVAL_MS) return 'skipped';
+    if (stored?.userId === userId && deps.now() - at < REGISTER_INTERVAL_MS) {
+      // Still registered: let the settings switch know after a restart.
+      deps.dispatch(deviceRegistered(stored.deviceId));
+      return 'skipped';
+    }
   }
 
   let token: string;

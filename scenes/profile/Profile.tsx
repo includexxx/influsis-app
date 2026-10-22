@@ -90,7 +90,7 @@ export default function Profile() {
       icon: 'bell',
       tone: 'warning',
       title: 'Notifications',
-      subtitle: 'Email alerts',
+      subtitle: 'Email and push',
       onPress: () => router.push('/notification-settings'),
       testID: 'account-row-notifications',
     },

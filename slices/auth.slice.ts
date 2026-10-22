@@ -122,15 +122,25 @@ export function clearSessionState(dispatch: ThunkDispatch<unknown, unknown, Unkn
 }
 
 /**
+ * Persisted keys that outlive a sign-out. A creator who switched push off on
+ * this device (38e3) keeps it off after logging out and back in; the list is
+ * keyed by user id, so other creators on the device are unaffected.
+ */
+const KEEP_ON_SIGN_OUT: ReadonlySet<DataPersistKeys> = new Set([DataPersistKeys.PUSH_DEVICE_OFF]);
+
+/**
  * Explicit user logout. Clears all in-memory state synchronously (so a caller
  * can navigate immediately against a consistent `unauthenticated` status),
  * then wipes the token pair (and its in-memory mirror) and every other
- * persisted key. A later leaf adds `POST /auth/logout` before `clearTokens()`.
+ * persisted key except KEEP_ON_SIGN_OUT. A later leaf adds `POST /auth/logout`
+ * before `clearTokens()`.
  */
 export const signOut = createAsyncThunk<void, void>('auth/signOut', async (_, { dispatch }) => {
   clearSessionState(dispatch);
   await clearTokens();
-  await AsyncStorage.multiRemove(Object.values(DataPersistKeys));
+  await AsyncStorage.multiRemove(
+    Object.values(DataPersistKeys).filter(key => !KEEP_ON_SIGN_OUT.has(key)),
+  );
 });
 
 export function useAuthSlice() {

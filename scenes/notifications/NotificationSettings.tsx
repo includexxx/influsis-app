@@ -1,4 +1,4 @@
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks';
@@ -9,7 +9,9 @@ import SettingsRow from '@/components/elements/SettingsRow';
 import Toggle from '@/components/elements/Toggle';
 import Button from '@/components/elements/Button';
 import { notificationSettingsStyle as s } from './notificationSettings.style';
-import { useEmailPreferences } from './hooks/useEmailPreferences';
+import { useChannelPreferences, UseChannelPreferencesResult } from './hooks/useChannelPreferences';
+import { usePushDeviceSwitch } from './hooks/usePushDeviceSwitch';
+import { PreferenceChannel } from './utils/channelPreferences';
 
 const emailIcon = require('@/assets/images/account/email-notification.png');
 
@@ -37,59 +39,56 @@ function categoryCopy(category: string): { label: string; description?: string }
   );
 }
 
-// Notification settings (build-plan 38c), from the Profile tab's
+const CHANNEL_LABEL: Record<PreferenceChannel, string> = { email: 'Email', push: 'Push' };
+
+// Notification settings (build-plan 38c, 38e3), from the Profile tab's
 // "Notifications" row and the "manage" link in notification emails (38d).
-// In-app is always on; one Email toggle per NT5 category, saved with NT6
-// (hooks/useEmailPreferences.ts: optimistic, serialized, reverted on error).
-// A creator without a verified email gets nothing by email, so they see why
-// instead of toggles. Push toggles arrive with 38e.
+// In-app is always on. Email and Push each get one toggle per NT5 category,
+// saved with NT6 (hooks/useChannelPreferences.ts: optimistic, serialized,
+// reverted on error). Push also has the "Push on this device" switch - the
+// device (NT7/NT8), not the account-wide toggles below it. A creator without
+// a verified email sees why instead of the Email toggles.
 export default function NotificationSettings() {
   const { colors, palette } = useTheme();
   const { account } = useAuthSlice();
   const hasVerifiedEmail = account?.emailVerified === true;
-  const email = useEmailPreferences({ skip: !hasVerifiedEmail });
+  const email = useChannelPreferences({ channel: 'email', skip: false });
+  const push = useChannelPreferences({ channel: 'push', skip: false });
+  const device = usePushDeviceSwitch();
 
-  let body;
-  if (!hasVerifiedEmail) {
-    body = (
-      <Text
-        accessibilityRole="text"
-        style={[s.note, { color: colors.text.secondary }]}
-        testID="notification-settings-no-email">
-        Add an email to get important updates when the app is closed.
+  // Both channels read the same NT5 request: its loading/error state shows
+  // once, above both sections, and their toggle lists wait for it.
+  const loadState = email.isLoading ? (
+    <View style={s.status} testID="notification-settings-loading">
+      <ActivityIndicator color={palette.primary[500]} />
+    </View>
+  ) : email.isError ? (
+    <View style={s.status} testID="notification-settings-error">
+      <Text style={[s.statusText, { color: colors.text.primary }]}>
+        Couldn&apos;t load your settings
       </Text>
-    );
-  } else if (email.isLoading) {
-    body = (
-      <View style={s.status} testID="notification-settings-loading">
-        <ActivityIndicator color={palette.primary[500]} />
-      </View>
-    );
-  } else if (email.isError) {
-    body = (
-      <View style={s.status} testID="notification-settings-error">
-        <Text style={[s.statusText, { color: colors.text.primary }]}>
-          Couldn&apos;t load your settings
+      <Button
+        title="Try again"
+        accessibilityRole="button"
+        onPress={email.retry}
+        style={[s.retryButton, { backgroundColor: palette.primary[400] }]}
+        titleStyle={[s.retryTitle, { color: palette.white }]}
+      />
+    </View>
+  ) : null;
+
+  const toggleList = (channel: PreferenceChannel, prefs: UseChannelPreferencesResult) => {
+    if (loadState) return null;
+    if (prefs.toggles.length === 0) {
+      return (
+        <Text style={[s.note, { color: colors.text.secondary }]}>
+          There are no {channel} settings for your account.
         </Text>
-        <Button
-          title="Try again"
-          accessibilityRole="button"
-          onPress={email.retry}
-          style={[s.retryButton, { backgroundColor: palette.primary[400] }]}
-          titleStyle={[s.retryTitle, { color: palette.white }]}
-        />
-      </View>
-    );
-  } else if (email.toggles.length === 0) {
-    body = (
-      <Text style={[s.note, { color: colors.text.secondary }]}>
-        There are no email settings for your account.
-      </Text>
-    );
-  } else {
-    body = (
+      );
+    }
+    return (
       <View style={s.rowList}>
-        {email.toggles.map(toggle => {
+        {prefs.toggles.map(toggle => {
           const { label, description } = categoryCopy(toggle.category);
           const lines = [description, toggle.hasLocked ? LOCKED_NOTE : undefined].filter(Boolean);
           return (
@@ -99,22 +98,32 @@ export default function NotificationSettings() {
               title={label}
               description={lines.length ? lines.join('. ') : undefined}
               variant="card"
-              onPress={() => email.toggle(toggle.category)}
+              onPress={() => prefs.toggle(toggle.category)}
               trailing={
                 <Toggle
                   value={toggle.enabled}
-                  accessibilityLabel={`Email for ${label}`}
-                  onPress={() => email.toggle(toggle.category)}
-                  testID={`email-toggle-${toggle.category}`}
+                  accessibilityLabel={`${CHANNEL_LABEL[channel]} for ${label}`}
+                  onPress={() => prefs.toggle(toggle.category)}
+                  testID={`${channel}-toggle-${toggle.category}`}
                 />
               }
-              testID={`email-row-${toggle.category}`}
+              testID={`${channel}-row-${toggle.category}`}
             />
           );
         })}
       </View>
     );
-  }
+  };
+
+  const saveAlert = (prefs: UseChannelPreferencesResult) =>
+    prefs.saveError ? (
+      <Text accessibilityRole="alert" style={[s.alert, { color: palette.error[700] }]}>
+        {prefs.saveError}
+      </Text>
+    ) : null;
+
+  const deviceOn = device.state === 'on';
+  const deviceLocked = device.state === 'blocked' || device.state === 'unavailable';
 
   return (
     <SafeAreaView style={[layoutStyle.screen, { backgroundColor: colors.background }]}>
@@ -135,14 +144,62 @@ export default function NotificationSettings() {
           </Text>
         </View>
 
+        {loadState ? <View style={s.sectionGap}>{loadState}</View> : null}
+
         <View style={[s.section, s.sectionGap]}>
           <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Email</Text>
-          {body}
-          {email.saveError ? (
-            <Text accessibilityRole="alert" style={[s.alert, { color: palette.error[700] }]}>
-              {email.saveError}
+          {hasVerifiedEmail ? (
+            toggleList('email', email)
+          ) : (
+            <Text
+              accessibilityRole="text"
+              style={[s.note, { color: colors.text.secondary }]}
+              testID="notification-settings-no-email">
+              Add an email to get important updates when the app is closed.
+            </Text>
+          )}
+          {saveAlert(email)}
+        </View>
+
+        <View style={[s.section, s.sectionGap]}>
+          <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Push</Text>
+          <SettingsRow
+            icon={emailIcon}
+            title="Push on this device"
+            description="Alerts on this phone, even when Influsis is closed"
+            variant="card"
+            onPress={deviceLocked ? undefined : device.toggle}
+            trailing={
+              <Toggle
+                value={deviceOn}
+                disabled={device.busy || deviceLocked}
+                accessibilityLabel="Push on this device"
+                accessibilityState={{ checked: deviceOn, disabled: device.busy || deviceLocked }}
+                onPress={device.toggle}
+                testID="push-device-toggle"
+              />
+            }
+            testID="push-device-row"
+          />
+          {device.state === 'blocked' ? (
+            <View style={s.deviceNote} testID="push-device-blocked">
+              <Text style={[s.note, { color: colors.text.secondary }]}>
+                Turned off in your phone settings
+              </Text>
+              <Pressable accessibilityRole="link" hitSlop={8} onPress={device.openSettings}>
+                <Text style={[s.link, { color: palette.primary[500] }]}>Open settings</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {device.state === 'unavailable' ? (
+            <Text
+              style={[s.note, { color: colors.text.secondary }]}
+              testID="push-device-unavailable">
+              Push unavailable on this device
             </Text>
           ) : null}
+          {toggleList('push', push)}
+          {saveAlert(push)}
         </View>
       </ScrollView>
     </SafeAreaView>

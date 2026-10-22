@@ -788,7 +788,7 @@ The business side is `web` item 48, staff is `admin` item 34.
           `targetParams` -> `/notifications`), held until the session is
           restored; `kind: 'batch'` opens `/notifications`; the iOS badge is set
           to `NT2` on every foreground.
-    - [ ] 38e3. **Push settings** - the "Push on this device" switch (on ->
+    - [x] 38e3. **Push settings** - the "Push on this device" switch (on ->
           permission + `NT7`, off -> `NT8` + `deleteToken()`, "Turned off in
           your phone settings" with an OS-settings link when blocked) and one
           **Push** toggle per category next to Email (`NT5`/`NT6` `push`).

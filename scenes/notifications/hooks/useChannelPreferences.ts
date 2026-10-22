@@ -3,13 +3,20 @@ import {
   useGetNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
 } from '@/services/notificationsApi';
-import { diffEmail, EmailToggle, emailMap, emailToggles } from '../utils/emailPreferences';
+import {
+  channelMap,
+  ChannelToggle,
+  channelToggles,
+  diffChannel,
+  PreferenceChannel,
+} from '../utils/channelPreferences';
 
-export const EMAIL_SAVE_ERROR = "Couldn't save your email settings. Try again.";
+export const saveErrorFor = (channel: PreferenceChannel) =>
+  `Couldn't save your ${channel} settings. Try again.`;
 
-export interface UseEmailPreferencesResult {
+export interface UseChannelPreferencesResult {
   /** NT5's categories with the on-screen (optimistic) values. */
-  toggles: EmailToggle[];
+  toggles: ChannelToggle[];
   isLoading: boolean;
   isError: boolean;
   retry: () => void;
@@ -18,12 +25,20 @@ export interface UseEmailPreferencesResult {
   toggle: (category: string) => void;
 }
 
-// Email toggles (NT5 / NT6, build-plan 38c). A toggle shows at once; saving
-// is serialized: one NT6 at a time, and when it settles the hook sends
-// whatever still differs between the screen and the server, so rapid taps
-// end on the last state and overlapping requests can never land out of
-// order. A failure puts the screen back on the server's values.
-export function useEmailPreferences({ skip }: { skip: boolean }): UseEmailPreferencesResult {
+// One channel's per-category toggles (NT5 / NT6): email (build-plan 38c) or
+// push (38e3). A toggle shows at once; saving is serialized: one NT6 at a
+// time, and when it settles the hook sends whatever still differs between
+// the screen and the server, so rapid taps end on the last state and
+// overlapping requests can never land out of order. A failure puts the screen
+// back on the server's values. NT6 is partial per channel, so an email and a
+// push instance saving at the same time never undo each other.
+export function useChannelPreferences({
+  channel,
+  skip,
+}: {
+  channel: PreferenceChannel;
+  skip: boolean;
+}): UseChannelPreferencesResult {
   const { data, isLoading, isError, refetch } = useGetNotificationPreferencesQuery(undefined, {
     skip,
   });
@@ -46,9 +61,9 @@ export function useEmailPreferences({ skip }: { skip: boolean }): UseEmailPrefer
   // A (re)load from the server, outside a save, is the new baseline.
   useEffect(() => {
     if (!data || inFlight.current) return;
-    confirmedRef.current = emailMap(data);
-    setDesiredBoth(emailMap(data));
-  }, [data, setDesiredBoth]);
+    confirmedRef.current = channelMap(data, channel);
+    setDesiredBoth(channelMap(data, channel));
+  }, [data, channel, setDesiredBoth]);
 
   const flush = useCallback(async () => {
     if (inFlight.current) return;
@@ -56,14 +71,14 @@ export function useEmailPreferences({ skip }: { skip: boolean }): UseEmailPrefer
     setIsSaving(true);
     try {
       for (;;) {
-        const email = diffEmail(desiredRef.current, confirmedRef.current);
-        if (!email) break;
+        const diff = diffChannel(desiredRef.current, confirmedRef.current);
+        if (!diff) break;
         try {
-          confirmedRef.current = emailMap(await update({ email }).unwrap());
+          confirmedRef.current = channelMap(await update({ [channel]: diff }).unwrap(), channel);
         } catch (err) {
           setDesiredBoth({ ...confirmedRef.current });
           const e = err as { statusCode?: number; message?: string };
-          setSaveError(e?.statusCode === 422 && e.message ? e.message : EMAIL_SAVE_ERROR);
+          setSaveError(e?.statusCode === 422 && e.message ? e.message : saveErrorFor(channel));
           break;
         }
       }
@@ -71,7 +86,7 @@ export function useEmailPreferences({ skip }: { skip: boolean }): UseEmailPrefer
       inFlight.current = false;
       setIsSaving(false);
     }
-  }, [update, setDesiredBoth]);
+  }, [update, channel, setDesiredBoth]);
 
   const toggle = useCallback(
     (category: string) => {
@@ -86,9 +101,12 @@ export function useEmailPreferences({ skip }: { skip: boolean }): UseEmailPrefer
   const toggles = useMemo(
     () =>
       data
-        ? emailToggles(data).map(t => ({ ...t, enabled: desired[t.category] ?? t.enabled }))
+        ? channelToggles(data, channel).map(t => ({
+            ...t,
+            enabled: desired[t.category] ?? t.enabled,
+          }))
         : [],
-    [data, desired],
+    [data, desired, channel],
   );
 
   return {

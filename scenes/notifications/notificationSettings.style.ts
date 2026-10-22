@@ -50,4 +50,16 @@ export const notificationSettingsStyle = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
+  // "Turned off in your phone settings" + "Open settings".
+  deviceNote: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  link: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '600',
+  },
 });

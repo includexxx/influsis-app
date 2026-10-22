@@ -32,6 +32,7 @@ function fakeMessaging(overrides: Partial<PushMessaging> = {}): PushMessaging {
 }
 
 let stored: StoredPushDevice | null;
+let optedOut: Set<string>;
 let messaging: PushMessaging | null;
 let actions: UnknownAction[];
 type RegisterBody = { token: string; platform: 'ios' | 'android' };
@@ -63,6 +64,11 @@ function makeDeps(os: 'ios' | 'android' = 'ios', androidApiLevel = 34) {
       remove: async () => {
         stored = null;
       },
+      isOptedOut: async (userId: string) => optedOut.has(userId),
+      setOptedOut: async (userId: string, off: boolean) => {
+        if (off) optedOut.add(userId);
+        else optedOut.delete(userId);
+      },
     },
     api: {
       register: jest.fn(async () => ({ id: 'dev-1' })),
@@ -76,6 +82,7 @@ function makeDeps(os: 'ios' | 'android' = 'ios', androidApiLevel = 34) {
 
 beforeEach(() => {
   stored = null;
+  optedOut = new Set();
   messaging = fakeMessaging();
   actions = [];
   deps = makeDeps();
@@ -147,10 +154,11 @@ describe('registerDevice', () => {
       registeredAt: new Date(NOW - ageMs).toISOString(),
     });
 
-    test('skips within 24 h for the same user', async () => {
+    test('skips within 24 h for the same user, still reporting the device id', async () => {
       stored = recently('u-1', REGISTER_INTERVAL_MS - 1);
       await expect(registerDevice(deps, { force: false })).resolves.toBe('skipped');
       expect(deps.api.register).not.toHaveBeenCalled();
+      expect(actions).toContainEqual(deviceRegistered('dev-0'));
     });
 
     test('force (a sign-in) registers anyway', async () => {
@@ -166,6 +174,19 @@ describe('registerDevice', () => {
     test('registers after 24 h', async () => {
       stored = recently('u-1', REGISTER_INTERVAL_MS);
       await expect(registerDevice(deps, { force: false })).resolves.toBe('registered');
+    });
+  });
+
+  describe('switched off on this device (38e3)', () => {
+    test.each([true, false])('no NT7, even when forced (%s)', async force => {
+      optedOut.add('u-1');
+      await expect(registerDevice(deps, { force })).resolves.toBe('opted-out');
+      expect(deps.api.register).not.toHaveBeenCalled();
+    });
+
+    test('another creator on the same device still registers', async () => {
+      optedOut.add('u-2');
+      await expect(registerDevice(deps, { force: true })).resolves.toBe('registered');
     });
   });
 
