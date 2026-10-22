@@ -9,6 +9,9 @@ const mockFirebase = {
   getToken: jest.fn(async () => 'fcm-token'),
   deleteToken: jest.fn(async () => undefined),
   onTokenRefresh: jest.fn(() => () => undefined),
+  onMessage: jest.fn(() => () => undefined),
+  onNotificationOpenedApp: jest.fn(() => () => undefined),
+  getInitialNotification: jest.fn(async () => ({ data: { kind: 'batch' } })),
 };
 
 jest.mock('@react-native-firebase/messaging', () => mockFirebase);
@@ -52,6 +55,18 @@ describe('getPushMessaging', () => {
     expect(mockFirebase.hasPermission).toHaveBeenCalledWith(instance);
     expect(mockFirebase.requestPermission).toHaveBeenCalledWith(instance);
     expect(mockFirebase.onTokenRefresh).toHaveBeenCalledWith(instance, expect.any(Function));
+
+    messaging!.onMessage(() => undefined);
+    messaging!.onNotificationOpenedApp(() => undefined);
+    await expect(messaging!.getInitialNotification()).resolves.toEqual({
+      data: { kind: 'batch' },
+    });
+    expect(mockFirebase.onMessage).toHaveBeenCalledWith(instance, expect.any(Function));
+    expect(mockFirebase.onNotificationOpenedApp).toHaveBeenCalledWith(
+      instance,
+      expect.any(Function),
+    );
+    expect(mockFirebase.getInitialNotification).toHaveBeenCalledWith(instance);
   });
 
   test('is cached', () => {

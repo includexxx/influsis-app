@@ -26,6 +26,8 @@ export interface NotificationsLiveState {
   resyncCount: number;
   /** The high-urgency notification the in-app banner shows. */
   banner: NotificationItem | null;
+  /** Ids whose banner already showed (socket or foreground push), newest last. */
+  bannerShownIds: string[];
   connected: boolean;
 }
 
@@ -34,8 +36,15 @@ const initialState: NotificationsLiveState = {
   read: EMPTY_READ_STATE,
   resyncCount: 0,
   banner: null,
+  bannerShownIds: [],
   connected: false,
 };
+
+/** Remembers that `id`'s banner showed, so its second arrival (socket or push) doesn't. */
+function markBannerShown(state: NotificationsLiveState, id: string) {
+  if (state.bannerShownIds.includes(id)) return;
+  state.bannerShownIds = [...state.bannerShownIds, id].slice(-LIVE_INCOMING_CAP);
+}
 
 export interface ReadEventPayload {
   ids?: string[];
@@ -56,7 +65,14 @@ const slice = createSlice({
     notificationReceived: (state, { payload }: PayloadAction<NotificationItem>) => {
       if (state.incoming.some(item => item.id === payload.id)) return;
       state.incoming = [payload, ...state.incoming].slice(0, LIVE_INCOMING_CAP);
-      if (payload.urgency === 'high') state.banner = payload;
+      if (payload.urgency === 'high' && !state.bannerShownIds.includes(payload.id)) {
+        state.banner = payload;
+        markBannerShown(state, payload.id);
+      }
+    },
+    /** A foreground push showed this banner (38e2): a later socket copy shows none. */
+    pushBannerShown: (state, { payload }: PayloadAction<string>) => {
+      markBannerShown(state, payload);
     },
     notificationsReadReceived: {
       reducer: (state, { payload }: PayloadAction<ReadEventPayload & { receivedAt: string }>) => {
@@ -100,6 +116,7 @@ export const {
   markedReadLocally,
   markReadReverted,
   resyncRequested,
+  pushBannerShown,
   showBanner,
   bannerDismissed,
   connectionChanged,

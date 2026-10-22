@@ -8,6 +8,8 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useIncomingNotificationLinks } from '@/hooks/useIncomingNotificationLinks';
 import { useNotificationReadParam } from '@/hooks/useNotificationReadParam';
 import { usePushSetup } from '@/hooks/usePushSetup';
+import { usePushHandlers } from '@/hooks/usePushHandlers';
+import { useAppBadge } from '@/hooks/useAppBadge';
 import Provider from '@/providers';
 import NotificationBannerHost from '@/components/layouts/NotificationBannerHost';
 import PushPromptHost from '@/components/layouts/PushPromptHost';
@@ -33,6 +35,9 @@ function Router() {
   useNotificationReadParam();
   // Push (38e1): Android channels and FCM token refresh.
   usePushSetup();
+  // Push (38e2): foreground pushes, taps, and the iOS app badge.
+  usePushHandlers();
+  useAppBadge();
 
   /**
    * preload assets, then rehydrate the session from the token store

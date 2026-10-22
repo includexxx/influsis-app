@@ -11,6 +11,7 @@ import reducer, {
   markReadReverted,
   notificationReceived,
   notificationsReadReceived,
+  pushBannerShown,
   resyncRequested,
   showBanner,
 } from './notificationsLive.slice';
@@ -117,5 +118,26 @@ describe('notificationsLive slice', () => {
     clearSessionState(store.dispatch);
 
     expect(store.getState().notificationsLive).toEqual(initial);
+  });
+
+  test('a push banner first: the socket copy of the same id shows none', () => {
+    let state = reducer(initial, pushBannerShown('h'));
+    state = reducer(state, notificationReceived(item('h', { urgency: 'high' })));
+    expect(state.banner).toBeNull();
+    expect(state.incoming.map(i => i.id)).toEqual(['h']);
+  });
+
+  test('a socket banner first: it is recorded, so a later push skips it', () => {
+    const state = reducer(initial, notificationReceived(item('h', { urgency: 'high' })));
+    expect(state.banner?.id).toBe('h');
+    expect(state.bannerShownIds).toEqual(['h']);
+  });
+
+  test('remembers at most LIVE_INCOMING_CAP shown banners', () => {
+    let state = initial;
+    for (let i = 0; i < LIVE_INCOMING_CAP + 3; i++)
+      state = reducer(state, pushBannerShown(`p-${i}`));
+    expect(state.bannerShownIds).toHaveLength(LIVE_INCOMING_CAP);
+    expect(state.bannerShownIds.at(-1)).toBe(`p-${LIVE_INCOMING_CAP + 2}`);
   });
 });

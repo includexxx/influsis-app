@@ -689,7 +689,7 @@ The business side is `web` item 48, staff is `admin` item 34.
           SHA-256 fingerprints and the production bundle ids (not in the repo),
           a new native build, and a decision on dev/staging link domains.
           Verify cold start and warm start on iOS and Android.
-  - [ ] 38e. **Push notifications (backend 24g `NT5`-`NT8`, FCM)** -
+  - [x] 38e. **Push notifications (backend 24g `NT5`-`NT8`, FCM)** -
         `@react-native-firebase/app` + `@react-native-firebase/messaging`
         (new native dependencies, so a new EAS development build; Expo Go
         cannot run them) with their config plugins in `app.config.ts`, and
@@ -781,7 +781,7 @@ The business side is `web` item 48, staff is `admin` item 34.
           `onTokenRefresh`, "Push unavailable on this device" when
           `getToken()` fails, and best-effort `NT8` + `deleteToken()` before
           sign-out (`404` is success).
-    - [ ] 38e2. **Receiving pushes** - foreground `onMessage` shows the 38b
+    - [x] 38e2. **Receiving pushes** - foreground `onMessage` shows the 38b
           banner unless the socket already delivered that `notificationId`,
           then refetches `NT2`; background and cold-start taps mark read with
           `NT3` and open `routeFor(...)` rebuilt from the push data (bad

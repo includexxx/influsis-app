@@ -27,6 +27,9 @@ function fakeMessaging(overrides: Partial<PushMessaging> = {}): PushMessaging {
     getToken: jest.fn(async () => 'fcm-token'),
     deleteToken: jest.fn(async () => undefined),
     onTokenRefresh: jest.fn(() => () => undefined),
+    onMessage: jest.fn(() => () => undefined),
+    onNotificationOpenedApp: jest.fn(() => () => undefined),
+    getInitialNotification: jest.fn(async () => null),
     ...overrides,
   };
 }

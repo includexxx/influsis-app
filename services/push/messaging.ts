@@ -16,12 +16,24 @@ export const PUSH_AUTH_STATUS = {
   EPHEMERAL: 3,
 } as const;
 
+/** The part of a React Native Firebase RemoteMessage the app reads (38e2). */
+export interface PushMessage {
+  data?: Record<string, unknown>;
+  notification?: { title?: string; body?: string };
+}
+
 export interface PushMessaging {
   hasPermission(): Promise<number>;
   requestPermission(): Promise<number>;
   getToken(): Promise<string>;
   deleteToken(): Promise<void>;
   onTokenRefresh(listener: (token: string) => void): () => void;
+  /** A push while the app is in the foreground (no system notification is shown). */
+  onMessage(listener: (message: PushMessage) => void): () => void;
+  /** A push tapped while the app was in the background. */
+  onNotificationOpenedApp(listener: (message: PushMessage) => void): () => void;
+  /** The push whose tap launched the app from closed, if any. */
+  getInitialNotification(): Promise<PushMessage | null>;
 }
 
 let cached: PushMessaging | null | undefined;
@@ -41,6 +53,9 @@ function load(): PushMessaging | null {
       getToken: () => m.getToken(instance),
       deleteToken: () => m.deleteToken(instance),
       onTokenRefresh: listener => m.onTokenRefresh(instance, listener),
+      onMessage: listener => m.onMessage(instance, listener),
+      onNotificationOpenedApp: listener => m.onNotificationOpenedApp(instance, listener),
+      getInitialNotification: () => m.getInitialNotification(instance),
     };
   } catch {
     return null;
