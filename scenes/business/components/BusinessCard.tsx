@@ -9,6 +9,7 @@ import { reputationBrief } from '@/scenes/profile/utils/reputation';
 import { BusinessDirectoryItem } from '../types/businessDirectory';
 import { formatBusinessLocation } from '../utils/businessCard';
 import BusinessAvatar from './BusinessAvatar';
+import { resolveMediaUrl } from '@/utils/media';
 
 export type BusinessCardVariant = ViewMode;
 
@@ -79,7 +80,7 @@ function BusinessCard({ business, variant = 'stack', onPress, style }: BusinessC
   const avatar = (
     <View style={[styles.ring, ringStyle]}>
       <BusinessAvatar
-        source={business.avatarUrl ? { uri: business.avatarUrl } : null}
+        source={business.avatarUrl ? { uri: resolveMediaUrl(business.avatarUrl) as string } : null}
         businessName={business.businessName}
         size={avatarSize}
       />

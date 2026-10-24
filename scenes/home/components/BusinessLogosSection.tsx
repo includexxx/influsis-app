@@ -7,6 +7,7 @@ import {
 } from '@/scenes/business/api/businessDirectoryApi';
 import { BusinessAvatar, BusinessesEmptyState } from '@/scenes/business/components';
 import AvatarTile, { AVATAR_TILE_SIZE, AvatarTileSkeleton } from './AvatarTile';
+import { resolveMediaUrl } from '@/utils/media';
 
 export interface BusinessLogosSectionProps {
   onSeeAllPress?: () => void;
@@ -54,7 +55,9 @@ function BusinessLogosSection({ onSeeAllPress, onBusinessPress }: BusinessLogosS
                   testID={`home-business-${item.userId}`}
                   avatar={
                     <BusinessAvatar
-                      source={item.avatarUrl ? { uri: item.avatarUrl } : null}
+                      source={
+                        item.avatarUrl ? { uri: resolveMediaUrl(item.avatarUrl) as string } : null
+                      }
                       businessName={item.businessName}
                       size={AVATAR_TILE_SIZE}
                     />

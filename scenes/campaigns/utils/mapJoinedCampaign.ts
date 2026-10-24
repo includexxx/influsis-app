@@ -1,11 +1,11 @@
 import { ImageSourcePropType } from 'react-native';
 import { CampaignCardProps } from '@/components/elements/CampaignCard';
-import { resolveMediaKeyOrUrl } from '@/utils/media';
+import { resolveMediaUrl } from '@/utils/media';
 import { MyEngagementItem } from '../types/myEngagement';
 import { formatCampaignDueDate, formatEngagementPrice } from './mapCampaignFeedItem';
 
 function toRemoteSource(keyOrUrl: string | null | undefined): ImageSourcePropType | null {
-  const url = resolveMediaKeyOrUrl(keyOrUrl);
+  const url = resolveMediaUrl(keyOrUrl);
   return url ? { uri: url } : null;
 }
 

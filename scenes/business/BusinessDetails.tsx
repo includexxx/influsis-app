@@ -1,25 +1,26 @@
-import { View, Text, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams, Redirect } from 'expo-router';
-import { useTheme } from '@/hooks';
-import { layoutStyle } from '@/styles';
-import { businessDetailsStyle } from './businessDetails.style';
-import ScreenHeader from '@/components/elements/ScreenHeader';
-import Image from '@/components/elements/Image';
 import FallbackImage from '@/components/elements/FallbackImage';
+import Image from '@/components/elements/Image';
+import ScreenHeader from '@/components/elements/ScreenHeader';
+import { useTheme } from '@/hooks';
+import ReviewsList from '@/scenes/profile/components/ReviewsList';
+import { layoutStyle } from '@/styles';
+import { resolveMediaUrl } from '@/utils/media';
+import { Feather } from '@expo/vector-icons';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useGetBusinessProfileQuery,
   useGetBusinessReviewsPageQuery,
 } from './api/businessDirectoryApi';
-import ReviewsList from '@/scenes/profile/components/ReviewsList';
-import { businessRatingSummary } from './utils/businessReputation';
+import { businessDetailsStyle } from './businessDetails.style';
 import {
   BusinessAvatar,
   BusinessCampaignsSection,
   BusinessDetailsSkeleton,
   BusinessesEmptyState,
 } from './components';
+import { businessRatingSummary } from './utils/businessReputation';
 
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 const globeIcon = require('@/assets/images/business-details/globe.png');
@@ -75,12 +76,12 @@ export default function BusinessDetails() {
           <>
             <View style={businessDetailsStyle.bannerWrap}>
               <FallbackImage
-                source={business.coverUrl ? { uri: business.coverUrl } : null}
+                source={business.coverUrl ? { uri: resolveMediaUrl(business.coverUrl) } : null}
                 name={business.businessName}
                 style={businessDetailsStyle.banner}
               />
               <BusinessAvatar
-                source={business.avatarUrl ? { uri: business.avatarUrl } : null}
+                source={business.avatarUrl ? { uri: resolveMediaUrl(business.avatarUrl) } : null}
                 businessName={business.businessName}
                 size={62}
                 style={businessDetailsStyle.avatar}

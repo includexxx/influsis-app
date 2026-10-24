@@ -116,17 +116,17 @@ describe('mapCampaignFeedItemToCard', () => {
     expect(result.businessAvatar).toBeNull();
   });
 
-  test('rewrites a local-dev localhost media URL onto the API host', () => {
+  test('passes absolute local-dev media URLs through unchanged', () => {
     const result = mapCampaignFeedItemToCard({
       ...baseCampaign,
       coverUrl: 'http://localhost:3001/uploads/campaign-images/cover.webp',
       avatarUrl: 'http://127.0.0.1:3001/uploads/campaign-images/avatar.webp',
     });
     expect(result.image).toEqual({
-      uri: 'http://192.168.0.10:3001/uploads/campaign-images/cover.webp',
+      uri: 'http://localhost:3001/uploads/campaign-images/cover.webp',
     });
     expect(result.businessAvatar).toEqual({
-      uri: 'http://192.168.0.10:3001/uploads/campaign-images/avatar.webp',
+      uri: 'http://127.0.0.1:3001/uploads/campaign-images/avatar.webp',
     });
   });
 

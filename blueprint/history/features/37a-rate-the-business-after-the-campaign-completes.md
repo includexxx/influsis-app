@@ -48,117 +48,117 @@ feature. `workflow.checkpointCommits: "disabled"`: no per-step commits;
 ## Build steps
 
 - [x] **1. Review API and types.** Add `scenes/campaigns/types/review.ts`
-  (`EngagementReview`, `EngagementReviewState`, `PendingReview`,
-  `SubmitReviewArgs`) per Data / contracts. In `campaignFeedApi.ts` add a
-  `'EngagementReviews'` and a `'PendingReviews'` tag type and:
-  `getEngagementReviews({ engagementId })` -> `GET
-  /engagements/:engagementId/reviews`, provides `{ type: 'EngagementReviews',
-  id }`; `submitEngagementReview({ engagementId, rating, message })` -> `POST`
-  same URL with body `{ rating, message }`, invalidates that id tag,
-  `'PendingReviews'` and `{ type: 'MyEngagement', id }` (not on error);
-  `getPendingReviews({ page, limit })` -> `GET /me/reviews/pending`, provides
-  `'PendingReviews'`. Export the hooks.
-  **Done when** `campaignFeedApi.test.ts` asserts each URL, method, params
-  and body, and that a successful submit refetches a subscribed CK1; tests
-  pass.
+      (`EngagementReview`, `EngagementReviewState`, `PendingReview`,
+      `SubmitReviewArgs`) per Data / contracts. In `campaignFeedApi.ts` add a
+      `'EngagementReviews'` and a `'PendingReviews'` tag type and:
+      `getEngagementReviews({ engagementId })` -> `GET
+/engagements/:engagementId/reviews`, provides `{ type: 'EngagementReviews',
+id }`; `submitEngagementReview({ engagementId, rating, message })` -> `POST`
+      same URL with body `{ rating, message }`, invalidates that id tag,
+      `'PendingReviews'` and `{ type: 'MyEngagement', id }` (not on error);
+      `getPendingReviews({ page, limit })` -> `GET /me/reviews/pending`, provides
+      `'PendingReviews'`. Export the hooks.
+      **Done when** `campaignFeedApi.test.ts` asserts each URL, method, params
+      and body, and that a successful submit refetches a subscribed CK1; tests
+      pass.
 
 - [x] **2. Half stars in `StarRating`.** Round `rating` to the nearest 0.5,
-  render `floor` full stars plus one half star (the filled icon clipped to
-  half its width) when a half remains and fewer than `maxStars` stars are
-  shown. `maxStars={1}` callers (Creator Profile header) are unchanged.
-  **Done when** `StarRating.test.tsx` covers 4 -> 4 full, 4.5 -> 4 full + 1
-  half, 0 -> none, `maxStars={1}` with 4.5 -> 1 full; existing callers'
-  tests still pass.
+      render `floor` full stars plus one half star (the filled icon clipped to
+      half its width) when a half remains and fewer than `maxStars` stars are
+      shown. `maxStars={1}` callers (Creator Profile header) are unchanged.
+      **Done when** `StarRating.test.tsx` covers 4 -> 4 full, 4.5 -> 4 full + 1
+      half, 0 -> none, `maxStars={1}` with 4.5 -> 1 full; existing callers'
+      tests still pass.
 
 - [x] **3. `StarRatingInput` element.** New
-  `components/elements/StarRatingInput/` (`StarRatingInput.tsx`, `index.ts`,
-  test). Props: `value: number | null`, `onChange(value)`, `starSize?`,
-  `disabled?`, `testID?`. Five stars, each split into two pressable halves
-  (left = n - 0.5, right = n), empty stars drawn in a muted theme color,
-  filled/half as in `StarRating`. Accessibility: one element with
-  `accessibilityRole="adjustable"`, label "Rating", `accessibilityValue`
-  `{ min: 0, max: 5, now, text }` ("4.5 out of 5 stars" / "No rating"),
-  `increment`/`decrement` actions in 0.5 steps clamped to 0-5 (increment
-  from `null` -> 0.5, decrement from 0.5 -> 0). Colors from `@/theme`.
-  **Done when** tests show tapping the left/right half sets 2.5/3, the
-  increment/decrement actions step and clamp, `disabled` ignores input, and
-  the value text updates; tests pass.
+      `components/elements/StarRatingInput/` (`StarRatingInput.tsx`, `index.ts`,
+      test). Props: `value: number | null`, `onChange(value)`, `starSize?`,
+      `disabled?`, `testID?`. Five stars, each split into two pressable halves
+      (left = n - 0.5, right = n), empty stars drawn in a muted theme color,
+      filled/half as in `StarRating`. Accessibility: one element with
+      `accessibilityRole="adjustable"`, label "Rating", `accessibilityValue`
+      `{ min: 0, max: 5, now, text }` ("4.5 out of 5 stars" / "No rating"),
+      `increment`/`decrement` actions in 0.5 steps clamped to 0-5 (increment
+      from `null` -> 0.5, decrement from 0.5 -> 0). Colors from `@/theme`.
+      **Done when** tests show tapping the left/right half sets 2.5/3, the
+      increment/decrement actions step and clamp, `disabled` ignores input, and
+      the value text updates; tests pass.
 
 - [x] **4. Review form logic.** `scenes/campaigns/utils/review.ts`: a zod
-  schema (rating required, 0-5, multiple of 0.5 -> "Choose a rating";
-  message trimmed, 10-2000 -> "Write at least 10 characters" / "Keep it under
-  2000 characters"), `toReviewPayload` (trims the message), a `422` mapper
-  that puts `errors.rating` / `errors.message` on the matching field (follow
-  `utils/applyErrors.ts`), and `reviewCardState(state, now)` returning one of
-  `none` (not completed) | `write` | `write-theyReviewed` | `submitted-blind`
-  (mine, theirs null; carries `mine.visibleAt` / `isVisible`) | `revealed`
-  (theirs present), plus `canReview`.
-  **Done when** `utils/review.test.ts` covers trimming, bounds, half steps, 0
-  accepted, null rejected, the 422 mapping, and every `reviewCardState`
-  branch including a hidden review and "theirs visible after 7 days while
-  `canReview`"; tests pass.
+      schema (rating required, 0-5, multiple of 0.5 -> "Choose a rating";
+      message trimmed, 10-2000 -> "Write at least 10 characters" / "Keep it under
+      2000 characters"), `toReviewPayload` (trims the message), a `422` mapper
+      that puts `errors.rating` / `errors.message` on the matching field (follow
+      `utils/applyErrors.ts`), and `reviewCardState(state, now)` returning one of
+      `none` (not completed) | `write` | `write-theyReviewed` | `submitted-blind`
+      (mine, theirs null; carries `mine.visibleAt` / `isVisible`) | `revealed`
+      (theirs present), plus `canReview`.
+      **Done when** `utils/review.test.ts` covers trimming, bounds, half steps, 0
+      accepted, null rejected, the 422 mapping, and every `reviewCardState`
+      branch including a hidden review and "theirs visible after 7 days while
+      `canReview`"; tests pass.
 
 - [x] **5. Review screen.** Route `app/(details)/engagement/[id]/review.tsx`
-  (thin re-export) -> `ReviewBusinessScreen` (exported from
-  `scenes/campaigns/index.ts`, styles in `reviewBusiness.style.ts`). Params:
-  `id`, `title` (campaign), `business` (name; falls back to "the business").
-  Reads CK1. States: loading skeleton; CK1 `404` -> `<Redirect href="/home"
-  />` (the ApplyCampaign pattern); other error -> `CampaignsEmptyState
-  variant="error"` with retry; `engagementStatus !== 'completed'` -> notice
-  "Reviews open once the engagement is completed."; `canReview` -> form;
-  `mine` present -> submitted state. Form: `StarRatingInput`, message field
-  (`ControlledTextField`, multiline, `maxLength={2000}`, live `n/2000`
-  counter), the note "Reviews can't be edited or deleted after you submit.",
-  Submit (loading while sending, disabled while submitting). Field errors show
-  under their field with `accessibilityRole="alert"` and clear when the field
-  changes. On `409 ALREADY_EXISTS` or `409 CONFLICT` refetch CK1 (the screen
-  then shows the submitted state or the "not completed" notice); any other
-  error shows the backend message as a root alert. Submitted state: "Your
-  review" (stars, message, date), the visibility line (`isVisible` ? "Visible
-  to {business}" : "{business} can see it on {revealAt date}, or sooner if
-  they review you"), and when `theirs` is present "{business}'s review of
-  you". A review with `hidden: true` keeps its content and shows "Hidden by
-  Influsis". Messages render as plain `<Text>`.
-  **Done when** `ReviewBusinessScreen.test.tsx` (mocked `request`, the
-  `Applications.test.tsx` pattern) covers: form submit sends the trimmed
-  body; client validation blocks submit without a request; a 422 lands on
-  the field; 409 ALREADY_EXISTS refetches into the submitted state; the
-  revealed state shows both reviews; a hidden review shows the note; a
-  not-completed engagement shows the notice. Tests pass.
+      (thin re-export) -> `ReviewBusinessScreen` (exported from
+      `scenes/campaigns/index.ts`, styles in `reviewBusiness.style.ts`). Params:
+      `id`, `title` (campaign), `business` (name; falls back to "the business").
+      Reads CK1. States: loading skeleton; CK1 `404` -> `<Redirect href="/home"
+/>` (the ApplyCampaign pattern); other error -> `CampaignsEmptyState
+variant="error"` with retry; `engagementStatus !== 'completed'` -> notice
+      "Reviews open once the engagement is completed."; `canReview` -> form;
+      `mine` present -> submitted state. Form: `StarRatingInput`, message field
+      (`ControlledTextField`, multiline, `maxLength={2000}`, live `n/2000`
+      counter), the note "Reviews can't be edited or deleted after you submit.",
+      Submit (loading while sending, disabled while submitting). Field errors show
+      under their field with `accessibilityRole="alert"` and clear when the field
+      changes. On `409 ALREADY_EXISTS` or `409 CONFLICT` refetch CK1 (the screen
+      then shows the submitted state or the "not completed" notice); any other
+      error shows the backend message as a root alert. Submitted state: "Your
+      review" (stars, message, date), the visibility line (`isVisible` ? "Visible
+      to {business}" : "{business} can see it on {revealAt date}, or sooner if
+      they review you"), and when `theirs` is present "{business}'s review of
+      you". A review with `hidden: true` keeps its content and shows "Hidden by
+      Influsis". Messages render as plain `<Text>`.
+      **Done when** `ReviewBusinessScreen.test.tsx` (mocked `request`, the
+      `Applications.test.tsx` pattern) covers: form submit sends the trimmed
+      body; client validation blocks submit without a request; a 422 lands on
+      the field; 409 ALREADY_EXISTS refetches into the submitted state; the
+      revealed state shows both reviews; a hidden review shows the note; a
+      not-completed engagement shows the notice. Tests pass.
 
 - [x] **6. Review card on the Offer screen.** On `OfferScreen`, when the
-  engagement (CF3) `status === 'completed'`, read CK1 (skip the query
-  otherwise) and render a review section under the status summary following
-  `reviewCardState`: `write` -> "How was working with {business}?" with
-  "Write a review"; `write-theyReviewed` -> "{business} reviewed you. Write
-  yours to see it." with "Write a review"; `submitted-blind` -> "Review
-  submitted" with the visibility line; `revealed` -> both ratings with "Read
-  reviews"; a CK1 error shows nothing (the rest of the screen is
-  unaffected). Every button opens `/engagement/[id]/review` with `title` and
-  `business` (`campaign.data?.business?.businessName`, already read by the
-  screen). Put the card in a feature component
-  `scenes/campaigns/components/EngagementReviewCard.tsx`.
-  **Done when** `OfferScreen.test.tsx` gains cases for `write`,
-  `submitted-blind` and `revealed`, and a non-completed engagement makes no
-  CK1 request; tests pass.
+      engagement (CF3) `status === 'completed'`, read CK1 (skip the query
+      otherwise) and render a review section under the status summary following
+      `reviewCardState`: `write` -> "How was working with {business}?" with
+      "Write a review"; `write-theyReviewed` -> "{business} reviewed you. Write
+      yours to see it." with "Write a review"; `submitted-blind` -> "Review
+      submitted" with the visibility line; `revealed` -> both ratings with "Read
+      reviews"; a CK1 error shows nothing (the rest of the screen is
+      unaffected). Every button opens `/engagement/[id]/review` with `title` and
+      `business` (`campaign.data?.business?.businessName`, already read by the
+      screen). Put the card in a feature component
+      `scenes/campaigns/components/EngagementReviewCard.tsx`.
+      **Done when** `OfferScreen.test.tsx` gains cases for `write`,
+      `submitted-blind` and `revealed`, and a non-completed engagement makes no
+      CK1 request; tests pass.
 
 - [x] **7. Deliverables "Rate {business}" and the Home section.**
-  Deliverables screen: on `stage === 'delivered'`, read CK1 and when
-  `canReview` show a primary "Rate {business}" button (falls back to "Rate
-  the business") that opens the review screen. Home: new
-  `scenes/home/components/ReviewsToWriteSection.tsx` reading
-  `getPendingReviews({ page: 1, limit: CAMPAIGNS_PREVIEW_LIMIT })`, placed
-  after `ActiveCampaignsSection`, rendering nothing while loading, on error,
-  or when empty; otherwise a "Reviews to write" header and one row per
-  pending review (counterparty avatar via `resolveMediaKeyOrUrl` with an
-  initial fallback, "Rate {displayName}", campaign title, and "They've
-  reviewed you" when `theirsSubmitted`), each opening the review screen with
-  `title = campaign.title`, `business = counterparty.displayName`. Add the
-  query to `useHomeRefresh`.
-  **Done when** tests cover the section's hidden-when-empty and row-tap
-  navigation, and the Deliverables screen shows the button only for a
-  delivered engagement with `canReview`; full `npm run test`, `npm run lint`
-  pass.
+      Deliverables screen: on `stage === 'delivered'`, read CK1 and when
+      `canReview` show a primary "Rate {business}" button (falls back to "Rate
+      the business") that opens the review screen. Home: new
+      `scenes/home/components/ReviewsToWriteSection.tsx` reading
+      `getPendingReviews({ page: 1, limit: CAMPAIGNS_PREVIEW_LIMIT })`, placed
+      after `ActiveCampaignsSection`, rendering nothing while loading, on error,
+      or when empty; otherwise a "Reviews to write" header and one row per
+      pending review (counterparty avatar via `resolveMediaUrl` with an
+      initial fallback, "Rate {displayName}", campaign title, and "They've
+      reviewed you" when `theirsSubmitted`), each opening the review screen with
+      `title = campaign.title`, `business = counterparty.displayName`. Add the
+      query to `useHomeRefresh`.
+      **Done when** tests cover the section's hidden-when-empty and row-tap
+      navigation, and the Deliverables screen shows the button only for a
+      delivered engagement with `canReview`; full `npm run test`, `npm run lint`
+      pass.
 
 ## Files / areas
 
@@ -199,7 +199,7 @@ the reviewer and direction from the token; the client never sends either.
 - **CK8** `GET /me/reviews/pending?page=&limit=` -> `PendingReview[]`
   (newest `completedAt` first; empty is `200 []`): `engagementId`,
   `completedAt`, `theirsSubmitted`, `campaign { id, title }`, `counterparty
-  { userId, displayName, avatarUrl (string | null) }`. A gone account shows
+{ userId, displayName, avatarUrl (string | null) }`. A gone account shows
   as "Former Influsis member".
 - `0` is a real rating. No review is not a 0-star review.
 

@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { resolveMediaKeyOrUrl } from '@/utils/media';
+import { resolveMediaUrl } from '@/utils/media';
 import { MyEngagementItem } from '../types/myEngagement';
 import {
   MONTH_LABELS,
@@ -14,7 +14,7 @@ const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 
 function toRemoteSource(keyOrUrl: string | null | undefined): ImageSourcePropType | null {
-  const url = resolveMediaKeyOrUrl(keyOrUrl);
+  const url = resolveMediaUrl(keyOrUrl);
   return url ? { uri: url } : null;
 }
 

@@ -103,7 +103,7 @@ feature commit. Create the branch from the current branch,
 ## Build steps
 
 - [x] **1. Agreement logic.** Add `scenes/campaigns/utils/agreement.ts` (see
-  Data / contracts) and `agreement.test.ts`.
+      Data / contracts) and `agreement.test.ts`.
 
   **Done when:** `npm run test` passes with cases for:
   - `licensingMarkupMinor`: tier 1 → 0, tier 2 → 25%, tier 3 → 50%, and
@@ -120,9 +120,9 @@ feature commit. Create the branch from the current branch,
     business, deadline "No deadline set"
 
 - [x] **2. `AgreementSheet` component.** Add
-  `scenes/campaigns/components/AgreementSheet.tsx`, exported from the
-  `components` barrel and built on `BottomSheet` like `OptionSheet`, plus
-  `AgreementSheet.test.tsx`.
+      `scenes/campaigns/components/AgreementSheet.tsx`, exported from the
+      `components` barrel and built on `BottomSheet` like `OptionSheet`, plus
+      `AgreementSheet.test.tsx`.
 
   **Done when:** `npm run test` passes for:
   - confirm mode renders the business, campaign, deliverables, deadline and
@@ -193,7 +193,7 @@ feature commit. Create the branch from the current branch,
 - `CB2` `useGetFeedCampaignQuery({ id: campaignId })` → `CampaignFeedDetail`.
   This feature uses `title`, `licensingTier`, `contentDeadline` and
   `business.businessName` / `business.avatarUrl` (resolve the avatar with
-  `resolveMediaKeyOrUrl`).
+  `resolveMediaUrl`).
   - **CB2 returns `404` for any campaign that isn't live.**
   - Confirm mode **requires** CB2: the tier decides the creator's pay. If it
     fails, show "Couldn't load the campaign terms." with Retry and no Accept.
@@ -216,14 +216,14 @@ export type AgreementMode = 'confirm' | 'confirmed';
 
 export interface CreatorAgreement {
   mode: AgreementMode;
-  offerId: string | null;          // confirm: the business's pending offer; confirmed: null
-  businessName: string | null;     // null when CB2 is unavailable
+  offerId: string | null; // confirm: the business's pending offer; confirmed: null
+  businessName: string | null; // null when CB2 is unavailable
   businessAvatarUrl: string | null;
-  campaignTitle: string;           // CB2 title ?? route title ?? 'Campaign'
+  campaignTitle: string; // CB2 title ?? route title ?? 'Campaign'
   scope: ScopeItem[];
-  contentDeadline: string;         // formatted, or 'No deadline set'
-  youReceiveMinor: number;         // agreed + markup (F-2/F-6)
-  licensingMinor: number;          // the markup part, 0 on tier 1
+  contentDeadline: string; // formatted, or 'No deadline set'
+  youReceiveMinor: number; // agreed + markup (F-2/F-6)
+  licensingMinor: number; // the markup part, 0 on tier 1
   licensingPercent: 0 | 25 | 50;
   currency: string;
   acceptedAt: string | null;
@@ -232,9 +232,12 @@ export interface CreatorAgreement {
 
 export function buildCreatorAgreement(
   detail: MyEngagementDetail,
-  campaign: Pick<CampaignFeedDetail, 'title' | 'licensingTier' | 'contentDeadline' | 'business'> | null,
+  campaign: Pick<
+    CampaignFeedDetail,
+    'title' | 'licensingTier' | 'contentDeadline' | 'business'
+  > | null,
   mode: AgreementMode,
-  fallbackTitle?: string
+  fallbackTitle?: string,
 ): CreatorAgreement | null;
 ```
 
@@ -254,16 +257,16 @@ export function buildCreatorAgreement(
 
 **`AgreementSheet` copy** (top to bottom):
 
-| Row | Content |
-|---|---|
-| Header | Confirm: "Review the agreement". Confirmed: "Agreement confirmed · {acceptedAt}", plus a "Completed" badge when completed. |
-| Business | avatar and name (omitted when unknown) |
-| Campaign | title |
-| Deliverables | `scopeItemLabel` per row, or "No deliverables set" |
-| Content deadline | the date |
-| **You'll receive** | ৳X, the largest text on the sheet |
-| Licensing line (tier 2/3 only) | "Includes ৳{licensing} for paid-ad usage rights (+{25\|50}%)" |
-| Confirm only | "Accepting locks this price and these deliverables. It can't be undone." |
+| Row                            | Content                                                                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Header                         | Confirm: "Review the agreement". Confirmed: "Agreement confirmed · {acceptedAt}", plus a "Completed" badge when completed. |
+| Business                       | avatar and name (omitted when unknown)                                                                                     |
+| Campaign                       | title                                                                                                                      |
+| Deliverables                   | `scopeItemLabel` per row, or "No deliverables set"                                                                         |
+| Content deadline               | the date                                                                                                                   |
+| **You'll receive**             | ৳X, the largest text on the sheet                                                                                          |
+| Licensing line (tier 2/3 only) | "Includes ৳{licensing} for paid-ad usage rights (+{25\|50}%)"                                                              |
+| Confirm only                   | "Accepting locks this price and these deliverables. It can't be undone."                                                   |
 
 **Buttons**
 

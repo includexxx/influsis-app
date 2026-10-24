@@ -1,42 +1,40 @@
-import { describe, expect, jest, test } from '@jest/globals';
-import { resolveMediaKeyOrUrl, resolveMediaUrl } from './media';
+import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals';
 
-jest.mock('./config', () => ({
-  __esModule: true,
-  default: { apiUrl: 'http://192.168.0.10:3001/api/v1' },
-}));
+const ORIGIN = 'http://192.168.0.10:3001';
+const originalEnv = process.env.EXPO_API_ORIGIN;
 
-describe('resolveMediaUrl', () => {
-  test('rewrites a localhost origin onto the API host', () => {
-    expect(resolveMediaUrl('http://localhost:3001/uploads/a.webp')).toBe(
-      'http://192.168.0.10:3001/uploads/a.webp',
-    );
-  });
+let resolveMediaUrl: typeof import('./media').resolveMediaUrl;
 
-  test('leaves other URLs alone', () => {
-    expect(resolveMediaUrl('https://cdn.test/a.webp')).toBe('https://cdn.test/a.webp');
+beforeAll(() => {
+  // The origin is read once at module load, so set it before loading media.
+  process.env.EXPO_API_ORIGIN = ORIGIN;
+  jest.isolateModules(() => {
+    ({ resolveMediaUrl } = require('./media'));
   });
 });
 
-describe('resolveMediaKeyOrUrl', () => {
-  test('serves a bare storage key from the API host upload path', () => {
-    expect(resolveMediaKeyOrUrl('campaign-images/a.webp')).toBe(
-      'http://192.168.0.10:3001/uploads/campaign-images/a.webp',
-    );
-    expect(resolveMediaKeyOrUrl('/campaign-images/a.webp')).toBe(
-      'http://192.168.0.10:3001/uploads/campaign-images/a.webp',
+afterAll(() => {
+  if (originalEnv === undefined) delete process.env.EXPO_API_ORIGIN;
+  else process.env.EXPO_API_ORIGIN = originalEnv;
+});
+
+describe('resolveMediaUrl', () => {
+  test('leaves absolute URLs alone', () => {
+    expect(resolveMediaUrl('https://cdn.test/a.webp')).toBe('https://cdn.test/a.webp');
+    expect(resolveMediaUrl('http://localhost:3001/uploads/a.webp')).toBe(
+      'http://localhost:3001/uploads/a.webp',
     );
   });
 
-  test('treats absolute URLs like resolveMediaUrl', () => {
-    expect(resolveMediaKeyOrUrl('http://127.0.0.1:3001/uploads/a.webp')).toBe(
-      'http://192.168.0.10:3001/uploads/a.webp',
+  test('prefixes a relative path with the API origin', () => {
+    expect(resolveMediaUrl('/uploads/campaign-images/a.webp')).toBe(
+      `${ORIGIN}/uploads/campaign-images/a.webp`,
     );
-    expect(resolveMediaKeyOrUrl('https://cdn.test/a.webp')).toBe('https://cdn.test/a.webp');
   });
 
-  test('returns null for no value', () => {
-    expect(resolveMediaKeyOrUrl(null)).toBeNull();
-    expect(resolveMediaKeyOrUrl('')).toBeNull();
+  test('returns an empty string for no value', () => {
+    expect(resolveMediaUrl(null)).toBe('');
+    expect(resolveMediaUrl(undefined)).toBe('');
+    expect(resolveMediaUrl('')).toBe('');
   });
 });

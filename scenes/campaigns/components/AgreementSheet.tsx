@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks';
 import { getShadowStyle, palette, radius, spacing } from '@/theme';
-import { resolveMediaKeyOrUrl } from '@/utils/media';
+import { resolveMediaUrl } from '@/utils/media';
 import BottomSheet from '@/components/elements/BottomSheet';
 import Button from '@/components/elements/Button';
 import Image from '@/components/elements/Image';
@@ -256,7 +256,7 @@ function AgreementSheet({
     }
 
     const confirm = agreement.mode === 'confirm';
-    const avatar = resolveMediaKeyOrUrl(agreement.businessAvatarUrl);
+    const avatar = resolveMediaUrl(agreement.businessAvatarUrl);
     const youReceive = formatCampaignPrice(agreement.youReceiveMinor, agreement.currency);
     const acceptDisabled = isStale || isAccepting;
     const initial = (agreement.businessName ?? agreement.campaignTitle).trim().charAt(0);

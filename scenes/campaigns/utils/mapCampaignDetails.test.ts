@@ -41,13 +41,13 @@ const business = {
 };
 
 describe('getCampaignDetailsAvatarUrl', () => {
-  test("prefers the campaign's own avatar, resolving a localhost origin", () => {
+  test("prefers the campaign's own avatar", () => {
     const campaign = {
       avatarUrl: 'http://localhost:3001/uploads/campaign-images/a.webp',
       business: { ...business, avatarUrl: 'https://cdn.test/logo.png' },
     } as CampaignFeedDetail;
     expect(getCampaignDetailsAvatarUrl(campaign)).toBe(
-      'http://192.168.0.10:3001/uploads/campaign-images/a.webp',
+      'http://localhost:3001/uploads/campaign-images/a.webp',
     );
   });
 

@@ -14,7 +14,7 @@ export type EngagementOrigin = 'invited' | 'requested';
 // The campaign summary each row carries so a list renders without a second
 // call. `coverUrl`/`avatarUrl` are NOT resolved by the backend on this
 // endpoint - they can be bare storage keys (see utils/media.ts's
-// resolveMediaKeyOrUrl). No business name is included.
+// resolveMediaUrl). No business name is included.
 export interface EngagementCampaignSummary {
   campaignId: string;
   title: string;

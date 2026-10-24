@@ -25,7 +25,7 @@ const engagement: MyEngagementItem = {
     campaignId: 'c1',
     title: 'New Shop Openning',
     status: 'live',
-    coverUrl: 'campaign-images/cover.webp',
+    coverUrl: 'https://cdn.test/campaign-images/cover.webp',
     avatarUrl: null,
     budgetMinAmountMinor: 600000,
     budgetMaxAmountMinor: 600000,
@@ -36,9 +36,9 @@ const engagement: MyEngagementItem = {
 };
 
 describe('mapJoinedCampaignToCard', () => {
-  test('shows the agreed fee, content deadline, and a resolved cover', () => {
+  test('shows the agreed fee, content deadline, and the cover', () => {
     expect(mapJoinedCampaignToCard(engagement)).toEqual({
-      image: { uri: 'http://192.168.0.10:3001/uploads/campaign-images/cover.webp' },
+      image: { uri: 'https://cdn.test/campaign-images/cover.webp' },
       businessAvatar: null,
       title: 'New Shop Openning',
       price: 'BDT 5,500',

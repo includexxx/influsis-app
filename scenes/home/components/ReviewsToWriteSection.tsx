@@ -2,7 +2,7 @@ import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-n
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks';
 import { palette, radius, spacing } from '@/theme';
-import { resolveMediaKeyOrUrl } from '@/utils/media';
+import { resolveMediaUrl } from '@/utils/media';
 import Image from '@/components/elements/Image';
 import SectionHeader from '@/components/elements/SectionHeader';
 import {
@@ -90,7 +90,7 @@ function ReviewsToWriteSection({ onReviewPress, style }: ReviewsToWriteSectionPr
       />
       <View style={styles.list}>
         {data.map(review => {
-          const avatar = resolveMediaKeyOrUrl(review.counterparty.avatarUrl);
+          const avatar = resolveMediaUrl(review.counterparty.avatarUrl);
           const name = review.counterparty.displayName;
           return (
             <Pressable

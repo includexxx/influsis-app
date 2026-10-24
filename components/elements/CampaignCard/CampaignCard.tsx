@@ -19,7 +19,7 @@ import StatusBadge from '../StatusBadge';
 const verifiedBadge = require('@/assets/images/home/verified-badge.png');
 // Shown when a campaign has no cover photo, or its URL fails to load - the
 // same generic campaign hero image the mock Home data used for this slot.
-const defaultCover: ImageSourcePropType = require('@/assets/images/home/hero-campaign.jpg');
+const defaultCover: ImageSourcePropType = require('@/assets/images/home/gray.jpg');
 
 export type CampaignCardVariant = 'hero' | 'list';
 
